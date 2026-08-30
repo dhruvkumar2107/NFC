@@ -182,155 +182,216 @@ function OrderContent() {
     } catch { alert('Failed to place order. Please try again.'); setSubmitting(false) }
   }
 
+  const stepLabels = ['Design', 'Details', 'Preview', 'Payment']
+
   return (
-    <div className="py-20">
-      <div className="max-w-3xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center mb-4">Place Your Order</h1>
+    <div className="min-h-screen gradient-mesh">
+      <div className="py-20 px-4">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 tracking-tight animate-fade-in">
+            Place Your Order
+          </h1>
 
-          <div className="flex items-center justify-center gap-2 mb-4">
-            {[1, 2, 3, 4].map((s) => (
-              <div key={s} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${s <= step ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'}`}>{s}</div>
-                {s < 4 && <div className={`w-12 h-0.5 ${s < step ? 'bg-primary-600' : 'bg-gray-200'}`} />}
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-center gap-6 sm:gap-8 mb-10 text-xs sm:text-sm text-gray-500">
-            <span className={step === 1 ? 'text-primary-600 font-semibold' : ''}>Design</span>
-            <span className={step === 2 ? 'text-primary-600 font-semibold' : ''}>Details</span>
-            <span className={step === 3 ? 'text-primary-600 font-semibold' : ''}>Preview</span>
-            <span className={step === 4 ? 'text-primary-600 font-semibold' : ''}>Payment</span>
+          {/* Step Indicator */}
+          <div className="glass-strong rounded-full px-6 py-4 max-w-lg mx-auto mb-12 animate-fade-in">
+            <div className="flex items-center justify-between relative">
+              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200/60 -translate-y-1/2 rounded-full" />
+              <div
+                className="absolute top-1/2 left-0 h-0.5 bg-primary-500 -translate-y-1/2 rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${((step - 1) / 3) * 100}%` }}
+              />
+              {[1, 2, 3, 4].map((s) => (
+                <div key={s} className="relative z-10 flex flex-col items-center gap-2">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
+                    s <= step
+                      ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/30'
+                      : 'glass text-gray-400'
+                  }`}>
+                    {s < step ? (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : s}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between mt-3 px-1">
+              {stepLabels.map((label, i) => (
+                <span key={label} className={`text-[11px] font-medium transition-colors duration-300 ${
+                  step === i + 1 ? 'text-primary-600' : 'text-gray-400'
+                }`}>
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
 
+          {/* Step 1 - Design */}
           {step === 1 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6">Select Card Design</h2>
-              {errors.designId && <p className="text-red-500 text-sm mb-4">{errors.designId}</p>}
+            <div className="animate-slide-up">
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">Select Card Design</h2>
+              {errors.designId && (
+                <div className="glass rounded-2xl p-4 mb-6 border border-red-200/50 bg-red-50/50">
+                  <p className="text-red-600 text-sm font-medium">{errors.designId}</p>
+                </div>
+              )}
               <div className="space-y-4">
                 {designs.map((d) => (
-                  <label key={d.id} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${form.designId === d.id ? 'border-primary-600 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <label
+                    key={d.id}
+                    className={`glass flex items-center gap-5 p-5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                      form.designId === d.id
+                        ? 'ring-2 ring-primary-500/40 shadow-lg shadow-primary-500/10'
+                        : 'hover:shadow-md'
+                    }`}
+                  >
                     <input type="radio" name="design" value={d.id} checked={form.designId === d.id} onChange={(e) => setField('designId', e.target.value)} className="sr-only" />
-                    <div className="w-20 h-12 rounded-lg flex items-center justify-center bg-white border-2 border-gray-200 flex-shrink-0">
+                    <div className="w-24 h-14 rounded-xl flex items-center justify-center bg-white border border-gray-200/60 flex-shrink-0 shadow-sm">
                       <span className="text-xs font-bold text-gray-700">{d.name}</span>
                     </div>
-                    <div className="flex-1">
-                      <span className="font-semibold">{d.name}</span>
-                      <div className="text-2xl font-bold text-primary-600">₹{d.price}</div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-gray-900 block">{d.name}</span>
+                      <div className="text-2xl font-bold text-primary-600 mt-0.5">₹{d.price}</div>
                     </div>
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${form.designId === d.id ? 'border-primary-600 bg-primary-600' : 'border-gray-300'}`}>
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                      form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-md shadow-primary-600/30' : 'border-gray-300'
+                    }`}>
                       {form.designId === d.id && <div className="w-2 h-2 bg-white rounded-full" />}
                     </div>
                   </label>
                 ))}
-                {designs.length === 0 && <p className="text-gray-500 text-center py-8">Loading designs...</p>}
+                {designs.length === 0 && (
+                  <div className="glass rounded-2xl text-center py-12">
+                    <p className="text-gray-500">Loading designs...</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
+          {/* Step 2 - Details */}
           {step === 2 && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6">Customer Details</h2>
+            <div className="animate-slide-up">
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">Customer Details</h2>
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-gray-700">Personal Information</h3>
+                {/* Personal Information */}
+                <div className="glass rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Personal Information</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                      <label className="label">Full Name *</label>
                       <input type="text" value={form.fullName} onChange={(e) => setField('fullName', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`} placeholder="John Doe" />
-                      {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+                        className={`input-field ${errors.fullName ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="John Doe" />
+                      {errors.fullName && <p className="text-red-500 text-xs mt-1.5">{errors.fullName}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
-                      <input type="text" value={form.designation} onChange={(e) => setField('designation', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Founder & CEO" />
+                      <label className="label">Designation</label>
+                      <input type="text" value={form.designation} onChange={(e) => setField('designation', e.target.value)}
+                        className="input-field" placeholder="Founder & CEO" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Company / Business</label>
-                      <input type="text" value={form.company} onChange={(e) => setField('company', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Acme Pvt. Ltd." />
+                      <label className="label">Company / Business</label>
+                      <input type="text" value={form.company} onChange={(e) => setField('company', e.target.value)}
+                        className="input-field" placeholder="Acme Pvt. Ltd." />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                      <input type="text" value={form.location} onChange={(e) => setField('location', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Mumbai, India" />
+                      <label className="label">Location</label>
+                      <input type="text" value={form.location} onChange={(e) => setField('location', e.target.value)}
+                        className="input-field" placeholder="Mumbai, India" />
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-gray-700">Contact Information</h3>
+                {/* Contact Information */}
+                <div className="glass rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Contact Information</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mobile *</label>
+                      <label className="label">Mobile *</label>
                       <input type="tel" value={form.mobile} onChange={(e) => setField('mobile', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none ${errors.mobile ? 'border-red-500' : 'border-gray-300'}`} placeholder="9876543210" />
-                      {errors.mobile && <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>}
+                        className={`input-field ${errors.mobile ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="9876543210" />
+                      {errors.mobile && <p className="text-red-500 text-xs mt-1.5">{errors.mobile}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
-                      <input type="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)} className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none ${errors.whatsapp ? 'border-red-500' : 'border-gray-300'}`} placeholder="9876543210" />
-                      {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
+                      <label className="label">WhatsApp</label>
+                      <input type="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)}
+                        className={`input-field ${errors.whatsapp ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="9876543210" />
+                      {errors.whatsapp && <p className="text-red-500 text-xs mt-1.5">{errors.whatsapp}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                      <label className="label">Email *</label>
                       <input type="email" value={form.email} onChange={(e) => setField('email', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none ${errors.email ? 'border-red-500' : 'border-gray-300'}`} placeholder="john@example.com" />
-                      {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                        className={`input-field ${errors.email ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="john@example.com" />
+                      {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                      <input type="url" value={form.website} onChange={(e) => setField('website', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="https://example.com" />
+                      <label className="label">Website</label>
+                      <input type="url" value={form.website} onChange={(e) => setField('website', e.target.value)}
+                        className="input-field" placeholder="https://example.com" />
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-gray-700">Social Links</h3>
+                {/* Social Links */}
+                <div className="glass rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Social Links</h3>
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
-                      <input type="text" value={form.instagram} onChange={(e) => setField('instagram', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="@username" />
+                      <label className="label">Instagram</label>
+                      <input type="text" value={form.instagram} onChange={(e) => setField('instagram', e.target.value)}
+                        className="input-field" placeholder="@username" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
-                      <input type="text" value={form.facebook} onChange={(e) => setField('facebook', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="facebook.com/username" />
+                      <label className="label">Facebook</label>
+                      <input type="text" value={form.facebook} onChange={(e) => setField('facebook', e.target.value)}
+                        className="input-field" placeholder="facebook.com/username" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
-                      <input type="text" value={form.linkedin} onChange={(e) => setField('linkedin', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="linkedin.com/in/username" />
+                      <label className="label">LinkedIn</label>
+                      <input type="text" value={form.linkedin} onChange={(e) => setField('linkedin', e.target.value)}
+                        className="input-field" placeholder="linkedin.com/in/username" />
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-gray-700">Profile & Branding</h3>
+                {/* Profile & Branding */}
+                <div className="glass rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Profile & Branding</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Profile Photo URL</label>
-                      <input type="url" value={form.profilePhotoUrl} onChange={(e) => setField('profilePhotoUrl', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="https://example.com/photo.jpg" />
+                      <label className="label">Profile Photo URL</label>
+                      <input type="url" value={form.profilePhotoUrl} onChange={(e) => setField('profilePhotoUrl', e.target.value)}
+                        className="input-field" placeholder="https://example.com/photo.jpg" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
-                      <input type="url" value={form.logoUrl} onChange={(e) => setField('logoUrl', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="https://example.com/logo.png" />
+                      <label className="label">Logo URL</label>
+                      <input type="url" value={form.logoUrl} onChange={(e) => setField('logoUrl', e.target.value)}
+                        className="input-field" placeholder="https://example.com/logo.png" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description / Bio</label>
-                    <textarea value={form.description} onChange={(e) => setField('description', e.target.value)} rows={3} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none" placeholder="Tell people about yourself or your business..." />
+                    <label className="label">Description / Bio</label>
+                    <textarea value={form.description} onChange={(e) => setField('description', e.target.value)} rows={3}
+                      className="input-field resize-none" placeholder="Tell people about yourself or your business..." />
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-gray-700">Payment</h3>
+                {/* Payment */}
+                <div className="glass rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Payment</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">UPI ID</label>
-                      <input type="text" value={form.upiId} onChange={(e) => setField('upiId', e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="yourname@upi" />
+                      <label className="label">UPI ID</label>
+                      <input type="text" value={form.upiId} onChange={(e) => setField('upiId', e.target.value)}
+                        className="input-field" placeholder="yourname@upi" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Referral / Employee Code</label>
+                      <label className="label">Referral / Employee Code</label>
                       <input type="text" value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none ${errors.referralCode ? 'border-red-500' : form.referralCode && referralValid === true ? 'border-green-500' : 'border-gray-300'}`} placeholder="Optional" />
-                      {errors.referralCode && <p className="text-red-500 text-xs mt-1">{errors.referralCode}</p>}
-                      {form.referralCode && referralValid === true && <p className="text-green-600 text-xs mt-1">Valid referral code</p>}
+                        className={`input-field ${errors.referralCode ? '!border-red-400 !ring-red-400/20' : form.referralCode && referralValid === true ? '!border-green-400 !ring-green-400/20' : ''}`} placeholder="Optional" />
+                      {errors.referralCode && <p className="text-red-500 text-xs mt-1.5">{errors.referralCode}</p>}
+                      {form.referralCode && referralValid === true && <p className="text-green-600 text-xs mt-1.5">Valid referral code</p>}
                     </div>
                   </div>
                 </div>
@@ -338,44 +399,66 @@ function OrderContent() {
             </div>
           )}
 
+          {/* Step 3 - Preview */}
           {step === 3 && selectedDesign && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6">Preview Your Profile</h2>
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-w-md mx-auto border border-gray-200">
-                <div className="bg-gradient-to-br from-primary-600 to-primary-800 p-6 text-white">
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-white/20 flex-shrink-0">
-                      {form.profilePhotoUrl ? (
-                        <img src={form.profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl font-bold">{form.fullName ? form.fullName.charAt(0) : '?'}</div>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">{form.fullName || 'Your Name'}</h3>
-                      {form.designation && <p className="text-sm opacity-80">{form.designation}</p>}
-                      {form.company && <p className="text-sm opacity-70">{form.company}</p>}
-                    </div>
+            <div className="animate-slide-up">
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">Preview Your Profile</h2>
+              <div className="glass-strong rounded-3xl overflow-hidden max-w-md mx-auto shadow-xl">
+                <div className="bg-gradient-to-br from-primary-600 to-primary-800 p-8 text-center text-white">
+                  <div className="w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden ring-4 ring-white/20 shadow-xl">
+                    {form.profilePhotoUrl ? (
+                      <img src={form.profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-white/20">
+                        {form.fullName ? form.fullName.charAt(0) : '?'}
+                      </div>
+                    )}
                   </div>
+                  <h3 className="text-xl font-bold">{form.fullName || 'Your Name'}</h3>
+                  {form.designation && <p className="text-primary-100 mt-1 text-sm">{form.designation}</p>}
+                  {form.company && <p className="text-primary-200 text-sm mt-0.5">{form.company}</p>}
                 </div>
                 <div className="p-6 space-y-4">
-                  {form.description && <p className="text-gray-600 text-sm">{form.description}</p>}
-                  <div className="space-y-2 text-sm">
-                    {form.mobile && <div className="flex items-center gap-2 text-gray-700"><span>📱</span> <span>{form.mobile}</span></div>}
-                    {form.email && <div className="flex items-center gap-2 text-gray-700"><span>✉️</span> <span>{form.email}</span></div>}
-                    {form.location && <div className="flex items-center gap-2 text-gray-700"><span>📍</span> <span>{form.location}</span></div>}
-                    {form.website && <div className="flex items-center gap-2 text-gray-700"><span>🌐</span> <span>{form.website}</span></div>}
+                  {form.description && <p className="text-gray-600 text-sm leading-relaxed">{form.description}</p>}
+                  <div className="space-y-2.5 text-sm">
+                    {form.mobile && (
+                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+                        <span>{form.mobile}</span>
+                      </div>
+                    )}
+                    {form.email && (
+                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                        <span>{form.email}</span>
+                      </div>
+                    )}
+                    {form.location && (
+                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                        <span>{form.location}</span>
+                      </div>
+                    )}
+                    {form.website && (
+                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                        <span>{form.website}</span>
+                      </div>
+                    )}
                   </div>
                   {(form.instagram || form.facebook || form.linkedin) && (
-                    <div className="flex gap-3 pt-2">
-                      {form.instagram && <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-medium">Instagram</span>}
-                      {form.facebook && <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Facebook</span>}
-                      {form.linkedin && <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">LinkedIn</span>}
+                    <div className="flex gap-2 pt-2">
+                      {form.instagram && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-pink-600">Instagram</span>}
+                      {form.facebook && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-600">Facebook</span>}
+                      {form.linkedin && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-700">LinkedIn</span>}
                     </div>
                   )}
                   {form.upiId && (
-                    <div className="pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-2 text-sm text-gray-700"><span>💳</span> <span>UPI: {form.upiId}</span></div>
+                    <div className="pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-2 text-sm text-gray-700 glass-subtle rounded-xl p-3">
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+                        <span>UPI: {form.upiId}</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -383,44 +466,49 @@ function OrderContent() {
             </div>
           )}
 
+          {/* Step 4 - Payment */}
           {step === 4 && selectedDesign && (
-            <div>
-              <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
-              <div className="bg-white rounded-xl border border-gray-200 p-6 max-w-md mx-auto">
-                <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-100">
-                  <div className="w-16 h-10 rounded-lg flex items-center justify-center bg-white border-2 border-gray-200">
+            <div className="animate-slide-up">
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">Order Summary</h2>
+              <div className="glass-strong rounded-3xl p-8 max-w-md mx-auto shadow-xl">
+                <div className="flex items-center gap-5 mb-6 pb-6 border-b border-gray-100/60">
+                  <div className="w-20 h-12 rounded-xl flex items-center justify-center bg-white border border-gray-200/60 shadow-sm flex-shrink-0">
                     <span className="text-xs font-bold text-gray-700">{selectedDesign.name}</span>
                   </div>
                   <div>
-                    <div className="font-semibold">{selectedDesign.name} Card</div>
-                    <div className="text-sm text-gray-500">NFC Smart Card</div>
+                    <div className="font-semibold text-gray-900">{selectedDesign.name} Card</div>
+                    <div className="text-sm text-gray-400 mt-0.5">NFC Smart Card</div>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm mb-4">
-                  <div className="flex justify-between"><span className="text-gray-500">Name</span><span className="font-medium">{form.fullName}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium">{form.email}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Mobile</span><span className="font-medium">{form.mobile}</span></div>
+                <div className="space-y-3 text-sm mb-6">
+                  <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="font-medium text-gray-900">{form.fullName}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Email</span><span className="font-medium text-gray-900">{form.email}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Mobile</span><span className="font-medium text-gray-900">{form.mobile}</span></div>
                   {form.referralCode && referralValid && (
-                    <div className="flex justify-between"><span className="text-gray-500">Referral</span><span className="font-medium text-green-600">{form.referralCode}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Referral</span><span className="font-medium text-green-600">{form.referralCode}</span></div>
                   )}
                 </div>
-                <div className="border-t border-gray-100 pt-4 flex justify-between">
-                  <span className="font-semibold text-lg">Total</span>
-                  <span className="font-bold text-xl text-primary-600">₹{selectedDesign.price}</span>
+                <div className="border-t border-gray-100/60 pt-5 flex justify-between items-center">
+                  <span className="font-semibold text-lg text-gray-900">Total</span>
+                  <span className="font-bold text-2xl text-primary-600">₹{selectedDesign.price}</span>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="flex justify-between mt-10 max-w-md mx-auto">
+          {/* Navigation */}
+          <div className="flex justify-between mt-12 max-w-md mx-auto">
             {step > 1 ? (
-              <button onClick={handleBack} className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">Back</button>
+              <button onClick={handleBack} className="btn-secondary px-8">
+                Back
+              </button>
             ) : <div />}
             {step < 4 ? (
-              <button onClick={handleNext} className="px-8 py-3 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors">Continue</button>
+              <button onClick={handleNext} className="btn-primary px-10">
+                Continue
+              </button>
             ) : (
-              <button onClick={handleSubmit} disabled={submitting}
-                className="px-8 py-3 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={handleSubmit} disabled={submitting} className="btn-primary px-10">
                 {submitting ? (
                   <span className="flex items-center gap-2">
                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
@@ -430,6 +518,7 @@ function OrderContent() {
               </button>
             )}
           </div>
+        </div>
       </div>
     </div>
   )
@@ -437,7 +526,14 @@ function OrderContent() {
 
 export default function OrderPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen gradient-mesh flex items-center justify-center">
+        <div className="glass-strong rounded-3xl p-12 text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    }>
       <OrderContent />
     </Suspense>
   )

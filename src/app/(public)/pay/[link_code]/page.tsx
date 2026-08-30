@@ -31,50 +31,65 @@ export default async function PayReferralPage({ params }: { params: { link_code:
   const { employee, designs } = data
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden text-center">
-          <div className="bg-primary-600 p-8 text-white">
-            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold mx-auto mb-4">
-              {employee.name?.charAt(0) || '?'}
+    <div className="min-h-screen gradient-hero flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.12),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(0,0,0,0.1),transparent_50%)]" />
+
+      <div className="w-full max-w-md relative z-10 animate-scale-in">
+        <div className="glass-strong rounded-3xl overflow-hidden shadow-2xl shadow-black/10 text-center">
+          {/* Header */}
+          <div className="bg-gradient-to-br from-primary-600 to-primary-800 p-10 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+            <div className="relative z-10">
+              <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl font-bold mx-auto mb-5 ring-4 ring-white/15 shadow-xl">
+                {employee.name?.charAt(0) || '?'}
+              </div>
+              <h1 className="text-2xl font-bold">MySmartCard</h1>
+              <p className="text-primary-100 mt-1 text-sm">Premium NFC Smart Card</p>
             </div>
-            <h1 className="text-2xl font-bold">MySmartCard</h1>
-            <p className="text-primary-100 mt-1">Premium NFC Smart Card</p>
           </div>
 
-          <div className="p-6">
-            <div className="bg-primary-50 rounded-xl p-4 mb-6">
-              <p className="text-sm text-primary-600 font-medium mb-1">Referred by</p>
+          {/* Content */}
+          <div className="p-7">
+            {/* Employee Info */}
+            <div className="glass rounded-2xl p-5 mb-6">
+              <p className="text-xs text-primary-500 font-semibold uppercase tracking-wider mb-1.5">Referred by</p>
               <p className="text-lg font-bold text-gray-900">{employee.name}</p>
-              <p className="text-xs text-gray-500">Sales Executive • {employee.employeeId}</p>
+              <p className="text-xs text-gray-400 mt-0.5">Sales Executive &middot; {employee.employeeId}</p>
               {employee.territory && <p className="text-xs text-gray-400 mt-1">{employee.territory}</p>}
             </div>
 
-            <div className="space-y-3 mb-6">
+            {/* Design List */}
+            <div className="space-y-2.5 mb-7">
               {designs.map((d, i) => (
-                <div key={d.id} className={`flex items-center justify-between p-3 rounded-lg border ${i === 1 ? 'border-2 border-primary-200 bg-primary-50' : 'border-gray-200'}`}>
+                <div key={d.id} className={`flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${
+                  i === 1
+                    ? 'glass ring-1 ring-primary-200/50 shadow-md shadow-primary-500/5'
+                    : 'glass-subtle hover:shadow-sm'
+                }`}>
                   <div>
-                    <p className="font-medium text-sm">{d.name}</p>
+                    <p className="font-semibold text-sm text-gray-900">{d.name}</p>
                   </div>
-                  <p className="font-bold">₹{d.price.toLocaleString()}</p>
+                  <p className="font-bold text-gray-900">₹{d.price.toLocaleString()}</p>
                 </div>
               ))}
             </div>
 
+            {/* CTA */}
             <Link
               href={`/order?referral=${employee.referralLinkCode}&via=link`}
-              className="btn-primary w-full text-center block text-lg py-4"
+              className="btn-primary w-full text-center block text-lg py-4 rounded-2xl"
             >
               Buy Your MySmartCard
             </Link>
 
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-gray-400 mt-5 leading-relaxed">
               Your order will be attributed to {employee.name}. They will deliver your card in person.
             </p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-white/50 mt-4">
+        <p className="text-center text-xs text-white/40 mt-5 font-medium tracking-wide">
           Powered by MySmartCard.net
         </p>
       </div>

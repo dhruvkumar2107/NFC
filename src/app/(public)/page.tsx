@@ -37,19 +37,24 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-600 to-primary-800 text-white py-20 sm:py-28">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-            Tap. Connect. Get Paid.
+      <section className="relative overflow-hidden gradient-hero text-white py-32 sm:py-40">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-20 w-96 h-96 bg-primary-300/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-400/10 rounded-full blur-3xl" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-6 text-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-8 tracking-tight leading-[1.1]">
+            Tap. Connect.<br />Get Paid.
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-primary-100 mb-8 max-w-2xl mx-auto">
-            MySmartCard is your NFC-powered smart card. Share your profile instantly and receive payments with a simple tap or scan.
+          <p className="text-lg sm:text-xl md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Your NFC-powered smart card. Share your profile instantly and receive payments with a simple tap or scan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/order" className="bg-white text-primary-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-50 transition-colors">
+            <Link href="/order" className="glass-strong text-gray-900 px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white transition-all duration-300 shadow-glass-lg hover:shadow-glass-xl hover:-translate-y-0.5">
               Buy Your MySmartCard
             </Link>
-            <Link href="/cards" className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white/10 transition-colors">
+            <Link href="/cards" className="glass text-white px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5">
               View Card Designs
             </Link>
           </div>
@@ -57,15 +62,19 @@ export default async function HomePage() {
       </section>
 
       {/* How it Works */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+      <section className="py-24 sm:py-32 gradient-mesh relative">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100/40 rounded-full blur-3xl -translate-y-1/2" />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3">Simple Process</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">How It Works</h2>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             {steps.map((s) => (
               <div key={s.step} className="text-center">
-                <div className="w-12 h-12 bg-primary-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">{s.step}</div>
-                <h3 className="font-semibold mb-2">{s.title}</h3>
-                <p className="text-gray-600 text-sm">{s.desc}</p>
+                <div className="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-5 shadow-apple">{s.step}</div>
+                <h3 className="font-semibold text-gray-900 mb-2">{s.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -73,44 +82,50 @@ export default async function HomePage() {
       </section>
 
       {/* How NFC Works */}
-      <section className="py-16 sm:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      <section className="py-24 sm:py-32 bg-gray-50/80 relative">
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-primary-50/60 rounded-full blur-3xl translate-y-1/2" />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl font-bold mb-6">How NFC Technology Works</h2>
-              <p className="text-gray-600 mb-4">
+              <p className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3">Technology</p>
+              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-8">How NFC Technology Works</h2>
+              <p className="text-gray-500 mb-8 leading-relaxed">
                 NFC (Near Field Communication) is a wireless technology that allows two devices to communicate when they are within 4 cm of each other.
                 Your MySmartCard contains a tiny NFC chip that stores a web URL.
               </p>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">1️⃣</span>
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary-100 text-primary-700 rounded-xl flex items-center justify-center text-sm font-bold shrink-0">1</div>
                   <div>
-                    <h4 className="font-semibold">Tap Your Card</h4>
-                    <p className="text-gray-600 text-sm">Simply tap your MySmartCard on the back of any NFC-enabled smartphone.</p>
+                    <h4 className="font-semibold text-gray-900">Tap Your Card</h4>
+                    <p className="text-gray-500 text-sm mt-1 leading-relaxed">Simply tap your MySmartCard on the back of any NFC-enabled smartphone.</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">2️⃣</span>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary-100 text-primary-700 rounded-xl flex items-center justify-center text-sm font-bold shrink-0">2</div>
                   <div>
-                    <h4 className="font-semibold">Profile Opens Instantly</h4>
-                    <p className="text-gray-600 text-sm">The phone reads the URL from the chip and opens your digital profile page.</p>
+                    <h4 className="font-semibold text-gray-900">Profile Opens Instantly</h4>
+                    <p className="text-gray-500 text-sm mt-1 leading-relaxed">The phone reads the URL from the chip and opens your digital profile page.</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">3️⃣</span>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary-100 text-primary-700 rounded-xl flex items-center justify-center text-sm font-bold shrink-0">3</div>
                   <div>
-                    <h4 className="font-semibold">Connect & Share</h4>
-                    <p className="text-gray-600 text-sm">Your contacts can save your details, connect on social media, or pay you via UPI.</p>
+                    <h4 className="font-semibold text-gray-900">Connect & Share</h4>
+                    <p className="text-gray-500 text-sm mt-1 leading-relaxed">Your contacts can save your details, connect on social media, or pay you via UPI.</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl p-8 text-center">
-              <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs mx-auto">
-                <div className="text-6xl mb-4">📡</div>
-                <div className="font-bold text-lg mb-2">NFC Enabled</div>
-                <p className="text-gray-600 text-sm">Works with iPhone 7+ and most Android phones from 2012 onwards</p>
+            <div className="glass-strong rounded-3xl p-10 shadow-apple-lg">
+              <div className="glass rounded-2xl p-8 max-w-xs mx-auto text-center">
+                <div className="w-20 h-20 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-10 h-10 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                  </svg>
+                </div>
+                <div className="font-bold text-lg text-gray-900 mb-2">NFC Enabled</div>
+                <p className="text-gray-500 text-sm leading-relaxed">Works with iPhone 7+ and most Android phones from 2012 onwards</p>
               </div>
             </div>
           </div>
@@ -118,15 +133,19 @@ export default async function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+      <section className="py-24 sm:py-32 gradient-mesh relative">
+        <div className="absolute top-20 left-0 w-72 h-72 bg-primary-100/30 rounded-full blur-3xl" />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3">Capabilities</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Features</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             {features.map((f) => (
-              <div key={f.title} className="card text-center">
-                <div className="text-3xl mb-3">{f.icon}</div>
-                <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-                <p className="text-gray-600 text-sm">{f.desc}</p>
+              <div key={f.title} className="card text-center group">
+                <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">{f.icon}</div>
+                <h3 className="font-semibold text-gray-900 mb-2">{f.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -134,41 +153,60 @@ export default async function HomePage() {
       </section>
 
       {/* QR + UPI Section */}
-      <section className="py-16 sm:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm mx-auto">
+      <section className="py-24 sm:py-32 bg-gray-50/80 relative">
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary-50/60 rounded-full blur-3xl translate-y-1/2" />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="glass-strong rounded-3xl p-10 shadow-apple-lg max-w-sm mx-auto">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-primary-50 rounded-xl p-4 text-center">
-                  <div className="text-3xl mb-2">📋</div>
-                  <div className="font-semibold text-sm">QR #1</div>
-                  <div className="text-xs text-gray-500">Profile</div>
+                <div className="glass rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+                    </svg>
+                  </div>
+                  <div className="font-semibold text-sm text-gray-900">QR #1</div>
+                  <div className="text-xs text-gray-500 mt-1">Profile</div>
                 </div>
-                <div className="bg-green-50 rounded-xl p-4 text-center">
-                  <div className="text-3xl mb-2">💳</div>
-                  <div className="font-semibold text-sm">QR #2</div>
-                  <div className="text-xs text-gray-500">UPI Payment</div>
+                <div className="glass rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                    </svg>
+                  </div>
+                  <div className="font-semibold text-sm text-gray-900">QR #2</div>
+                  <div className="text-xs text-gray-500 mt-1">UPI Payment</div>
                 </div>
               </div>
             </div>
             <div>
-              <h2 className="text-3xl font-bold mb-6">Dual QR Code System</h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3">Dual QR</p>
+              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-8">Dual QR Code System</h2>
+              <p className="text-gray-500 mb-8 leading-relaxed">
                 Every MySmartCard comes with two QR codes on the back, giving your contacts two ways to connect with you.
               </p>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">📋</span>
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary-100 text-primary-700 rounded-xl flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5z" />
+                    </svg>
+                  </div>
                   <div>
-                    <h4 className="font-semibold">QR #1 - Your Profile</h4>
-                    <p className="text-gray-600 text-sm">Opens your digital profile with all your contact details, social links, and about information.</p>
+                    <h4 className="font-semibold text-gray-900">QR #1 - Your Profile</h4>
+                    <p className="text-gray-500 text-sm mt-1 leading-relaxed">Opens your digital profile with all your contact details, social links, and about information.</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">💳</span>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-green-50 text-green-700 rounded-xl flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                    </svg>
+                  </div>
                   <div>
-                    <h4 className="font-semibold">QR #2 - UPI Payment</h4>
-                    <p className="text-gray-600 text-sm">Opens a UPI payment request with your UPI ID pre-filled. Anyone can scan and pay you instantly.</p>
+                    <h4 className="font-semibold text-gray-900">QR #2 - UPI Payment</h4>
+                    <p className="text-gray-500 text-sm mt-1 leading-relaxed">Opens a UPI payment request with your UPI ID pre-filled. Anyone can scan and pay you instantly.</p>
                   </div>
                 </div>
               </div>
@@ -178,17 +216,28 @@ export default async function HomePage() {
       </section>
 
       {/* Card Designs */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Card Designs</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
+      <section className="py-24 sm:py-32 gradient-mesh relative">
+        <div className="absolute top-10 right-10 w-80 h-80 bg-primary-100/30 rounded-full blur-3xl" />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3">Collection</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Card Designs</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {designs.map((p, i) => (
-              <div key={p.id} className={`card text-center ${i === 1 ? 'ring-2 ring-primary-600 relative' : ''}`}>
-                {i === 1 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Popular</span>}
-                <h3 className="font-semibold text-lg mb-2">{p.name}</h3>
-                <div className="text-3xl font-bold mb-4">₹{p.price}</div>
-                <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                  {['NFC Enabled', 'Profile QR', 'Payment QR', 'Digital Profile'].map((f) => <li key={f}>✓ {f}</li>)}
+              <div key={p.id} className={`card text-center ${i === 1 ? 'ring-2 ring-primary-500/40 relative' : ''}`}>
+                {i === 1 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-4 py-1 rounded-full text-xs font-semibold shadow-apple">Popular</span>}
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">{p.name}</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-6">₹{p.price}</div>
+                <ul className="text-sm text-gray-500 space-y-3 mb-8">
+                  {['NFC Enabled', 'Profile QR', 'Payment QR', 'Digital Profile'].map((f) => (
+                    <li key={f} className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
                 </ul>
                 <Link href={`/order?design=${p.id}`} className="btn-primary w-full block text-center">Order Now</Link>
               </div>
@@ -196,11 +245,19 @@ export default async function HomePage() {
             {designs.length === 0 && (
               <>
                 {[{ name: 'Premium PVC', price: 999 }, { name: 'Black Matte', price: 1499, popular: true }, { name: 'Metal', price: 2499 }].map((p) => (
-                  <div key={p.name} className={`card text-center ${(p as any).popular ? 'ring-2 ring-primary-600 relative' : ''}`}>
-                    <h3 className="font-semibold text-lg mb-2">{p.name}</h3>
-                    <div className="text-3xl font-bold mb-4">₹{p.price}</div>
-                    <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                      {['NFC Enabled', 'Profile QR', 'Payment QR', 'Digital Profile'].map((f) => <li key={f}>✓ {f}</li>)}
+                  <div key={p.name} className={`card text-center ${(p as any).popular ? 'ring-2 ring-primary-500/40 relative' : ''}`}>
+                    {(p as any).popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-4 py-1 rounded-full text-xs font-semibold shadow-apple">Popular</span>}
+                    <h3 className="font-semibold text-lg text-gray-900 mb-2">{p.name}</h3>
+                    <div className="text-4xl font-bold text-gray-900 mb-6">₹{p.price}</div>
+                    <ul className="text-sm text-gray-500 space-y-3 mb-8">
+                      {['NFC Enabled', 'Profile QR', 'Payment QR', 'Digital Profile'].map((f) => (
+                        <li key={f} className="flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                          {f}
+                        </li>
+                      ))}
                     </ul>
                     <Link href="/order" className="btn-primary w-full block text-center">Order Now</Link>
                   </div>
@@ -212,14 +269,18 @@ export default async function HomePage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-16 sm:py-20 bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+      <section className="py-24 sm:py-32 bg-gray-50/80 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-50/40 rounded-full blur-3xl" />
+        <div className="relative max-w-3xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3">FAQ</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Frequently Asked Questions</h2>
+          </div>
           <div className="space-y-4">
             {faqs.map((f) => (
               <div key={f.q} className="card">
-                <h3 className="font-semibold mb-2">{f.q}</h3>
-                <p className="text-gray-600 text-sm">{f.a}</p>
+                <h3 className="font-semibold text-gray-900 mb-3">{f.q}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{f.a}</p>
               </div>
             ))}
           </div>
@@ -227,36 +288,55 @@ export default async function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 sm:py-20 bg-primary-600 text-white text-center">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4">Ready to Go Digital?</h2>
-          <p className="text-primary-100 mb-8">Get your MySmartCard today and start sharing your profile with a tap.</p>
-          <Link href="/order" className="bg-white text-primary-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-50 transition-colors inline-block">
+      <section className="relative overflow-hidden gradient-hero text-white py-24 sm:py-32">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-10 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 left-20 w-80 h-80 bg-primary-300/20 rounded-full blur-3xl" />
+        </div>
+        <div className="relative max-w-3xl mx-auto px-6 text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">Ready to Go Digital?</h2>
+          <p className="text-white/70 mb-10 text-lg leading-relaxed">Get your MySmartCard today and start sharing your profile with a tap.</p>
+          <Link href="/order" className="glass-strong text-gray-900 px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white transition-all duration-300 shadow-glass-lg hover:shadow-glass-xl hover:-translate-y-0.5 inline-block">
             Order Now - Starting ₹999
           </Link>
         </div>
       </section>
 
       {/* Contact */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Contact Us</h2>
-          <p className="text-gray-600 mb-8">Have questions? We&apos;re here to help.</p>
+      <section className="py-24 sm:py-32 gradient-mesh relative">
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-primary-100/30 rounded-full blur-3xl translate-y-1/2" />
+        <div className="relative max-w-3xl mx-auto px-6 text-center">
+          <p className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3">Get in Touch</p>
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">Contact Us</h2>
+          <p className="text-gray-500 mb-12 text-lg">Have questions? We&apos;re here to help.</p>
           <div className="grid sm:grid-cols-3 gap-6">
-            <div className="card text-center">
-              <div className="text-2xl mb-2">📧</div>
-              <h3 className="font-semibold text-sm">Email</h3>
-              <p className="text-gray-600 text-sm">support@mysmartcard.net</p>
+            <div className="card text-center group">
+              <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <h3 className="font-semibold text-gray-900 text-sm">Email</h3>
+              <p className="text-gray-500 text-sm mt-1">support@mysmartcard.net</p>
             </div>
-            <div className="card text-center">
-              <div className="text-2xl mb-2">📱</div>
-              <h3 className="font-semibold text-sm">Phone</h3>
-              <p className="text-gray-600 text-sm">+91 98765 43210</p>
+            <div className="card text-center group">
+              <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                </svg>
+              </div>
+              <h3 className="font-semibold text-gray-900 text-sm">Phone</h3>
+              <p className="text-gray-500 text-sm mt-1">+91 98765 43210</p>
             </div>
-            <div className="card text-center">
-              <div className="text-2xl mb-2">💬</div>
-              <h3 className="font-semibold text-sm">WhatsApp</h3>
-              <p className="text-gray-600 text-sm">+91 98765 43210</p>
+            <div className="card text-center group">
+              <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                </svg>
+              </div>
+              <h3 className="font-semibold text-gray-900 text-sm">WhatsApp</h3>
+              <p className="text-gray-500 text-sm mt-1">+91 98765 43210</p>
             </div>
           </div>
         </div>
