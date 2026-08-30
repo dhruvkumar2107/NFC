@@ -245,13 +245,14 @@ function OrderContent() {
           {/* Step 1 - Design */}
           {step === 1 && (
             <div className="animate-slide-up">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Select Card Design</h2>
+              <h2 className="text-2xl font-bold mb-2 text-gray-900">Select Card Design</h2>
+              <p className="text-sm text-gray-400 mb-6">Choose a design that represents your brand</p>
               {errors.designId && (
                 <div className="glass rounded-2xl p-4 mb-6 border border-red-200/50 bg-red-50/50">
                   <p className="text-red-600 text-sm font-medium">{errors.designId}</p>
                 </div>
               )}
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {designs.map((d) => (
                   <label
                     key={d.id}
@@ -262,20 +263,64 @@ function OrderContent() {
                     }`}
                   >
                     <input type="radio" name="design" value={d.id} checked={form.designId === d.id} onChange={(e) => setField('designId', e.target.value)} className="sr-only" />
-                    {d.imageUrl && (
-                      <div className="w-full h-44 sm:h-52 bg-white overflow-hidden">
-                        <img src={d.imageUrl} alt={d.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between p-5">
-                      <div>
-                        <span className="font-semibold text-gray-900 text-lg block">{d.name}</span>
-                        <div className="text-2xl font-bold text-primary-600 mt-1">₹{d.price}</div>
-                      </div>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                        form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-md shadow-primary-600/30' : 'border-gray-300'
-                      }`}>
-                        {form.designId === d.id && <div className="w-2 h-2 bg-white rounded-full" />}
+
+                    {/* Card images - front and back side by side */}
+                    <div className="grid grid-cols-2 gap-3 p-4 pb-0">
+                      {d.imageUrl && (
+                        <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
+                          <img src={d.imageUrl} alt={`${d.name} - Front`} className="w-full h-32 sm:h-40 object-cover" />
+                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80">Front</div>
+                        </div>
+                      )}
+                      {d.backImage ? (
+                        <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
+                          <img src={d.backImage} alt={`${d.name} - Back`} className="w-full h-32 sm:h-40 object-cover" />
+                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80">Back</div>
+                        </div>
+                      ) : d.imageUrl ? (
+                        <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
+                          <img src={d.imageUrl} alt={`${d.name} - Back`} className="w-full h-32 sm:h-40 object-cover" />
+                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80">Back</div>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Design name + features */}
+                    <div className="p-5 pt-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 text-lg">{d.name}</h3>
+
+                          {/* What's included */}
+                          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+                            {[
+                              { icon: '📡', text: 'NFC Tap to Share' },
+                              { icon: '📱', text: 'Digital Profile Page' },
+                              { icon: '🔗', text: 'Profile QR Code' },
+                              { icon: '💳', text: 'UPI Payment QR' },
+                              { icon: '✏️', text: 'Editable Online' },
+                              { icon: '🚚', text: 'Free Delivery' },
+                            ].map((f) => (
+                              <div key={f.text} className="flex items-center gap-1.5 text-xs text-gray-500">
+                                <span className="text-sm">{f.icon}</span>
+                                {f.text}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Price + Radio */}
+                        <div className="flex flex-col items-end gap-3 shrink-0">
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                            form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-md shadow-primary-600/30' : 'border-gray-300'
+                          }`}>
+                            {form.designId === d.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-primary-600">₹{d.price}</div>
+                            <div className="text-[10px] text-gray-400 mt-0.5">incl. all features</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </label>
