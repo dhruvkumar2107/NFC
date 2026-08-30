@@ -82,8 +82,8 @@ export default async function HomePage() {
           </ScrollReveal>
 
           {/* Buy Now + Stats - directly below image */}
-          <div className="mt-4 flex flex-col items-center gap-4">
-            <Link href="/order" className="btn-primary text-base px-10 py-3.5 shadow-lg shadow-primary-600/30 hover:shadow-xl hover:shadow-primary-600/40 inline-flex items-center gap-2">
+          <div className="mt-4 flex flex-col items-center gap-4 relative z-30">
+            <Link href="/order" className="btn-primary text-base sm:text-base text-sm px-10 sm:px-10 px-8 py-3.5 sm:py-3.5 py-3 shadow-lg shadow-primary-600/30 hover:shadow-xl hover:shadow-primary-600/40 inline-flex items-center gap-2 min-h-[48px]">
               Buy Now
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
