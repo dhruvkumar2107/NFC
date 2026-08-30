@@ -90,6 +90,20 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      {/* Shipping Address */}
+      {order.customer?.address && (
+        <div className="card mb-6">
+          <h2 className="font-semibold mb-3">Shipping Address</h2>
+          <div className="space-y-1 text-sm">
+            <div>{order.customer.name}</div>
+            <div>{order.customer.address}</div>
+            <div>{[order.customer.city, order.customer.state, order.customer.pincode].filter(Boolean).join(', ')}</div>
+            <div>{order.customer.country || 'India'}</div>
+            <div className="text-gray-500 mt-1">Mobile: {order.customer.mobile}</div>
+          </div>
+        </div>
+      )}
+
       {/* Status Actions */}
       <div className="card">
         <h2 className="font-semibold mb-3">Change Status</h2>

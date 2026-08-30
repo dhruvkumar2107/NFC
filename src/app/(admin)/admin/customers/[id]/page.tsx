@@ -74,6 +74,12 @@ export default function CustomerDetailPage() {
               <div><label className="label">Company</label><input className="input-field" value={form.company || ''} onChange={e => setForm((f: any) => ({ ...f, company: e.target.value }))} /></div>
               <div><label className="label">Website</label><input className="input-field" value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
               <div><label className="label">Location</label><input className="input-field" value={form.location || ''} onChange={e => setForm((f: any) => ({ ...f, location: e.target.value }))} /></div>
+              <div><label className="label">Address</label><input className="input-field" value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} placeholder="Flat/House No., Building, Street" /></div>
+              <div className="grid grid-cols-3 gap-3">
+                <div><label className="label">City</label><input className="input-field" value={form.city || ''} onChange={e => setForm((f: any) => ({ ...f, city: e.target.value }))} /></div>
+                <div><label className="label">State</label><input className="input-field" value={form.state || ''} onChange={e => setForm((f: any) => ({ ...f, state: e.target.value }))} /></div>
+                <div><label className="label">PIN Code</label><input className="input-field" value={form.pincode || ''} onChange={e => setForm((f: any) => ({ ...f, pincode: e.target.value }))} /></div>
+              </div>
               <div><label className="label">UPI ID</label><input className="input-field" value={form.upiId || ''} onChange={e => setForm((f: any) => ({ ...f, upiId: e.target.value }))} /></div>
               <div><label className="label">Type</label><select className="input-field" value={form.type || 'individual'} onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))}><option value="individual">Individual</option><option value="corporate">Corporate</option></select></div>
               <div><label className="label">Description</label><textarea className="input-field" rows={3} value={form.description || ''} onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
@@ -89,6 +95,10 @@ export default function CustomerDetailPage() {
               <div><span className="text-gray-500">Company:</span> {customer.company || '-'}</div>
               <div><span className="text-gray-500">Website:</span> {customer.website || '-'}</div>
               <div><span className="text-gray-500">Location:</span> {customer.location || '-'}</div>
+              <div><span className="text-gray-500">Address:</span> {customer.address || '-'}</div>
+              <div><span className="text-gray-500">City:</span> {customer.city || '-'}</div>
+              <div><span className="text-gray-500">State:</span> {customer.state || '-'}</div>
+              <div><span className="text-gray-500">PIN Code:</span> {customer.pincode || '-'}</div>
               <div><span className="text-gray-500">UPI ID:</span> {customer.upiId || '-'}</div>
               <div><span className="text-gray-500">Type:</span> <span className="px-2 py-0.5 rounded text-xs bg-gray-100">{customer.type}</span></div>
               <div><span className="text-gray-500">Description:</span> {customer.description || '-'}</div>

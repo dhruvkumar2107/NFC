@@ -17,6 +17,10 @@ interface OrderForm {
   facebook: string
   linkedin: string
   location: string
+  address: string
+  city: string
+  state: string
+  pincode: string
   upiId: string
   profilePhotoUrl: string
   logoUrl: string
@@ -27,7 +31,8 @@ interface OrderForm {
 const initialForm: OrderForm = {
   designId: '', fullName: '', designation: '', company: '', mobile: '', whatsapp: '',
   email: '', website: '', instagram: '', facebook: '', linkedin: '',
-  location: '', upiId: '', profilePhotoUrl: '', logoUrl: '', description: '', referralCode: '',
+  location: '', address: '', city: '', state: '', pincode: '',
+  upiId: '', profilePhotoUrl: '', logoUrl: '', description: '', referralCode: '',
 }
 
 function OrderContent() {
@@ -84,6 +89,11 @@ function OrderContent() {
     if (!form.email.trim()) newErrors.email = 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) newErrors.email = 'Enter a valid email address'
     if (form.whatsapp && !/^[6-9]\d{9}$/.test(form.whatsapp.trim())) newErrors.whatsapp = 'Enter a valid 10-digit number'
+    if (!form.address.trim()) newErrors.address = 'Address is required for card delivery'
+    if (!form.city.trim()) newErrors.city = 'City is required'
+    if (!form.state.trim()) newErrors.state = 'State is required'
+    if (!form.pincode.trim()) newErrors.pincode = 'PIN code is required'
+    else if (!/^\d{6}$/.test(form.pincode.trim())) newErrors.pincode = 'Enter a valid 6-digit PIN code'
     if (form.referralCode && referralValid === false) newErrors.referralCode = 'Invalid referral code'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -127,6 +137,10 @@ function OrderContent() {
           website: form.website.trim(),
           socialLinks: { instagram: form.instagram.trim(), facebook: form.facebook.trim(), linkedin: form.linkedin.trim() },
           location: form.location.trim(),
+          address: form.address.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          pincode: form.pincode.trim(),
           upiId: form.upiId.trim(),
           profilePhotoUrl: form.profilePhotoUrl.trim(),
           logoUrl: form.logoUrl.trim(),
@@ -329,6 +343,39 @@ function OrderContent() {
                       <label className="label">Website</label>
                       <input type="url" value={form.website} onChange={(e) => setField('website', e.target.value)}
                         className="input-field" placeholder="https://example.com" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping Address */}
+                <div className="glass rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Shipping Address (for card delivery)</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="label">Address *</label>
+                      <input type="text" value={form.address} onChange={(e) => setField('address', e.target.value)}
+                        className={`input-field ${errors.address ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="Flat/House No., Building, Street, Area" />
+                      {errors.address && <p className="text-red-500 text-xs mt-1.5">{errors.address}</p>}
+                    </div>
+                    <div className="grid sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="label">City *</label>
+                        <input type="text" value={form.city} onChange={(e) => setField('city', e.target.value)}
+                          className={`input-field ${errors.city ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="Mumbai" />
+                        {errors.city && <p className="text-red-500 text-xs mt-1.5">{errors.city}</p>}
+                      </div>
+                      <div>
+                        <label className="label">State *</label>
+                        <input type="text" value={form.state} onChange={(e) => setField('state', e.target.value)}
+                          className={`input-field ${errors.state ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="Maharashtra" />
+                        {errors.state && <p className="text-red-500 text-xs mt-1.5">{errors.state}</p>}
+                      </div>
+                      <div>
+                        <label className="label">PIN Code *</label>
+                        <input type="text" value={form.pincode} onChange={(e) => setField('pincode', e.target.value)}
+                          className={`input-field ${errors.pincode ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="400001" maxLength={6} />
+                        {errors.pincode && <p className="text-red-500 text-xs mt-1.5">{errors.pincode}</p>}
+                      </div>
                     </div>
                   </div>
                 </div>
