@@ -44,28 +44,60 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero - Full Banner Image */}
-      <section className="relative w-full overflow-hidden bg-white">
-        <div className="relative w-full">
-          <img
-            src="/photos/hero-banner.jpeg"
-            alt="MySmartCard Collections"
-            className="w-full h-auto object-contain"
-          />
+      {/* Hero - Premium Glass Banner */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 pt-20 pb-16">
+        {/* Ambient glow behind the banner */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-primary-200/15 rounded-full blur-[120px]" />
+          <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-purple-200/10 rounded-full blur-[100px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-blue-100/10 rounded-full blur-[100px]" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
+          <ScrollReveal>
+            <div className="relative group">
+              {/* Glass container with premium effects */}
+              <div className="relative rounded-3xl overflow-hidden shadow-hero border border-white/60 bg-white/40 backdrop-blur-sm">
+                {/* Top glass highlight */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent z-10" />
+                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent z-10 translate-y-px" />
+
+                {/* The banner image */}
+                <img
+                  src="/photos/hero-banner.jpeg"
+                  alt="MySmartCard Collections"
+                  className="w-full h-auto object-cover"
+                />
+
+                {/* Glass overlay - subtle frosted edge at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white/60 via-white/20 to-transparent pointer-events-none" />
+                {/* Glass overlay - subtle frosted edge at top */}
+                <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
+              </div>
+
+              {/* Outer glow ring */}
+              <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-r from-primary-200/20 via-purple-200/10 to-primary-200/20 blur-sm -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+              {/* Reflection line under the card */}
+              <div className="absolute -bottom-3 left-[10%] right-[10%] h-6 bg-primary-300/10 rounded-full blur-lg" />
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Stats Bar */}
-      <section className="py-6 bg-white border-b border-gray-100">
+      <section className="py-8 bg-gradient-to-b from-white to-gray-50/50">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((s) => (
-              <div key={s.label} className="py-3 text-center">
-                <div className="text-2xl font-bold text-gray-900 mb-1">{s.value}</div>
-                <div className="text-xs text-gray-400 font-medium tracking-wider uppercase">{s.label}</div>
-              </div>
-            ))}
-          </div>
+          <ScrollReveal delay={200}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {stats.map((s) => (
+                <div key={s.label} className="py-4 text-center rounded-2xl bg-white/60 backdrop-blur-sm border border-white/50 hover:bg-white/80 transition-all duration-300">
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{s.value}</div>
+                  <div className="text-xs text-gray-400 font-medium tracking-wider uppercase">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
