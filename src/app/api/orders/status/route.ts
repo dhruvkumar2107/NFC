@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
       status: order.status,
       design: order.design?.name,
       customerEmail: order.customer?.email,
+      customerName: order.customer?.name,
+      customerMobile: order.customer?.mobile,
+      customerWhatsapp: order.customer?.whatsapp,
       createdAt: order.createdAt,
     })
   } catch (err: any) {

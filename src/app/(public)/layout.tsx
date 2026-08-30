@@ -19,7 +19,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Link href="/order" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/60 rounded-xl transition-all duration-200">Order Now</Link>
             <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/60 rounded-xl transition-all duration-200">Login</Link>
             <Link href="/employee/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/60 rounded-xl transition-all duration-200">Employee</Link>
-            <Link href="/admin/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/60 rounded-xl transition-all duration-200">Admin</Link>
             <Link href="/order" className="btn-primary text-sm ml-2">Buy Now</Link>
           </div>
 
@@ -47,7 +46,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <Link href="/login" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100/60 rounded-xl transition-all duration-200" onClick={() => setMobileMenuOpen(false)}>Customer Login</Link>
               <Link href="/register" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100/60 rounded-xl transition-all duration-200" onClick={() => setMobileMenuOpen(false)}>Register</Link>
               <Link href="/employee/login" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100/60 rounded-xl transition-all duration-200" onClick={() => setMobileMenuOpen(false)}>Employee Login</Link>
-              <Link href="/admin/login" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100/60 rounded-xl transition-all duration-200" onClick={() => setMobileMenuOpen(false)}>Admin Login</Link>
               <div className="pt-3">
                 <Link href="/order" className="btn-primary w-full block text-center text-sm" onClick={() => setMobileMenuOpen(false)}>Buy Now</Link>
               </div>

@@ -41,17 +41,18 @@ async function main() {
   }
 
   const designs = [
-    { name: 'Premium PVC', price: 999, imageUrl: '/designs/premium-pvc.png' },
+    { id: 'premium-pvc', name: 'Premium PVC Card', price: 999, imageUrl: '/designs/premium-pvc.png' },
     { name: 'Premium Wood', price: 1499, imageUrl: '/designs/premium-wood.png' },
     { name: 'Premium Metal', price: 2499, imageUrl: '/designs/premium-metal.png' },
   ];
 
   for (const design of designs) {
+    const designId = (design as any).id || design.name.toLowerCase().replace(/\s+/g, '-');
     const cardDesign = await prisma.cardDesign.upsert({
-      where: { id: design.name.toLowerCase().replace(/\s+/g, '-') },
-      update: {},
+      where: { id: designId },
+      update: { name: design.name },
       create: {
-        id: design.name.toLowerCase().replace(/\s+/g, '-'),
+        id: designId,
         ...design,
       },
     });

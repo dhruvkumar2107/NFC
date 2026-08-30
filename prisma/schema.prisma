@@ -109,6 +109,7 @@ model Admin {
   email        String   @unique
   name         String
   passwordHash String
+  paymentQrUrl String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

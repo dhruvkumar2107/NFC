@@ -4,14 +4,14 @@ import { prisma } from '@/lib/db'
 export const dynamic = 'force-dynamic'
 
 const featureSets: Record<string, string[]> = {
-  'Premium PVC': ['NFC Chip Embedded', 'Full Color Print', 'Standard Credit Card Size', 'Lightweight & Durable'],
+  'Premium PVC Card': ['NFC Chip Embedded', 'Full Color Print', 'Standard Credit Card Size', 'Lightweight & Durable'],
   'Premium Wood': ['NFC Chip Embedded', 'Natural Wood Finish', 'Laser Engraved', 'Eco-Friendly Premium'],
   'Premium Metal': ['NFC Chip Embedded', 'Brushed Steel', 'Laser Engraved', 'Ultra Premium'],
 }
 const defaultFeatures = ['NFC Chip Embedded', 'Customizable Profile', 'QR Code Payment', 'Digital Business Card']
 
 const colorMap: Record<string, string> = {
-  'Premium PVC': 'bg-white border-2 border-gray-200',
+  'Premium PVC Card': 'bg-white border-2 border-gray-200',
   'Premium Wood': 'bg-amber-800 text-white',
   'Premium Metal': 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900',
 }

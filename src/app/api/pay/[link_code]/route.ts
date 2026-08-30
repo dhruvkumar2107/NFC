@@ -6,7 +6,7 @@ export async function GET(_request: NextRequest, { params }: { params: { link_co
   try {
     const employee = await prisma.employee.findFirst({
       where: { referralLinkCode: params.link_code, status: 'active' },
-      select: { employeeId: true, name: true, referralLinkCode: true },
+      select: { employeeId: true, referralLinkCode: true },
     })
     if (!employee) return errorResponse('Invalid referral link', 404)
     return successResponse(employee)

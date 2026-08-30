@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     })
 
     const summary = employees.map((emp) => {
-      const empOrders = orders.filter(o => o.employeeId === emp.id)
+      const empOrders = orders.filter(o => o.employeeId === emp.id && o.status === 'Payment Received')
       return {
         employee: emp,
         totalSales: empOrders.length,
@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const directOrders = orders.filter(o => !o.employeeId)
+    const directOrders = orders.filter(o => !o.employeeId && o.status === 'Payment Received')
 
     return successResponse({
       totalOrders: orders.length,
-      totalRevenue: orders.reduce((s, o) => s + o.amount, 0),
+      totalRevenue: orders.filter(o => o.status === 'Payment Received').reduce((s, o) => s + o.amount, 0),
       summary,
       directSales: directOrders.length,
       orders,

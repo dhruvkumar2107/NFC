@@ -20,16 +20,17 @@ export async function GET(request: NextRequest) {
       prisma.employee.findMany({ take: 10, orderBy: { createdAt: 'desc' }, select: { id: true, employeeId: true, name: true, email: true, status: true, totalPoints: true, availablePoints: true } }),
     ])
 
-    const totalRevenue = allOrders.filter(o => o.status === 'Delivered' || o.status === 'Payment Received').reduce((s, o) => s + o.amount, 0)
-    const totalCommission = allOrders.filter(o => o.status === 'Delivered' || o.status === 'Payment Received').reduce((s, o) => s + (o.commissionAmount || 0), 0)
+    const totalRevenue = allOrders.filter(o => o.status === 'Payment Received').reduce((s, o) => s + o.amount, 0)
+    const totalCommission = allOrders.filter(o => o.status === 'Payment Received').reduce((s, o) => s + (o.commissionAmount || 0), 0)
     const activeCards = allCards.filter(c => c.status === 'Active').length
-    const pendingOrders = allOrders.filter(o => o.status === 'Pending').length
+    const pendingOrders = allOrders.filter(o => o.status === 'Pending' || o.status === 'Failed' || o.status === 'Cancelled').length
     const directSales = allOrders.filter(o => !o.employeeId).length
     const referredSales = allOrders.filter(o => !!o.employeeId).length
 
     const employeeStatsMap = new Map<string, { salesCount: number; revenue: number; commission: number }>()
     for (const o of allOrders) {
       if (!o.employeeId) continue
+      if (o.status !== 'Payment Received') continue
       const existing = employeeStatsMap.get(o.employeeId) || { salesCount: 0, revenue: 0, commission: 0 }
       existing.salesCount++
       existing.revenue += o.amount
