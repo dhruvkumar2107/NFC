@@ -251,32 +251,32 @@ function OrderContent() {
                   <p className="text-red-600 text-sm font-medium">{errors.designId}</p>
                 </div>
               )}
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {designs.map((d) => (
                   <label
                     key={d.id}
-                    className={`glass flex items-center gap-5 p-5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                    className={`glass block rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden ${
                       form.designId === d.id
                         ? 'ring-2 ring-primary-500/40 shadow-lg shadow-primary-500/10'
                         : 'hover:shadow-md'
                     }`}
                   >
                     <input type="radio" name="design" value={d.id} checked={form.designId === d.id} onChange={(e) => setField('designId', e.target.value)} className="sr-only" />
-                    <div className="w-24 h-14 rounded-xl flex items-center justify-center bg-white border border-gray-200/60 flex-shrink-0 shadow-sm overflow-hidden">
-                      {d.imageUrl ? (
+                    {d.imageUrl && (
+                      <div className="w-full h-44 sm:h-52 bg-white overflow-hidden">
                         <img src={d.imageUrl} alt={d.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-xs font-bold text-gray-700">{d.name}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="font-semibold text-gray-900 block">{d.name}</span>
-                      <div className="text-2xl font-bold text-primary-600 mt-0.5">₹{d.price}</div>
-                    </div>
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                      form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-md shadow-primary-600/30' : 'border-gray-300'
-                    }`}>
-                      {form.designId === d.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between p-5">
+                      <div>
+                        <span className="font-semibold text-gray-900 text-lg block">{d.name}</span>
+                        <div className="text-2xl font-bold text-primary-600 mt-1">₹{d.price}</div>
+                      </div>
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                        form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-md shadow-primary-600/30' : 'border-gray-300'
+                      }`}>
+                        {form.designId === d.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                      </div>
                     </div>
                   </label>
                 ))}
