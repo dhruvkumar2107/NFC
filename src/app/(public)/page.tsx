@@ -42,157 +42,25 @@ export default async function HomePage() {
     designs = await prisma.cardDesign.findMany({ where: { active: true }, orderBy: { price: 'asc' } })
   } catch {}
 
-  const fallbackDesigns = [
-    { id: 'premium-pvc', name: 'Premium PVC Card', price: 999, imageUrl: '/photos/premium pvc card.jpeg', backImage: '/photos/premium pvc card 2.jpeg' },
-    { id: 'black-matte', name: 'Premium Wood', price: 1499, imageUrl: '/photos/premium wooden pvc card.jpeg', backImage: '/photos/h2.jpeg' },
-    { id: 'metal', name: 'Premium Metal', price: 2499, imageUrl: '/photos/premium mattel card.jpeg', backImage: '/photos/h1.jpeg' },
-  ]
-
-  const displayDesigns = designs.length > 0 ? designs : fallbackDesigns
-
   return (
     <div>
-      {/* Hero - Product Collection Showcase */}
-      <section className="relative w-full min-h-screen overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 pt-24 pb-16">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary-100/30 rounded-full blur-[100px]" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-100/20 rounded-full blur-[100px]" />
-          {/* Subtle geometric lines */}
-          <svg className="absolute top-0 right-0 w-[600px] h-[600px] opacity-[0.04]" viewBox="0 0 600 600">
-            <circle cx="300" cy="300" r="250" fill="none" stroke="#4c6ef5" strokeWidth="0.5" />
-            <circle cx="300" cy="300" r="200" fill="none" stroke="#4c6ef5" strokeWidth="0.5" />
-            <circle cx="300" cy="300" r="150" fill="none" stroke="#4c6ef5" strokeWidth="0.5" />
-          </svg>
-          <svg className="absolute bottom-0 left-0 w-[400px] h-[400px] opacity-[0.04]" viewBox="0 0 400 400">
-            <rect x="50" y="50" width="300" height="300" rx="40" fill="none" stroke="#4c6ef5" strokeWidth="0.5" transform="rotate(15 200 200)" />
-            <rect x="80" y="80" width="240" height="240" rx="30" fill="none" stroke="#4c6ef5" strokeWidth="0.5" transform="rotate(15 200 200)" />
-          </svg>
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-6">
-          {/* Header area */}
-          <div className="text-center mb-12">
-            <ScrollReveal delay={0}>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
-                <span className="text-xs font-semibold text-primary-700 tracking-wider uppercase">NFC Smart Card</span>
-              </div>
-            </ScrollReveal>
-
-            <ScrollReveal delay={100}>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 mb-4">
-                Explore Our <span className="text-primary-600">Collections</span>
-              </h1>
-            </ScrollReveal>
-
-            <ScrollReveal delay={150}>
-              <p className="text-lg text-gray-500 max-w-xl mx-auto mb-4">
-                Smart Connection, Strong Impression
-              </p>
-            </ScrollReveal>
-
-            <ScrollReveal delay={200}>
-              <div className="flex items-center justify-center gap-3 mb-10">
-                <div className="h-0.5 w-12 bg-gradient-to-r from-transparent to-primary-300 rounded-full" />
-                <div className="w-2 h-2 rounded-full bg-primary-400" />
-                <div className="h-0.5 w-12 bg-gradient-to-l from-transparent to-primary-300 rounded-full" />
-              </div>
-            </ScrollReveal>
-
-            {/* NFC phone animation */}
-            <ScrollReveal delay={250}>
-              <div className="flex justify-center mb-10">
-                <div className="relative">
-                  <div className="w-20 h-36 bg-gray-900 rounded-2xl border-2 border-gray-700 flex items-center justify-center relative overflow-hidden">
-                    <div className="w-16 h-28 bg-gray-800 rounded-xl" />
-                    {/* NFC wave rings */}
-                    <div className="absolute -right-6 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 border-2 border-primary-400 rounded-full animate-ping opacity-40" />
-                      <div className="w-8 h-8 border-2 border-primary-300 rounded-full animate-ping opacity-30 absolute -top-1.5 -left-1.5" style={{ animationDelay: '0.3s' }} />
-                      <div className="w-11 h-11 border-2 border-primary-200 rounded-full animate-ping opacity-20 absolute -top-3 -left-3" style={{ animationDelay: '0.6s' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
-          </div>
-
-          {/* Card Collection Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {displayDesigns.map((design: any, i: number) => (
-              <ScrollReveal key={design.id} delay={300 + i * 100} direction="up">
-                <div className="group">
-                  {/* Card front */}
-                  <div className="relative rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-500 mb-3 border border-gray-100 bg-white">
-                    {design.imageUrl ? (
-                      <img
-                        src={design.imageUrl}
-                        alt={`${design.name} Front`}
-                        className="w-full aspect-[1.6/1] object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="w-full aspect-[1.6/1] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 text-sm">No Image</span>
-                      </div>
-                    )}
-                    {/* NFC badge */}
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" />
-                      </svg>
-                      <span className="text-[10px] font-bold text-gray-700">NFC</span>
-                    </div>
-                  </div>
-
-                  {/* Card back / info */}
-                  <div className="relative rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-500 mb-4 border border-gray-100 bg-white">
-                    {design.backImage || design.imageUrl ? (
-                      <img
-                        src={design.backImage || design.imageUrl}
-                        alt={`${design.name} Back`}
-                        className="w-full aspect-[1.6/1] object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="w-full aspect-[1.6/1] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 text-sm">No Image</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Label */}
-                  <div className="text-center">
-                    <h3 className="font-bold text-gray-900 uppercase tracking-wider text-sm">{design.name}</h3>
-                    <div className="flex items-center justify-center gap-2 mt-2">
-                      <span className="text-lg font-bold text-primary-600">₹{design.price}</span>
-                      <Link href={`/order?design=${design.id}`} className="text-xs font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 px-3 py-1 rounded-full transition-colors">
-                        Order Now
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-
-          {/* Bottom CTA */}
-          <ScrollReveal delay={700}>
-            <div className="text-center mt-14">
-              <Link href="/order" className="btn-primary text-lg px-10 py-4 inline-block">
-                Buy Your MySmartCard
-              </Link>
-              <p className="text-sm text-gray-400 mt-4">Free Delivery across India</p>
-            </div>
-          </ScrollReveal>
+      {/* Hero - Full Banner Image */}
+      <section className="relative w-full overflow-hidden bg-white">
+        <div className="relative w-full">
+          <img
+            src="/photos/hero-banner.jpeg"
+            alt="MySmartCard Collections"
+            className="w-full h-auto object-contain"
+          />
         </div>
       </section>
 
       {/* Stats Bar */}
-      <section className="py-4 bg-white border-y border-gray-100">
+      <section className="py-6 bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((s) => (
-              <div key={s.label} className="py-4 text-center">
+              <div key={s.label} className="py-3 text-center">
                 <div className="text-2xl font-bold text-gray-900 mb-1">{s.value}</div>
                 <div className="text-xs text-gray-400 font-medium tracking-wider uppercase">{s.label}</div>
               </div>
