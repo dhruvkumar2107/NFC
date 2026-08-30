@@ -42,110 +42,162 @@ export default async function HomePage() {
     designs = await prisma.cardDesign.findMany({ where: { active: true }, orderBy: { price: 'asc' } })
   } catch {}
 
-  const cardImages = [
-    { src: '/photos/h1.jpeg', alt: 'MySmartCard Red', style: 'top-[8%] left-[5%] w-52 rotate-[-12deg] animate-float-card-1 z-10' },
-    { src: '/photos/premium pvc card.jpeg', alt: 'Premium PVC Card', style: 'top-[5%] right-[8%] w-56 rotate-[10deg] animate-float-card-3 z-10' },
-    { src: '/photos/h2.jpeg', alt: 'MySmartCard Black', style: 'bottom-[15%] left-[3%] w-48 rotate-[6deg] animate-float z-10' },
-    { src: '/photos/premium wooden pvc card.jpeg', alt: 'Premium Wood', style: 'bottom-[10%] right-[5%] w-52 rotate-[-8deg] animate-float-card-2 z-10' },
-    { src: '/photos/premium mattel card.jpeg', alt: 'Premium Metal', style: 'top-[35%] left-[8%] w-44 rotate-[15deg] animate-float-reverse z-10' },
-    { src: '/photos/premium pvc card 2.jpeg', alt: 'Premium PVC Card 2', style: 'top-[40%] right-[6%] w-48 rotate-[-14deg] animate-float-card-1 z-10' },
+  const fallbackDesigns = [
+    { id: 'premium-pvc', name: 'Premium PVC Card', price: 999, imageUrl: '/photos/premium pvc card.jpeg', backImage: '/photos/premium pvc card 2.jpeg' },
+    { id: 'black-matte', name: 'Premium Wood', price: 1499, imageUrl: '/photos/premium wooden pvc card.jpeg', backImage: '/photos/h2.jpeg' },
+    { id: 'metal', name: 'Premium Metal', price: 2499, imageUrl: '/photos/premium mattel card.jpeg', backImage: '/photos/h1.jpeg' },
   ]
+
+  const displayDesigns = designs.length > 0 ? designs : fallbackDesigns
 
   return (
     <div>
-      {/* Full-screen Hero Banner */}
-      <section className="relative w-full h-screen min-h-[700px] overflow-hidden bg-gradient-to-br from-primary-50 via-white to-purple-50">
-        {/* Background decorations */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-primary-200/20 rounded-full blur-[100px]" />
-          <div className="absolute bottom-1/4 right-1/3 w-[400px] h-[400px] bg-purple-200/15 rounded-full blur-[80px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-100/20 rounded-full blur-[120px]" />
-          {/* Subtle dot grid */}
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #4c6ef5 0.8px, transparent 0)', backgroundSize: '48px 48px' }} />
+      {/* Hero - Product Collection Showcase */}
+      <section className="relative w-full min-h-screen overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 pt-24 pb-16">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary-100/30 rounded-full blur-[100px]" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-100/20 rounded-full blur-[100px]" />
+          {/* Subtle geometric lines */}
+          <svg className="absolute top-0 right-0 w-[600px] h-[600px] opacity-[0.04]" viewBox="0 0 600 600">
+            <circle cx="300" cy="300" r="250" fill="none" stroke="#4c6ef5" strokeWidth="0.5" />
+            <circle cx="300" cy="300" r="200" fill="none" stroke="#4c6ef5" strokeWidth="0.5" />
+            <circle cx="300" cy="300" r="150" fill="none" stroke="#4c6ef5" strokeWidth="0.5" />
+          </svg>
+          <svg className="absolute bottom-0 left-0 w-[400px] h-[400px] opacity-[0.04]" viewBox="0 0 400 400">
+            <rect x="50" y="50" width="300" height="300" rx="40" fill="none" stroke="#4c6ef5" strokeWidth="0.5" transform="rotate(15 200 200)" />
+            <rect x="80" y="80" width="240" height="240" rx="30" fill="none" stroke="#4c6ef5" strokeWidth="0.5" transform="rotate(15 200 200)" />
+          </svg>
         </div>
 
-        {/* Floating card images spread across the full banner */}
-        {cardImages.map((card, i) => (
-          <div key={i} className={`absolute ${card.style} hidden md:block`}>
-            <div className="w-full aspect-[16/10] rounded-2xl overflow-hidden shadow-card-hover border-[3px] border-white/80 hover:scale-110 hover:shadow-hero transition-all duration-500">
-              <img src={card.src} alt={card.alt} className="w-full h-full object-cover" />
-            </div>
-          </div>
-        ))}
-
-        {/* Center content */}
-        <div className="absolute inset-0 flex items-center justify-center z-20">
-          <div className="text-center px-6 max-w-3xl">
+        <div className="relative max-w-7xl mx-auto px-6">
+          {/* Header area */}
+          <div className="text-center mb-12">
             <ScrollReveal delay={0}>
-              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/70 backdrop-blur-sm border border-primary-200/50 shadow-sm mb-8">
-                <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-                <span className="text-sm font-semibold text-primary-700 tracking-wider uppercase">NFC Smart Card</span>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                <span className="text-xs font-semibold text-primary-700 tracking-wider uppercase">NFC Smart Card</span>
               </div>
             </ScrollReveal>
 
             <ScrollReveal delay={100}>
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight leading-[1.05] text-gray-900">
-                Tap. <span className="text-primary-600">Connect.</span><br />Get Paid.
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 mb-4">
+                Explore Our <span className="text-primary-600">Collections</span>
               </h1>
             </ScrollReveal>
 
-            <ScrollReveal delay={200}>
-              <p className="text-lg sm:text-xl text-gray-500 mb-10 max-w-xl mx-auto leading-relaxed">
-                Your NFC-powered smart card. Share your profile instantly and receive payments with a simple tap or scan.
+            <ScrollReveal delay={150}>
+              <p className="text-lg text-gray-500 max-w-xl mx-auto mb-4">
+                Smart Connection, Strong Impression
               </p>
             </ScrollReveal>
 
-            <ScrollReveal delay={300}>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/order" className="btn-primary text-lg px-10 py-4">
-                  Buy Your MySmartCard
-                </Link>
-                <Link href="/cards" className="btn-glass text-lg px-10 py-4">
-                  View Card Designs
-                </Link>
+            <ScrollReveal delay={200}>
+              <div className="flex items-center justify-center gap-3 mb-10">
+                <div className="h-0.5 w-12 bg-gradient-to-r from-transparent to-primary-300 rounded-full" />
+                <div className="w-2 h-2 rounded-full bg-primary-400" />
+                <div className="h-0.5 w-12 bg-gradient-to-l from-transparent to-primary-300 rounded-full" />
               </div>
             </ScrollReveal>
 
-            <ScrollReveal delay={400}>
-              <div className="flex items-center gap-6 mt-10 justify-center text-sm text-gray-400">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  Free Delivery
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  NFC Enabled
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                  7-Day Refund
+            {/* NFC phone animation */}
+            <ScrollReveal delay={250}>
+              <div className="flex justify-center mb-10">
+                <div className="relative">
+                  <div className="w-20 h-36 bg-gray-900 rounded-2xl border-2 border-gray-700 flex items-center justify-center relative overflow-hidden">
+                    <div className="w-16 h-28 bg-gray-800 rounded-xl" />
+                    {/* NFC wave rings */}
+                    <div className="absolute -right-6 top-1/2 -translate-y-1/2">
+                      <div className="w-5 h-5 border-2 border-primary-400 rounded-full animate-ping opacity-40" />
+                      <div className="w-8 h-8 border-2 border-primary-300 rounded-full animate-ping opacity-30 absolute -top-1.5 -left-1.5" style={{ animationDelay: '0.3s' }} />
+                      <div className="w-11 h-11 border-2 border-primary-200 rounded-full animate-ping opacity-20 absolute -top-3 -left-3" style={{ animationDelay: '0.6s' }} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
           </div>
-        </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
-          <div className="w-6 h-10 rounded-full border-2 border-gray-300 flex items-start justify-center p-1.5">
-            <div className="w-1.5 h-3 rounded-full bg-gray-400 animate-pulse" />
+          {/* Card Collection Grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {displayDesigns.map((design: any, i: number) => (
+              <ScrollReveal key={design.id} delay={300 + i * 100} direction="up">
+                <div className="group">
+                  {/* Card front */}
+                  <div className="relative rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-500 mb-3 border border-gray-100 bg-white">
+                    {design.imageUrl ? (
+                      <img
+                        src={design.imageUrl}
+                        alt={`${design.name} Front`}
+                        className="w-full aspect-[1.6/1] object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full aspect-[1.6/1] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">No Image</span>
+                      </div>
+                    )}
+                    {/* NFC badge */}
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" />
+                      </svg>
+                      <span className="text-[10px] font-bold text-gray-700">NFC</span>
+                    </div>
+                  </div>
+
+                  {/* Card back / info */}
+                  <div className="relative rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-500 mb-4 border border-gray-100 bg-white">
+                    {design.backImage || design.imageUrl ? (
+                      <img
+                        src={design.backImage || design.imageUrl}
+                        alt={`${design.name} Back`}
+                        className="w-full aspect-[1.6/1] object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      <div className="w-full aspect-[1.6/1] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">No Image</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Label */}
+                  <div className="text-center">
+                    <h3 className="font-bold text-gray-900 uppercase tracking-wider text-sm">{design.name}</h3>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <span className="text-lg font-bold text-primary-600">₹{design.price}</span>
+                      <Link href={`/order?design=${design.id}`} className="text-xs font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 px-3 py-1 rounded-full transition-colors">
+                        Order Now
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
           </div>
+
+          {/* Bottom CTA */}
+          <ScrollReveal delay={700}>
+            <div className="text-center mt-14">
+              <Link href="/order" className="btn-primary text-lg px-10 py-4 inline-block">
+                Buy Your MySmartCard
+              </Link>
+              <p className="text-sm text-gray-400 mt-4">Free Delivery across India</p>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Stats Bar */}
-      <section className="relative -mt-10 z-10">
+      <section className="py-4 bg-white border-y border-gray-100">
         <div className="max-w-5xl mx-auto px-6">
-          <ScrollReveal direction="up">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {stats.map((s) => (
-                <div key={s.label} className="bg-white rounded-2xl shadow-card p-5 text-center border border-gray-50">
-                  <div className="text-3xl font-bold text-primary-600 mb-1">{s.value}</div>
-                  <div className="text-xs text-gray-400 font-medium tracking-wider uppercase">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((s) => (
+              <div key={s.label} className="py-4 text-center">
+                <div className="text-2xl font-bold text-gray-900 mb-1">{s.value}</div>
+                <div className="text-xs text-gray-400 font-medium tracking-wider uppercase">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -324,77 +376,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Card Designs */}
-      <section className="py-28 sm:py-36 gradient-mesh relative">
-        <div className="absolute top-10 right-10 w-80 h-80 bg-primary-100/30 rounded-full blur-3xl" />
-        <div className="relative max-w-6xl mx-auto px-6">
-          <ScrollReveal>
-            <div className="text-center mb-20">
-              <p className="text-sm font-semibold text-primary-600 tracking-widest uppercase mb-4">Collection</p>
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900">Card Designs</h2>
-              <div className="w-20 h-1 bg-gradient-to-r from-primary-400 to-primary-600 mx-auto mt-6 rounded-full" />
-            </div>
-          </ScrollReveal>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {designs.map((p, i) => (
-              <ScrollReveal key={p.id} delay={i * 100} direction="up">
-                <div className={`card text-center group ${i === 1 ? 'ring-2 ring-primary-500/40 relative shadow-xl' : ''}`}>
-                  {i === 1 && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                      <span className="bg-primary-600 text-white px-5 py-1 rounded-full text-xs font-bold tracking-wider shadow-lg shadow-primary-200">POPULAR</span>
-                    </div>
-                  )}
-                  {p.imageUrl && (
-                    <div className="h-48 rounded-2xl mb-6 overflow-hidden bg-gray-50 border border-gray-100 group-hover:shadow-lg transition-all duration-500">
-                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    </div>
-                  )}
-                  <h3 className="font-semibold text-lg text-gray-900 mb-2">{p.name}</h3>
-                  <div className="text-4xl font-bold text-gray-900 mb-6">₹{p.price}</div>
-                  <ul className="text-sm text-gray-500 space-y-3 mb-8">
-                    {['NFC Enabled', 'Profile QR', 'Payment QR', 'Digital Profile'].map((f) => (
-                      <li key={f} className="flex items-center justify-center gap-2">
-                        <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href={`/order?design=${p.id}`} className="btn-primary w-full block text-center">Order Now</Link>
-                </div>
-              </ScrollReveal>
-            ))}
-            {designs.length === 0 && (
-              <>
-                {[{ name: 'Premium PVC Card', price: 999 }, { name: 'Premium Wood', price: 1499, popular: true }, { name: 'Premium Metal', price: 2499 }].map((p, i) => (
-                  <ScrollReveal key={p.name} delay={i * 100} direction="up">
-                    <div className={`card text-center ${(p as any).popular ? 'ring-2 ring-primary-500/40 relative' : ''}`}>
-                      {(p as any).popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-4 py-1 rounded-full text-xs font-semibold shadow-apple">Popular</span>}
-                      <h3 className="font-semibold text-lg text-gray-900 mb-2">{p.name}</h3>
-                      <div className="text-4xl font-bold text-gray-900 mb-6">₹{p.price}</div>
-                      <ul className="text-sm text-gray-500 space-y-3 mb-8">
-                        {['NFC Enabled', 'Profile QR', 'Payment QR', 'Digital Profile'].map((f) => (
-                          <li key={f} className="flex items-center justify-center gap-2">
-                            <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                            </svg>
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                      <Link href="/order" className="btn-primary w-full block text-center">Order Now</Link>
-                    </div>
-                  </ScrollReveal>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
-      <section className="py-28 sm:py-36 bg-white relative">
+      <section className="py-28 sm:py-36 gradient-mesh relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-50/40 rounded-full blur-3xl" />
         <div className="relative max-w-3xl mx-auto px-6">
           <ScrollReveal>
@@ -435,7 +418,7 @@ export default async function HomePage() {
       </section>
 
       {/* Contact */}
-      <section className="py-28 sm:py-36 gradient-mesh relative">
+      <section className="py-28 sm:py-36 bg-white relative">
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-primary-100/30 rounded-full blur-3xl translate-y-1/2" />
         <div className="relative max-w-3xl mx-auto px-6 text-center">
           <ScrollReveal>
