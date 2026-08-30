@@ -268,19 +268,25 @@ function OrderContent() {
                     <div className="grid grid-cols-2 gap-3 p-4 pb-0">
                       {d.imageUrl && (
                         <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <img src={d.imageUrl} alt={`${d.name} - Front`} className="w-full h-32 sm:h-40 object-cover" />
-                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80">Front</div>
+                          <div className="aspect-[1.6/1] w-full">
+                            <img src={d.imageUrl} alt={`${d.name} - Front`} className="w-full h-full object-contain p-2" />
+                          </div>
+                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Front</div>
                         </div>
                       )}
                       {d.backImage ? (
                         <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <img src={d.backImage} alt={`${d.name} - Back`} className="w-full h-32 sm:h-40 object-cover" />
-                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80">Back</div>
+                          <div className="aspect-[1.6/1] w-full">
+                            <img src={d.backImage} alt={`${d.name} - Back`} className="w-full h-full object-contain p-2" />
+                          </div>
+                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
                         </div>
                       ) : d.imageUrl ? (
                         <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <img src={d.imageUrl} alt={`${d.name} - Back`} className="w-full h-32 sm:h-40 object-cover" />
-                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80">Back</div>
+                          <div className="aspect-[1.6/1] w-full">
+                            <img src={d.imageUrl} alt={`${d.name} - Back`} className="w-full h-full object-contain p-2" />
+                          </div>
+                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
                         </div>
                       ) : null}
                     </div>
