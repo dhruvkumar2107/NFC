@@ -11,6 +11,7 @@ export default function EmployeeDetailPage() {
   const [loading, setLoading] = useState(true)
   const [pw, setPw] = useState('')
   const [msg, setMsg] = useState('')
+  const [resetPw, setResetPw] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -25,15 +26,21 @@ export default function EmployeeDetailPage() {
     }).catch(() => setLoading(false))
   }, [params.id])
 
-  async function resetPassword() {
-    if (!pw) return
+  async function resetPassword(autoGenerate = false) {
+    const password = autoGenerate ? undefined : pw
+    if (!autoGenerate && !pw) return
     const token = localStorage.getItem('token')
     const res = await fetch(`/api/admin/employees/${params.id}/reset-password`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ password: pw }),
+      body: JSON.stringify({ password, autoGenerate }),
     })
     const d = await res.json()
-    setMsg(d.success ? 'Password reset!' : d.error)
+    if (d.success) {
+      setResetPw(d.data.plainPassword)
+      setMsg('Password reset successfully!')
+    } else {
+      setMsg(d.error)
+    }
     setPw('')
   }
 
@@ -95,10 +102,23 @@ export default function EmployeeDetailPage() {
         <div className="card">
           <h2 className="font-semibold mb-3">Reset Password</h2>
           {msg && <div className={`p-2 rounded text-sm mb-3 ${msg.includes('success') || msg.includes('reset') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{msg}</div>}
-          <div className="flex gap-2">
-            <input type="password" className="input-field flex-1" placeholder="New password" value={pw} onChange={e => setPw(e.target.value)} />
-            <button onClick={resetPassword} className="btn-primary text-sm whitespace-nowrap">Reset</button>
+          {resetPw && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
+              <p className="text-sm text-green-700 font-medium mb-2">New Password:</p>
+              <div className="flex items-center gap-2">
+                <code className="font-mono font-bold text-green-800 bg-white px-3 py-1.5 rounded-lg border border-green-200">{resetPw}</code>
+                <button onClick={() => { navigator.clipboard.writeText(resetPw) }} className="text-sm text-primary-600 hover:underline whitespace-nowrap">Copy</button>
+              </div>
+              <p className="text-xs text-green-600 mt-2">Share this password with the employee. It will not be shown again.</p>
+            </div>
+          )}
+          <div className="flex gap-2 mb-2">
+            <input type="text" className="input-field flex-1" placeholder="New password" value={pw} onChange={e => setPw(e.target.value)} />
+            <button onClick={() => resetPassword(false)} disabled={!pw} className="btn-primary text-sm whitespace-nowrap disabled:opacity-50">Set</button>
           </div>
+          <button onClick={() => resetPassword(true)} className="btn-secondary text-sm w-full">
+            Auto-generate & Reset
+          </button>
         </div>
       </div>
 

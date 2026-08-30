@@ -5,6 +5,13 @@ import { hashPassword } from '@/lib/auth'
 import { generateReferralCode } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
+function generatePassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  let pass = ''
+  for (let i = 0; i < 10; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length))
+  return pass
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { user, error } = await requireAuth(request, 'admin')
@@ -35,8 +42,8 @@ export async function POST(request: NextRequest) {
     const { user, error } = await requireAuth(request, 'admin')
     if (error) return error
     const body = await request.json()
-    const { name, email, mobile, territory, password } = body
-    if (!name || !email || !password) return errorResponse('Name, email, and password are required')
+    const { name, email, mobile, territory, password: customPassword } = body
+    if (!name || !email) return errorResponse('Name and email are required')
     const existing = await prisma.employee.findUnique({ where: { email } })
     if (existing) return errorResponse('Email already exists')
 
@@ -51,11 +58,15 @@ export async function POST(request: NextRequest) {
     }
     const employeeId = `MSC-SE-${String(nextNum).padStart(3, '0')}`
     const referralLinkCode = generateReferralCode(name) + '-' + Math.random().toString(36).slice(2, 6)
-    const passwordHash = await hashPassword(password)
+    const plainPassword = customPassword || generatePassword()
+    const passwordHash = await hashPassword(plainPassword)
     const employee = await prisma.employee.create({
       data: { employeeId, name, email, mobile, territory, passwordHash, referralLinkCode },
     })
-    return successResponse(employee)
+    return successResponse({
+      ...employee,
+      plainPassword,
+    })
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to create employee', 500)
   }
