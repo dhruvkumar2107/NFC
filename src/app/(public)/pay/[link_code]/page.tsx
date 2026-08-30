@@ -15,7 +15,7 @@ async function getData(code: string) {
     const designs = await prisma.cardDesign.findMany({
       where: { active: true },
       orderBy: { price: 'asc' },
-      select: { id: true, name: true, price: true },
+      select: { id: true, name: true, price: true, imageUrl: true },
     })
 
     return { employee, designs }
@@ -59,7 +59,12 @@ export default async function PayReferralPage({ params }: { params: { link_code:
                     ? 'glass ring-1 ring-primary-200/50 shadow-md shadow-primary-500/5'
                     : 'glass-subtle hover:shadow-sm'
                 }`}>
-                  <div>
+                  <div className="flex items-center gap-3">
+                    {d.imageUrl && (
+                      <div className="w-16 h-10 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0">
+                        <img src={d.imageUrl} alt={d.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
                     <p className="font-semibold text-sm text-gray-900">{d.name}</p>
                   </div>
                   <p className="font-bold text-gray-900">₹{d.price.toLocaleString()}</p>

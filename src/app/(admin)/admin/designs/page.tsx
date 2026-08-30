@@ -79,6 +79,11 @@ export default function AdminDesignsPage() {
       <div className="grid md:grid-cols-3 gap-4">
         {designs.map((d) => (
           <div key={d.id} className={`card ${!d.opacity ? '' : 'opacity-60'}`}>
+            {d.imageUrl && (
+              <div className="h-40 rounded-xl mb-4 overflow-hidden bg-gray-50">
+                <img src={d.imageUrl} alt={d.name} className="w-full h-full object-cover" />
+              </div>
+            )}
             <h3 className="font-semibold text-lg">{d.name}</h3>
             <div className="text-2xl font-bold text-primary-600 my-2">₹{d.price}</div>
             <div className="flex items-center justify-between">

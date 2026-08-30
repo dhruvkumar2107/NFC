@@ -41,9 +41,9 @@ async function main() {
   }
 
   const designs = [
-    { id: 'premium-pvc', name: 'Premium PVC Card', price: 999, imageUrl: '/designs/premium-pvc.png' },
-    { name: 'Premium Wood', price: 1499, imageUrl: '/designs/premium-wood.png' },
-    { name: 'Premium Metal', price: 2499, imageUrl: '/designs/premium-metal.png' },
+    { id: 'premium-pvc', name: 'Premium PVC Card', price: 999, imageUrl: '/photos/premium pvc card.jpeg' },
+    { name: 'Premium Wood', price: 1499, imageUrl: '/photos/premium wooden pvc card.jpeg' },
+    { name: 'Premium Metal', price: 2499, imageUrl: '/photos/premium mattel card.jpeg' },
   ];
 
   for (const design of designs) {

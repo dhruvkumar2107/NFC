@@ -43,20 +43,28 @@ export default async function HomePage() {
           <div className="absolute bottom-10 right-20 w-96 h-96 bg-primary-300/20 rounded-full blur-3xl" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-400/10 rounded-full blur-3xl" />
         </div>
-        <div className="relative max-w-6xl mx-auto px-6 text-center">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-8 tracking-tight leading-[1.1]">
-            Tap. Connect.<br />Get Paid.
-          </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Your NFC-powered smart card. Share your profile instantly and receive payments with a simple tap or scan.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/order" className="glass-strong text-gray-900 px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white transition-all duration-300 shadow-glass-lg hover:shadow-glass-xl hover:-translate-y-0.5">
-              Buy Your MySmartCard
-            </Link>
-            <Link href="/cards" className="glass text-white px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5">
-              View Card Designs
-            </Link>
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="text-center md:text-left">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-8 tracking-tight leading-[1.1]">
+                Tap. Connect.<br />Get Paid.
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl text-white/80 mb-12 max-w-2xl leading-relaxed">
+                Your NFC-powered smart card. Share your profile instantly and receive payments with a simple tap or scan.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <Link href="/order" className="glass-strong text-gray-900 px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white transition-all duration-300 shadow-glass-lg hover:shadow-glass-xl hover:-translate-y-0.5">
+                  Buy Your MySmartCard
+                </Link>
+                <Link href="/cards" className="glass text-white px-10 py-4 rounded-2xl font-semibold text-lg hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5">
+                  View Card Designs
+                </Link>
+              </div>
+            </div>
+            <div className="hidden md:flex justify-center items-center gap-6">
+              <img src="/photos/h1.jpeg" alt="MySmartCard Premium Metal" className="w-72 rounded-2xl shadow-2xl rotate-[-6deg] hover:rotate-0 transition-transform duration-500" />
+              <img src="/photos/h2.jpeg" alt="MySmartCard Premium PVC" className="w-72 rounded-2xl shadow-2xl rotate-[6deg] hover:rotate-0 transition-transform duration-500" />
+            </div>
           </div>
         </div>
       </section>

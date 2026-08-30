@@ -10,13 +10,6 @@ const featureSets: Record<string, string[]> = {
 }
 const defaultFeatures = ['NFC Chip Embedded', 'Customizable Profile', 'QR Code Payment', 'Digital Business Card']
 
-const colorMap: Record<string, string> = {
-  'Premium PVC Card': 'bg-white border-2 border-gray-200',
-  'Premium Wood': 'bg-amber-800 text-white',
-  'Premium Metal': 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900',
-}
-const defaultColor = 'bg-primary-50 border-2 border-primary-200'
-
 export default async function CardsPage() {
   let designs: any[] = []
   try {
@@ -52,12 +45,18 @@ export default async function CardsPage() {
                   </div>
                 )}
 
-                <div className={`h-52 rounded-2xl mb-8 flex items-center justify-center ${colorMap[d.name] || defaultColor} relative overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]`}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
-                  <div className="text-center relative z-10">
-                    <div className="text-2xl font-bold tracking-wide">MySmartCard</div>
-                    <div className="text-sm opacity-60 mt-1.5 font-medium">{d.name}</div>
-                  </div>
+                <div className={`h-52 rounded-2xl mb-8 flex items-center justify-center bg-gray-50 relative overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]`}>
+                  {d.imageUrl ? (
+                    <img src={d.imageUrl} alt={d.name} className="w-full h-full object-cover rounded-2xl" />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
+                      <div className="text-center relative z-10">
+                        <div className="text-2xl font-bold tracking-wide">MySmartCard</div>
+                        <div className="text-sm opacity-60 mt-1.5 font-medium">{d.name}</div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 mb-2">{d.name}</h2>

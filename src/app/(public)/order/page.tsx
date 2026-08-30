@@ -262,8 +262,12 @@ function OrderContent() {
                     }`}
                   >
                     <input type="radio" name="design" value={d.id} checked={form.designId === d.id} onChange={(e) => setField('designId', e.target.value)} className="sr-only" />
-                    <div className="w-24 h-14 rounded-xl flex items-center justify-center bg-white border border-gray-200/60 flex-shrink-0 shadow-sm">
-                      <span className="text-xs font-bold text-gray-700">{d.name}</span>
+                    <div className="w-24 h-14 rounded-xl flex items-center justify-center bg-white border border-gray-200/60 flex-shrink-0 shadow-sm overflow-hidden">
+                      {d.imageUrl ? (
+                        <img src={d.imageUrl} alt={d.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-bold text-gray-700">{d.name}</span>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="font-semibold text-gray-900 block">{d.name}</span>
