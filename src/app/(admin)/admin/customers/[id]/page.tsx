@@ -44,6 +44,8 @@ export default function CustomerDetailPage() {
   if (!customer) return <div className="text-center py-12 text-gray-500">Customer not found.</div>
 
   const socialLinks = JSON.parse(customer.socialLinks || '{}')
+  let photos: string[] = []
+  try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
 
   return (
     <div>
@@ -73,14 +75,12 @@ export default function CustomerDetailPage() {
               <div><label className="label">Designation</label><input className="input-field" value={form.designation || ''} onChange={e => setForm((f: any) => ({ ...f, designation: e.target.value }))} /></div>
               <div><label className="label">Company</label><input className="input-field" value={form.company || ''} onChange={e => setForm((f: any) => ({ ...f, company: e.target.value }))} /></div>
               <div><label className="label">Website</label><input className="input-field" value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
-              <div><label className="label">Location</label><input className="input-field" value={form.location || ''} onChange={e => setForm((f: any) => ({ ...f, location: e.target.value }))} /></div>
               <div><label className="label">Address</label><input className="input-field" value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} placeholder="Flat/House No., Building, Street" /></div>
               <div className="grid grid-cols-3 gap-3">
                 <div><label className="label">City</label><input className="input-field" value={form.city || ''} onChange={e => setForm((f: any) => ({ ...f, city: e.target.value }))} /></div>
                 <div><label className="label">State</label><input className="input-field" value={form.state || ''} onChange={e => setForm((f: any) => ({ ...f, state: e.target.value }))} /></div>
                 <div><label className="label">PIN Code</label><input className="input-field" value={form.pincode || ''} onChange={e => setForm((f: any) => ({ ...f, pincode: e.target.value }))} /></div>
               </div>
-              <div><label className="label">UPI ID</label><input className="input-field" value={form.upiId || ''} onChange={e => setForm((f: any) => ({ ...f, upiId: e.target.value }))} /></div>
               <div><label className="label">Type</label><select className="input-field" value={form.type || 'individual'} onChange={e => setForm((f: any) => ({ ...f, type: e.target.value }))}><option value="individual">Individual</option><option value="corporate">Corporate</option></select></div>
               <div><label className="label">Description</label><textarea className="input-field" rows={3} value={form.description || ''} onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
               <button onClick={saveEdit} className="btn-primary">Save Changes</button>
@@ -94,12 +94,10 @@ export default function CustomerDetailPage() {
               <div><span className="text-gray-500">Designation:</span> {customer.designation || '-'}</div>
               <div><span className="text-gray-500">Company:</span> {customer.company || '-'}</div>
               <div><span className="text-gray-500">Website:</span> {customer.website || '-'}</div>
-              <div><span className="text-gray-500">Location:</span> {customer.location || '-'}</div>
               <div><span className="text-gray-500">Address:</span> {customer.address || '-'}</div>
               <div><span className="text-gray-500">City:</span> {customer.city || '-'}</div>
               <div><span className="text-gray-500">State:</span> {customer.state || '-'}</div>
               <div><span className="text-gray-500">PIN Code:</span> {customer.pincode || '-'}</div>
-              <div><span className="text-gray-500">UPI ID:</span> {customer.upiId || '-'}</div>
               <div><span className="text-gray-500">Type:</span> <span className="px-2 py-0.5 rounded text-xs bg-gray-100">{customer.type}</span></div>
               <div><span className="text-gray-500">Description:</span> {customer.description || '-'}</div>
             </div>
@@ -121,6 +119,18 @@ export default function CustomerDetailPage() {
             {Object.keys(socialLinks).length > 0 ? (
               <div className="space-y-1 text-sm">{Object.entries(socialLinks).map(([k, v]) => <div key={k}><span className="text-gray-500 capitalize">{k}:</span> <a href={v as string} target="_blank" className="text-primary-600 hover:underline">{v as string}</a></div>)}</div>
             ) : <p className="text-gray-500 text-sm">No social links</p>}
+          </div>
+          <div className="card">
+            <h2 className="font-semibold mb-3">Photos ({photos.length})</h2>
+            {photos.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2">
+                {photos.map((photo, i) => (
+                  <div key={i} className="rounded-xl overflow-hidden aspect-square">
+                    <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            ) : <p className="text-gray-500 text-sm">No photos uploaded</p>}
           </div>
           <div className="card">
             <h2 className="font-semibold mb-3">Referred By</h2>

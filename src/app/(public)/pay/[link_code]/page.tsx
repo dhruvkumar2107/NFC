@@ -8,7 +8,7 @@ async function getData(code: string) {
   try {
     const employee = await prisma.employee.findFirst({
       where: { referralLinkCode: code, status: 'active' },
-      select: { employeeId: true, name: true, referralLinkCode: true, territory: true },
+      select: { employeeId: true, referralLinkCode: true, territory: true },
     })
     if (!employee) return null
 
@@ -42,7 +42,7 @@ export default async function PayReferralPage({ params }: { params: { link_code:
             <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             <div className="relative z-10">
               <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl font-bold mx-auto mb-5 ring-4 ring-white/15 shadow-xl">
-                {employee.name?.charAt(0) || '?'}
+                M
               </div>
               <h1 className="text-2xl font-bold">MySmartCard</h1>
               <p className="text-primary-100 mt-1 text-sm">Premium NFC Smart Card</p>
@@ -51,14 +51,6 @@ export default async function PayReferralPage({ params }: { params: { link_code:
 
           {/* Content */}
           <div className="p-7">
-            {/* Employee Info */}
-            <div className="glass rounded-2xl p-5 mb-6">
-              <p className="text-xs text-primary-500 font-semibold uppercase tracking-wider mb-1.5">Referred by</p>
-              <p className="text-lg font-bold text-gray-900">{employee.name}</p>
-              <p className="text-xs text-gray-400 mt-0.5">Sales Executive &middot; {employee.employeeId}</p>
-              {employee.territory && <p className="text-xs text-gray-400 mt-1">{employee.territory}</p>}
-            </div>
-
             {/* Design List */}
             <div className="space-y-2.5 mb-7">
               {designs.map((d, i) => (
@@ -84,7 +76,7 @@ export default async function PayReferralPage({ params }: { params: { link_code:
             </Link>
 
             <p className="text-xs text-gray-400 mt-5 leading-relaxed">
-              Your order will be attributed to {employee.name}. They will deliver your card in person.
+              Order your MySmartCard today and get it delivered to your doorstep.
             </p>
           </div>
         </div>

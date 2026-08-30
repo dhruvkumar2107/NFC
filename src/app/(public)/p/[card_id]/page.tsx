@@ -41,6 +41,8 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
   const { card, customer, design } = profile
   let socialLinks: Record<string, string> = {}
   try { socialLinks = JSON.parse(customer.socialLinks || '{}') } catch { socialLinks = {} }
+  let photos: string[] = []
+  try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
 
   return (
     <div className="min-h-screen gradient-mesh flex items-center justify-center p-4">
@@ -51,8 +53,8 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
             <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             <div className="relative z-10">
               <div className="w-28 h-28 rounded-full mx-auto mb-5 ring-4 ring-white/20 shadow-xl overflow-hidden">
-                {customer.profilePhotoUrl ? (
-                  <img src={customer.profilePhotoUrl} alt={customer.name} className="w-full h-full object-cover" />
+                {photos[0] ? (
+                  <img src={photos[0]} alt={customer.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-white/20">
                     {customer.name?.charAt(0) || '?'}
@@ -77,7 +79,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
               </a>
             )}
             {customer.whatsapp && (
-              <a href={`https://wa.me/${customer.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-4 glass rounded-2xl hover:shadow-md transition-all duration-300 group">
+              <a href={`https://wa.me/${customer.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${customer.name}, I found your MySmartCard profile!`)}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-4 glass rounded-2xl hover:shadow-md transition-all duration-300 group">
                 <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                   <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-12 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12z" /></svg>
                 </div>
@@ -95,7 +97,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
           {/* Contact Details */}
           <div className="px-5 pb-5 space-y-2">
             {customer.email && (
-              <a href={`mailto:${customer.email}`} className="flex items-center gap-3 p-3.5 glass-subtle rounded-2xl hover:shadow-sm transition-all duration-300 group">
+              <a href={`mailto:${customer.email}?subject=${encodeURIComponent(`Contact from MySmartCard Profile`)}&body=${encodeURIComponent(`Hi ${customer.name},\n\nI found your profile on MySmartCard and would like to connect.\n\nBest regards`)}`} className="flex items-center gap-3 p-3.5 glass-subtle rounded-2xl hover:shadow-sm transition-all duration-300 group">
                 <svg className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
                 <span className="text-sm text-gray-700">{customer.email}</span>
               </a>
@@ -106,13 +108,6 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
                 <span className="text-sm text-gray-700">{customer.website}</span>
               </a>
             )}
-            {customer.location && (
-              <div className="flex items-center gap-3 p-3.5 glass-subtle rounded-2xl hover:shadow-sm transition-all duration-300">
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-                <span className="text-sm text-gray-700">{customer.location}</span>
-              </div>
-            )}
-
             {/* Social Links */}
             {Object.entries(socialLinks).map(([platform, url]) => (
               <a key={platform} href={url as string} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3.5 glass-subtle rounded-2xl hover:shadow-sm transition-all duration-300 group">
@@ -125,6 +120,20 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
             {customer.description && (
               <div className="p-4 glass-subtle rounded-2xl mt-4">
                 <p className="text-sm text-gray-600 leading-relaxed">{customer.description}</p>
+              </div>
+            )}
+
+            {/* Photos Gallery */}
+            {photos.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Photos</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {photos.map((photo, i) => (
+                    <div key={i} className="rounded-xl overflow-hidden aspect-square">
+                      <img src={photo} alt={`${customer.name} photo ${i + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

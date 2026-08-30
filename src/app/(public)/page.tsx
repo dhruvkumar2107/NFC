@@ -15,7 +15,7 @@ const features = [
   { title: 'QR Code Access', desc: 'Two QR codes - one for your profile, one for payments.', icon: '📱' },
   { title: 'Receive Payments', desc: 'Get paid directly via UPI when someone scans your payment QR.', icon: '💰' },
   { title: 'Always Updated', desc: 'Edit your profile online - your card always shows the latest info.', icon: '🔄' },
-  { title: 'Premium Designs', desc: 'Choose from Premium PVC, Black Matte, or Metal card designs.', icon: '✨' },
+  { title: 'Premium Designs', desc: 'Choose from Premium PVC, Premium Wood, or Premium Metal card designs.', icon: '✨' },
   { title: 'Digital + Physical', desc: 'Get a physical NFC card plus a shareable digital profile link.', icon: '🔗' },
 ]
 
@@ -244,7 +244,7 @@ export default async function HomePage() {
             ))}
             {designs.length === 0 && (
               <>
-                {[{ name: 'Premium PVC', price: 999 }, { name: 'Black Matte', price: 1499, popular: true }, { name: 'Metal', price: 2499 }].map((p) => (
+                {[{ name: 'Premium PVC', price: 999 }, { name: 'Premium Wood', price: 1499, popular: true }, { name: 'Premium Metal', price: 2499 }].map((p) => (
                   <div key={p.name} className={`card text-center ${(p as any).popular ? 'ring-2 ring-primary-500/40 relative' : ''}`}>
                     {(p as any).popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-4 py-1 rounded-full text-xs font-semibold shadow-apple">Popular</span>}
                     <h3 className="font-semibold text-lg text-gray-900 mb-2">{p.name}</h3>

@@ -16,23 +16,25 @@ interface OrderForm {
   instagram: string
   facebook: string
   linkedin: string
-  location: string
   address: string
   city: string
   state: string
   pincode: string
-  upiId: string
-  profilePhotoUrl: string
   logoUrl: string
   description: string
   referralCode: string
+  photo1: string
+  photo2: string
+  photo3: string
+  photo4: string
 }
 
 const initialForm: OrderForm = {
   designId: '', fullName: '', designation: '', company: '', mobile: '', whatsapp: '',
   email: '', website: '', instagram: '', facebook: '', linkedin: '',
-  location: '', address: '', city: '', state: '', pincode: '',
-  upiId: '', profilePhotoUrl: '', logoUrl: '', description: '', referralCode: '',
+  address: '', city: '', state: '', pincode: '',
+  logoUrl: '', description: '', referralCode: '',
+  photo1: '', photo2: '', photo3: '', photo4: '',
 }
 
 function OrderContent() {
@@ -123,6 +125,7 @@ function OrderContent() {
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
+      const photos = [form.photo1, form.photo2, form.photo3, form.photo4].filter(p => p.trim())
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -136,15 +139,13 @@ function OrderContent() {
           email: form.email.trim(),
           website: form.website.trim(),
           socialLinks: { instagram: form.instagram.trim(), facebook: form.facebook.trim(), linkedin: form.linkedin.trim() },
-          location: form.location.trim(),
           address: form.address.trim(),
           city: form.city.trim(),
           state: form.state.trim(),
           pincode: form.pincode.trim(),
-          upiId: form.upiId.trim(),
-          profilePhotoUrl: form.profilePhotoUrl.trim(),
           logoUrl: form.logoUrl.trim(),
           description: form.description.trim(),
+          photos,
           referralCode: form.referralCode.trim() || undefined,
           attributionType: form.referralCode.trim() ? attributionType : 'direct',
         }),
@@ -310,9 +311,9 @@ function OrderContent() {
                         className="input-field" placeholder="Acme Pvt. Ltd." />
                     </div>
                     <div>
-                      <label className="label">Location</label>
-                      <input type="text" value={form.location} onChange={(e) => setField('location', e.target.value)}
-                        className="input-field" placeholder="Mumbai, India" />
+                      <label className="label">Website</label>
+                      <input type="url" value={form.website} onChange={(e) => setField('website', e.target.value)}
+                        className="input-field" placeholder="https://example.com" />
                     </div>
                   </div>
                 </div>
@@ -328,7 +329,7 @@ function OrderContent() {
                       {errors.mobile && <p className="text-red-500 text-xs mt-1.5">{errors.mobile}</p>}
                     </div>
                     <div>
-                      <label className="label">WhatsApp</label>
+                      <label className="label">WhatsApp *</label>
                       <input type="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)}
                         className={`input-field ${errors.whatsapp ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="9876543210" />
                       {errors.whatsapp && <p className="text-red-500 text-xs mt-1.5">{errors.whatsapp}</p>}
@@ -338,11 +339,6 @@ function OrderContent() {
                       <input type="email" value={form.email} onChange={(e) => setField('email', e.target.value)}
                         className={`input-field ${errors.email ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="john@example.com" />
                       {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email}</p>}
-                    </div>
-                    <div>
-                      <label className="label">Website</label>
-                      <input type="url" value={form.website} onChange={(e) => setField('website', e.target.value)}
-                        className="input-field" placeholder="https://example.com" />
                     </div>
                   </div>
                 </div>
@@ -405,41 +401,57 @@ function OrderContent() {
                 {/* Profile & Branding */}
                 <div className="glass rounded-2xl p-6">
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Profile & Branding</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="label">Profile Photo URL</label>
-                      <input type="url" value={form.profilePhotoUrl} onChange={(e) => setField('profilePhotoUrl', e.target.value)}
-                        className="input-field" placeholder="https://example.com/photo.jpg" />
-                    </div>
+                  <div className="space-y-4">
                     <div>
                       <label className="label">Logo URL</label>
                       <input type="url" value={form.logoUrl} onChange={(e) => setField('logoUrl', e.target.value)}
                         className="input-field" placeholder="https://example.com/logo.png" />
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="label">Description / Bio</label>
-                    <textarea value={form.description} onChange={(e) => setField('description', e.target.value)} rows={3}
-                      className="input-field resize-none" placeholder="Tell people about yourself or your business..." />
+                    <div>
+                      <label className="label">Description / Bio</label>
+                      <textarea value={form.description} onChange={(e) => setField('description', e.target.value)} rows={3}
+                        className="input-field resize-none" placeholder="Tell people about yourself or your business..." />
+                    </div>
                   </div>
                 </div>
 
-                {/* Payment */}
+                {/* Photos */}
                 <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Payment</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Your Photos</h3>
+                  <p className="text-xs text-gray-400 mb-4">Upload 3-4 photos of yourself for your digital profile card</p>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="label">UPI ID</label>
-                      <input type="text" value={form.upiId} onChange={(e) => setField('upiId', e.target.value)}
-                        className="input-field" placeholder="yourname@upi" />
+                      <label className="label">Photo 1 URL</label>
+                      <input type="url" value={form.photo1} onChange={(e) => setField('photo1', e.target.value)}
+                        className="input-field" placeholder="https://example.com/photo1.jpg" />
                     </div>
                     <div>
-                      <label className="label">Referral / Employee Code</label>
-                      <input type="text" value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)}
-                        className={`input-field ${errors.referralCode ? '!border-red-400 !ring-red-400/20' : form.referralCode && referralValid === true ? '!border-green-400 !ring-green-400/20' : ''}`} placeholder="Optional" />
-                      {errors.referralCode && <p className="text-red-500 text-xs mt-1.5">{errors.referralCode}</p>}
-                      {form.referralCode && referralValid === true && <p className="text-green-600 text-xs mt-1.5">Valid referral code</p>}
+                      <label className="label">Photo 2 URL</label>
+                      <input type="url" value={form.photo2} onChange={(e) => setField('photo2', e.target.value)}
+                        className="input-field" placeholder="https://example.com/photo2.jpg" />
                     </div>
+                    <div>
+                      <label className="label">Photo 3 URL</label>
+                      <input type="url" value={form.photo3} onChange={(e) => setField('photo3', e.target.value)}
+                        className="input-field" placeholder="https://example.com/photo3.jpg" />
+                    </div>
+                    <div>
+                      <label className="label">Photo 4 URL</label>
+                      <input type="url" value={form.photo4} onChange={(e) => setField('photo4', e.target.value)}
+                        className="input-field" placeholder="https://example.com/photo4.jpg" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referral */}
+                <div className="glass rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Referral Code (Optional)</h3>
+                  <div>
+                    <label className="label">Referral / Employee Code</label>
+                    <input type="text" value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)}
+                      className={`input-field ${errors.referralCode ? '!border-red-400 !ring-red-400/20' : form.referralCode && referralValid === true ? '!border-green-400 !ring-green-400/20' : ''}`} placeholder="Enter if you have one" />
+                    {errors.referralCode && <p className="text-red-500 text-xs mt-1.5">{errors.referralCode}</p>}
+                    {form.referralCode && referralValid === true && <p className="text-green-600 text-xs mt-1.5">Valid referral code</p>}
                   </div>
                 </div>
               </div>
@@ -453,8 +465,8 @@ function OrderContent() {
               <div className="glass-strong rounded-3xl overflow-hidden max-w-md mx-auto shadow-xl">
                 <div className="bg-gradient-to-br from-primary-600 to-primary-800 p-8 text-center text-white">
                   <div className="w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden ring-4 ring-white/20 shadow-xl">
-                    {form.profilePhotoUrl ? (
-                      <img src={form.profilePhotoUrl} alt="Profile" className="w-full h-full object-cover" />
+                    {form.photo1 ? (
+                      <img src={form.photo1} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-white/20">
                         {form.fullName ? form.fullName.charAt(0) : '?'}
@@ -480,12 +492,6 @@ function OrderContent() {
                         <span>{form.email}</span>
                       </div>
                     )}
-                    {form.location && (
-                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-                        <span>{form.location}</span>
-                      </div>
-                    )}
                     {form.website && (
                       <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
                         <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
@@ -498,14 +504,6 @@ function OrderContent() {
                       {form.instagram && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-pink-600">Instagram</span>}
                       {form.facebook && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-600">Facebook</span>}
                       {form.linkedin && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-700">LinkedIn</span>}
-                    </div>
-                  )}
-                  {form.upiId && (
-                    <div className="pt-3 border-t border-gray-100">
-                      <div className="flex items-center gap-2 text-sm text-gray-700 glass-subtle rounded-xl p-3">
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
-                        <span>UPI: {form.upiId}</span>
-                      </div>
                     </div>
                   )}
                 </div>

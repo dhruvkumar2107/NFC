@@ -19,8 +19,7 @@ export default function EditProfilePage() {
           setProfile({
             name: c.name || '', designation: c.designation || '', company: c.company || '',
             mobile: c.mobile || '', whatsapp: c.whatsapp || '', email: c.email || '',
-            website: c.website || '', location: c.location || '', upiId: c.upiId || '',
-            profilePhotoUrl: c.profilePhotoUrl || '', logoUrl: c.logoUrl || '',
+            website: c.website || '', logoUrl: c.logoUrl || '',
             description: c.description || '',
             socialLinks: JSON.parse(c.socialLinks || '{}'),
           })
@@ -79,7 +78,6 @@ export default function EditProfilePage() {
             <div><label className="label">Full Name *</label><input className="input-field" value={profile.name} onChange={e => updateField('name', e.target.value)} /></div>
             <div><label className="label">Designation</label><input className="input-field" value={profile.designation} onChange={e => updateField('designation', e.target.value)} /></div>
             <div><label className="label">Company</label><input className="input-field" value={profile.company} onChange={e => updateField('company', e.target.value)} /></div>
-            <div><label className="label">Location</label><input className="input-field" value={profile.location} onChange={e => updateField('location', e.target.value)} /></div>
           </div>
           <div><label className="label">About / Description</label><textarea className="input-field" rows={3} value={profile.description} onChange={e => updateField('description', e.target.value)} /></div>
         </div>
@@ -104,11 +102,10 @@ export default function EditProfilePage() {
         </div>
 
         <div className="card space-y-4">
-          <h2 className="font-semibold text-lg">Payment & Media</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div><label className="label">UPI ID</label><input className="input-field" placeholder="yourname@upi" value={profile.upiId} onChange={e => updateField('upiId', e.target.value)} /></div>
-            <div><label className="label">Profile Photo URL</label><input className="input-field" value={profile.profilePhotoUrl} onChange={e => updateField('profilePhotoUrl', e.target.value)} /></div>
-            <div><label className="label">Logo URL</label><input className="input-field" value={profile.logoUrl} onChange={e => updateField('logoUrl', e.target.value)} /></div>
+          <h2 className="font-semibold text-lg">Media</h2>
+          <div>
+            <label className="label">Logo URL</label>
+            <input className="input-field" value={profile.logoUrl} onChange={e => updateField('logoUrl', e.target.value)} />
           </div>
         </div>
 

@@ -88,7 +88,7 @@ export default function EmployeeDashboard() {
           <input readOnly value={`${typeof window !== 'undefined' ? window.location.origin : ''}/pay/${data.referralLinkCode}`} className="input-field flex-1 text-sm" />
           <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/pay/${data.referralLinkCode}`); alert('Copied!') }} className="btn-secondary whitespace-nowrap">Copy</button>
         </div>
-        <p className="text-xs text-gray-400 mt-2">Or customers can enter your code: <span className="font-mono font-bold text-primary-600">{data.referralLinkCode}</span></p>
+        <p className="text-xs text-gray-400 mt-2">Your unique code: <span className="font-mono font-bold text-primary-600">{data.referralLinkCode}</span></p>
       </div>
 
       {/* Quick Links */}

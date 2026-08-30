@@ -37,9 +37,11 @@ export default function CustomerDashboard() {
           <div className="text-2xl font-bold">{readableCardId || 'Not assigned'}</div>
           <div className="mt-1 text-sm">
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-              customer.card?.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+              customer.card?.status === 'Active' ? 'bg-green-100 text-green-700' :
+              customer.card?.status === 'Delivered' ? 'bg-blue-100 text-blue-700' :
+              customer.card ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'
             }`}>
-              {customer.card?.status || 'Pending'}
+              {customer.card?.status || 'Unassigned'}
             </span>
           </div>
         </div>

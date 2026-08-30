@@ -20,9 +20,8 @@ export default function CardDetailsPage() {
             const profileUrl = `${baseUrl}/p/${readableCardId}`
             setProfileQr(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(profileUrl)}`)
           }
-          if (d.data.upiId) {
-            const paymentUrl = `upi://pay?pa=${encodeURIComponent(d.data.upiId)}&pn=${encodeURIComponent(d.data.name || '')}`
-            setPaymentQr(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentUrl)}`)
+          if (d.data.paymentQrUrl) {
+            setPaymentQr(d.data.paymentQrUrl)
           }
         }
         setLoading(false)
@@ -86,9 +85,9 @@ export default function CardDetailsPage() {
           {paymentQr ? (
             <img src={paymentQr} alt="Payment QR" className="mx-auto mb-4" />
           ) : (
-            <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 mb-4">Add UPI ID to generate payment QR</div>
+            <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 mb-4">Payment QR will be set by admin</div>
           )}
-          <p className="text-sm text-gray-600">{customer.upiId || 'No UPI ID set'}</p>
+          <p className="text-sm text-gray-600">{customer.paymentQrUrl ? 'Payment QR active' : 'Contact admin to set up payment QR'}</p>
         </div>
       </div>
 

@@ -16,6 +16,8 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
     if (!customer) return errorResponse('Customer not found', 404)
 
     const socialLinks = JSON.parse(customer.socialLinks || '{}')
+    let photos: string[] = []
+    try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
 
     return successResponse({
       cardId: card.cardId,
@@ -27,9 +29,7 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
       whatsapp: customer.whatsapp,
       website: customer.website,
       socialLinks,
-      location: customer.location,
-      upiId: customer.upiId,
-      profilePhotoUrl: customer.profilePhotoUrl,
+      photos,
       logoUrl: customer.logoUrl,
       description: customer.description,
       design: { name: card.design.name },

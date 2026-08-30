@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       prisma.employee.findMany({ take: 10, orderBy: { createdAt: 'desc' }, select: { id: true, employeeId: true, name: true, email: true, status: true, totalPoints: true, availablePoints: true } }),
     ])
 
-    const totalRevenue = allOrders.reduce((s, o) => s + o.amount, 0)
-    const totalCommission = allOrders.reduce((s, o) => s + (o.commissionAmount || 0), 0)
+    const totalRevenue = allOrders.filter(o => o.status === 'Delivered' || o.status === 'Payment Received').reduce((s, o) => s + o.amount, 0)
+    const totalCommission = allOrders.filter(o => o.status === 'Delivered' || o.status === 'Payment Received').reduce((s, o) => s + (o.commissionAmount || 0), 0)
     const activeCards = allCards.filter(c => c.status === 'Active').length
     const pendingOrders = allOrders.filter(o => o.status === 'Pending').length
     const directSales = allOrders.filter(o => !o.employeeId).length

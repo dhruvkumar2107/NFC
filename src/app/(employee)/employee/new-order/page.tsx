@@ -9,7 +9,7 @@ export default function EmployeeNewOrderPage() {
   const [employee, setEmployee] = useState<any>(null)
   const [form, setForm] = useState({
     name: '', email: '', mobile: '', designation: '', company: '',
-    whatsapp: '', website: '', location: '', upiId: '',
+    whatsapp: '', website: '',
     designId: '',
   })
 
@@ -102,8 +102,6 @@ export default function EmployeeNewOrderPage() {
             <div><label className="label">Designation</label><input className="input-field" value={form.designation} onChange={e => update('designation', e.target.value)} /></div>
             <div><label className="label">Company</label><input className="input-field" value={form.company} onChange={e => update('company', e.target.value)} /></div>
             <div><label className="label">Website</label><input className="input-field" value={form.website} onChange={e => update('website', e.target.value)} /></div>
-            <div><label className="label">Location</label><input className="input-field" value={form.location} onChange={e => update('location', e.target.value)} /></div>
-            <div><label className="label">UPI ID</label><input className="input-field" value={form.upiId} onChange={e => update('upiId', e.target.value)} placeholder="customer@upi" /></div>
           </div>
         </div>
 

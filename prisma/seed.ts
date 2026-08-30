@@ -42,8 +42,8 @@ async function main() {
 
   const designs = [
     { name: 'Premium PVC', price: 999, imageUrl: '/designs/premium-pvc.png' },
-    { name: 'Black Matte', price: 1499, imageUrl: '/designs/black-matte.png' },
-    { name: 'Metal', price: 2499, imageUrl: '/designs/metal.png' },
+    { name: 'Premium Wood', price: 1499, imageUrl: '/designs/premium-wood.png' },
+    { name: 'Premium Metal', price: 2499, imageUrl: '/designs/premium-metal.png' },
   ];
 
   for (const design of designs) {

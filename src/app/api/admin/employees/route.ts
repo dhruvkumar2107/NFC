@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import { hashPassword } from '@/lib/auth'
-import { generateReferralCode } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 function generatePassword(): string {
@@ -57,7 +56,7 @@ export async function POST(request: NextRequest) {
       if (match) nextNum = parseInt(match[1]) + 1
     }
     const employeeId = `MSC-SE-${String(nextNum).padStart(3, '0')}`
-    const referralLinkCode = generateReferralCode(name) + '-' + Math.random().toString(36).slice(2, 6)
+    const referralLinkCode = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6)
     const plainPassword = customPassword || generatePassword()
     const passwordHash = await hashPassword(plainPassword)
     const employee = await prisma.employee.create({

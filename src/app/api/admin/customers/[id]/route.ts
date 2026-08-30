@@ -23,10 +23,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { user, error } = await requireAuth(request, 'admin')
     if (error) return error
     const body = await request.json()
-    const allowed = ['name','designation','company','mobile','whatsapp','email','website','socialLinks','location','upiId','profilePhotoUrl','logoUrl','description','type']
+    const allowed = ['name','designation','company','mobile','whatsapp','email','website','socialLinks','address','city','state','pincode','logoUrl','description','type','photos']
     const safeData: Record<string, any> = {}
     for (const k of allowed) { if (body[k] !== undefined) safeData[k] = body[k] }
     if (safeData.socialLinks && typeof safeData.socialLinks === 'object') safeData.socialLinks = JSON.stringify(safeData.socialLinks)
+    if (safeData.photos && Array.isArray(safeData.photos)) safeData.photos = JSON.stringify(safeData.photos)
     const updated = await prisma.customer.update({ where: { id: params.id }, data: safeData })
     return successResponse(updated)
   } catch (err: any) {

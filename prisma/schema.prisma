@@ -18,14 +18,14 @@ model Customer {
   passwordHash     String?
   website          String?
   socialLinks      String   @default("{}")
-  location         String?
   address          String?
   city             String?
   state            String?
   pincode          String?
   country          String?  @default("India")
   upiId            String?
-  profilePhotoUrl  String?
+  photos           String   @default("[]")
+  paymentQrUrl     String?
   logoUrl          String?
   description      String?
   type             String   @default("individual")

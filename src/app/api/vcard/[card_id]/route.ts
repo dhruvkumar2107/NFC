@@ -27,7 +27,7 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
       c.mobile ? `TEL:${c.mobile}` : '',
       c.email ? `EMAIL:${c.email}` : '',
       c.website ? `URL:${c.website}` : '',
-      c.location ? `ADR:;;${c.location};;;;` : '',
+      [c.address, c.city, c.state, c.pincode].filter(Boolean).length ? `ADR:;;${[c.address, c.city, c.state, c.pincode].filter(Boolean).join(', ')};;;;` : '',
       c.description ? `NOTE:${c.description}` : '',
       'END:VCARD',
     ].filter(Boolean).join('\r\n')
