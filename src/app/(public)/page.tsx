@@ -76,8 +76,8 @@ export default async function HomePage() {
                 {/* Frosted top edge */}
                 <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
 
-                {/* Buy Now CTA overlay - bottom right */}
-                <div className="absolute bottom-8 right-8 z-20">
+                {/* Buy Now - desktop */}
+                <div className="absolute bottom-8 right-8 z-20 hidden sm:block">
                   <Link href="/order" className="btn-primary text-base px-8 py-3.5 shadow-lg shadow-primary-600/30 hover:shadow-xl hover:shadow-primary-600/40 inline-flex items-center gap-2">
                     Buy Now
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -86,9 +86,9 @@ export default async function HomePage() {
                   </Link>
                 </div>
 
-                {/* Buy Now CTA overlay - bottom left on mobile */}
-                <div className="absolute bottom-8 left-8 z-20 sm:hidden">
-                  <Link href="/order" className="btn-primary text-sm px-6 py-3 shadow-lg shadow-primary-600/30 inline-flex items-center gap-2">
+                {/* Buy Now - mobile */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 sm:hidden">
+                  <Link href="/order" className="btn-primary text-sm px-8 py-3 shadow-lg shadow-primary-600/30 inline-flex items-center gap-2">
                     Buy Now
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
