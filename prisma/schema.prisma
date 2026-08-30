@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id               String   @id @default(uuid())
+  name             String
+  designation      String?
+  company          String?
+  mobile           String?
+  whatsapp         String?
+  email            String?  @unique
+  passwordHash     String?
+  website          String?
+  socialLinks      String   @default("{}")
+  location         String?
+  upiId            String?
+  profilePhotoUrl  String?
+  logoUrl          String?
+  description      String?
+  type             String   @default("individual")
+  soldByEmployeeId String?
+  cardId           String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  employee Employee? @relation(fields: [soldByEmployeeId], references: [id])
+  card     Card?     @relation(fields: [cardId], references: [id])
+  orders   Order[]
+}
+
+model Card {
+  id               String   @id @default(uuid())
+  cardId           String   @unique
+  orderId          String?  @unique
+  soldByEmployeeId String?
+  designId         String
+  status           String   @default("Pending")
+  activatedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  customer Customer?
+  order    Order?
+  employee Employee? @relation(fields: [soldByEmployeeId], references: [id])
+  design   CardDesign @relation(fields: [designId], references: [id])
+}
+
+model Order {
+  id                    String   @id @default(uuid())
+  orderId               String   @unique
+  customerId            String?
+  employeeId            String?
+  cardId                String?  @unique
+  designId              String
+  amount                Float
+  razorpayPaymentId     String?
+  razorpayPaymentLinkId String?
+  status                String   @default("Pending")
+  commissionAmount      Float?
+  commissionPoints      Int      @default(0)
+  attributionType       String?
+  orderDate             DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  customer Customer?  @relation(fields: [customerId], references: [id])
+  employee Employee?  @relation(fields: [employeeId], references: [id])
+  card     Card?      @relation(fields: [cardId], references: [id])
+  design   CardDesign @relation(fields: [designId], references: [id])
+}
+
+model Employee {
+  id               String   @id @default(uuid())
+  employeeId       String   @unique
+  name             String
+  mobile           String?
+  email            String?  @unique
+  passwordHash     String
+  joiningDate      DateTime @default(now())
+  status           String   @default("active")
+  referralLinkCode String   @unique
+  territory        String?
+  totalPoints      Int      @default(0)
+  redeemedPoints   Int      @default(0)
+  availablePoints  Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  customers   Customer[]
+  cards       Card[]
+  orders      Order[]
+  walletTxns  WalletTransaction[]
+  redemptions RedemptionRequest[]
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CommissionRule {
+  id                String   @id @default(uuid())
+  minCards          Int
+  maxCards          Int?
+  commissionPerCard Float
+  pointsPerCard     Int      @default(0)
+  active            Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model CardDesign {
+  id        String   @id @default(uuid())
+  name      String
+  imageUrl  String?
+  price     Float
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cards  Card[]
+  orders Order[]
+}
+
+model WalletTransaction {
+  id           String   @id @default(uuid())
+  employeeId   String
+  orderId      String?
+  type         String
+  points       Int
+  description  String
+  createdAt    DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model RedemptionRequest {
+  id           String   @id @default(uuid())
+  employeeId   String
+  points       Int
+  amount       Float
+  status       String   @default("pending")
+  upiId        String?
+  notes        String?
+  processedBy  String?
+  processedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
