@@ -1,23 +1,30 @@
 "use client"
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* Premium floating navbar */}
-      <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl z-50 rounded-2xl px-6 py-3 transition-all duration-300"
+      {/* Premium sticky navbar */}
+      <nav className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
         style={{
-          background: 'rgba(255,255,255,0.82)',
+          background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.82)',
           backdropFilter: 'blur(24px) saturate(200%)',
           WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-          border: '1px solid rgba(255,255,255,0.6)',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.02), 0 4px 16px -4px rgba(0,0,0,0.06), 0 8px 32px -8px rgba(0,0,0,0.04)',
+          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.6)',
+          boxShadow: scrolled ? '0 1px 8px rgba(0,0,0,0.06)' : '0 1px 2px rgba(0,0,0,0.02), 0 4px 16px -4px rgba(0,0,0,0.06)',
         }}
       >
-        <div className="flex justify-between items-center">
+        <div className="max-w-6xl mx-auto flex justify-between items-center px-6 py-3">
           <Link href="/" className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-primary-600 flex items-center justify-center shadow-sm">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -48,7 +55,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       </nav>
 
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
           <div className="absolute top-0 right-0 w-72 h-full p-6 pt-20 animate-slide-up"
             style={{
