@@ -278,28 +278,28 @@ function OrderContent() {
                     <input type="radio" name="design" value={d.id} checked={form.designId === d.id} onChange={(e) => setField('designId', e.target.value)} className="sr-only" />
 
                     {/* Card images - front and back side by side */}
-                    <div className="grid grid-cols-2 gap-3 p-4 pb-0">
+                    <div className="grid grid-cols-2 gap-4 p-5 pb-0">
                       {d.imageUrl && (
                         <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <div className="aspect-[1.6/1] w-full">
-                            <img src={d.imageUrl} alt={`${d.name} - Front`} className="w-full h-full object-contain p-2" />
+                          <div className="aspect-[3/2] w-full">
+                            <img src={d.imageUrl} alt={`${d.name} - Front`} className="w-full h-full object-cover" />
                           </div>
-                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Front</div>
+                          <div className="text-center py-2 text-xs font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Front</div>
                         </div>
                       )}
                       {d.backImage ? (
                         <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <div className="aspect-[1.6/1] w-full">
-                            <img src={d.backImage} alt={`${d.name} - Back`} className="w-full h-full object-contain p-2" />
+                          <div className="aspect-[3/2] w-full">
+                            <img src={d.backImage} alt={`${d.name} - Back`} className="w-full h-full object-cover" />
                           </div>
-                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
+                          <div className="text-center py-2 text-xs font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
                         </div>
                       ) : d.imageUrl ? (
                         <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <div className="aspect-[1.6/1] w-full">
-                            <img src={d.imageUrl} alt={`${d.name} - Back`} className="w-full h-full object-contain p-2" />
+                          <div className="aspect-[3/2] w-full">
+                            <img src={d.imageUrl} alt={`${d.name} - Back`} className="w-full h-full object-cover" />
                           </div>
-                          <div className="text-center py-1.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
+                          <div className="text-center py-2 text-xs font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
                         </div>
                       ) : null}
                     </div>

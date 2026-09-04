@@ -40,9 +40,7 @@ async function main() {
     console.log('Employee created:', employee.employeeId, employee.name);
   }
 
-  // Delete old designs and recreate with new images and ₹599 price
-  await prisma.cardDesign.deleteMany();
-
+  // Update/create designs with new images and ₹599 price
   const designs = [
     { id: 'premium-pvc-1', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design1-front.jpeg', backImage: '/photos/design1-back.jpeg' },
     { id: 'premium-pvc-2', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design2-front.jpeg', backImage: '/photos/design2-back.jpeg' },
@@ -51,14 +49,19 @@ async function main() {
     { id: 'premium-pvc-5', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design5-front.jpeg', backImage: '/photos/design5-back.jpeg' },
   ];
 
+  // Deactivate old designs first
+  await prisma.cardDesign.updateMany({ where: { active: true }, data: { active: false } });
+
   for (const design of designs) {
-    const cardDesign = await prisma.cardDesign.create({
-      data: design,
+    const cardDesign = await prisma.cardDesign.upsert({
+      where: { id: design.id },
+      update: { ...design, active: true },
+      create: { ...design, active: true },
     });
-    console.log('Card design created:', cardDesign.name, '₹' + cardDesign.price);
+    console.log('Card design upserted:', cardDesign.name, '₹' + cardDesign.price);
   }
 
-  await prisma.commissionRule.deleteMany();
+  await prisma.commissionRule.updateMany({ where: { active: true }, data: { active: false } });
   const rules = [
     { minCards: 1, maxCards: 20, commissionPerCard: 50, pointsPerCard: 50 },
     { minCards: 21, maxCards: 50, commissionPerCard: 75, pointsPerCard: 75 },
@@ -67,10 +70,14 @@ async function main() {
   ];
 
   for (const rule of rules) {
-    const commissionRule = await prisma.commissionRule.create({
-      data: { ...rule, active: false },
-    });
-    console.log('Commission rule:', `${commissionRule.minCards}-${commissionRule.maxCards || '∞'} cards`, `₹${commissionRule.commissionPerCard}/card`, `${commissionRule.pointsPerCard} pts`);
+    const existing = await prisma.commissionRule.findFirst({ where: { minCards: rule.minCards } });
+    if (existing) {
+      await prisma.commissionRule.update({ where: { id: existing.id }, data: { ...rule, active: true } });
+      console.log('Commission rule updated:', `${rule.minCards}-${rule.maxCards || '∞'} cards`);
+    } else {
+      const commissionRule = await prisma.commissionRule.create({ data: { ...rule, active: true } });
+      console.log('Commission rule created:', `${rule.minCards}-${rule.maxCards || '∞'} cards`);
+    }
   }
 
   console.log('\nSeeding completed!');
