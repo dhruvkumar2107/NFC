@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -8,6 +8,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState('')
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -28,14 +29,52 @@ export default function OrderDetailPage() {
     else setMsg(d.error)
   }
 
+  const downloadDocx = useCallback(async () => {
+    if (!order) return
+    setDownloading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/orders/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ orderIds: [order.id] }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        alert(err.error || 'Download failed')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `customer-data-${order.orderId}.docx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      alert('Download failed. Please try again.')
+    } finally {
+      setDownloading(false)
+    }
+  }, [order])
+
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48"></div></div>
   if (!order) return <div className="text-center py-12 text-gray-500">Order not found.</div>
 
   return (
     <div>
-      <div className="mb-6">
-        <Link href="/admin/orders" className="text-sm text-primary-600 hover:underline">← Back to Orders</Link>
-        <h1 className="text-2xl font-bold mt-1">Order {order.orderId}</h1>
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <Link href="/admin/orders" className="text-sm text-primary-600 hover:underline">← Back to Orders</Link>
+          <h1 className="text-2xl font-bold mt-1">Order {order.orderId}</h1>
+        </div>
+        <button onClick={downloadDocx} disabled={downloading}
+          className="px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+          {downloading ? 'Generating DOCX...' : 'Download Customer Data (DOCX)'}
+        </button>
       </div>
 
       {msg && <div className="bg-green-50 text-green-700 p-3 rounded-lg mb-4 text-sm">{msg}</div>}
@@ -100,6 +139,48 @@ export default function OrderDetailPage() {
             <div>{[order.customer.city, order.customer.state, order.customer.pincode].filter(Boolean).join(', ')}</div>
             <div>{order.customer.country || 'India'}</div>
             <div className="text-gray-500 mt-1">Mobile: {order.customer.mobile}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Customer Preview */}
+      {order.customer && (
+        <div className="card mb-6">
+          <h2 className="font-semibold mb-3">Customer Profile Preview</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {(() => {
+              let photos: string[] = []
+              try { photos = JSON.parse(order.customer.photos || '[]') } catch {}
+              let socialLinks: Record<string, string> = {}
+              try { socialLinks = JSON.parse(order.customer.socialLinks || '{}') } catch {}
+              return (
+                <>
+                  <div className="text-center">
+                    {order.customer.logoUrl ? (
+                      <img src={order.customer.logoUrl} alt="Logo" className="w-20 h-20 rounded-full object-cover mx-auto mb-2" />
+                    ) : photos[0] ? (
+                      <img src={photos[0]} alt="Profile" className="w-20 h-20 rounded-full object-cover mx-auto mb-2" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-2 text-2xl font-bold text-primary-600">{order.customer.name?.charAt(0)}</div>
+                    )}
+                    <div className="font-medium">{order.customer.name}</div>
+                    <div className="text-xs text-gray-500">{order.customer.designation} {order.customer.company ? `at ${order.customer.company}` : ''}</div>
+                  </div>
+                  <div className="text-sm space-y-1">
+                    {order.customer.email && <div className="text-gray-600">{order.customer.email}</div>}
+                    {order.customer.mobile && <div className="text-gray-600">Mobile: {order.customer.mobile}</div>}
+                    {order.customer.whatsapp && <div className="text-gray-600">WhatsApp: {order.customer.whatsapp}</div>}
+                    {order.customer.website && <div className="text-gray-600">{order.customer.website}</div>}
+                  </div>
+                  <div className="text-sm space-y-1">
+                    {order.customer.description && <div className="text-gray-600 text-xs">{order.customer.description.slice(0, 100)}...</div>}
+                    {Object.entries(socialLinks).filter(([,v]) => v).map(([k, v]) => (
+                      <div key={k} className="text-xs text-gray-500 capitalize">{k}: {v as string}</div>
+                    ))}
+                  </div>
+                </>
+              )
+            })()}
           </div>
         </div>
       )}

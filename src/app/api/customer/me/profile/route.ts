@@ -9,14 +9,18 @@ export async function PATCH(request: NextRequest) {
     if (error) return error
 
     const body = await request.json()
-    const { name, designation, company, mobile, whatsapp, email, website, socialLinks, logoUrl, description } = body
+    const {
+      name, designation, company, mobile, whatsapp, email, website,
+      socialLinks, logoUrl, description, address, city, state, pincode, photos,
+    } = body
 
     const updated = await prisma.customer.update({
       where: { id: user!.id },
       data: {
         name, designation, company, mobile, whatsapp, email, website,
         socialLinks: socialLinks ? JSON.stringify(socialLinks) : undefined,
-        logoUrl, description,
+        logoUrl, description, address, city, state, pincode,
+        photos: photos ? JSON.stringify(photos) : undefined,
       },
     })
     return successResponse(updated)

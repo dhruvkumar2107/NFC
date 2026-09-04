@@ -23,17 +23,6 @@ async function getProfile(cardId: string) {
   }
 }
 
-function SocialIcon({ type }: { type: string }) {
-  const icons: Record<string, string> = {
-    instagram: 'Instagram',
-    facebook: 'Facebook',
-    linkedin: 'LinkedIn',
-    twitter: 'Twitter',
-    youtube: 'YouTube',
-  }
-  return <span>{icons[type] || type}</span>
-}
-
 export default async function PublicProfilePage({ params }: { params: { card_id: string } }) {
   const profile = await getProfile(params.card_id)
   if (!profile) notFound()
@@ -44,6 +33,9 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
   let photos: string[] = []
   try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
 
+  const addressParts = [customer.address, customer.city, customer.state, customer.pincode].filter(Boolean)
+  const fullAddress = addressParts.join(', ')
+
   return (
     <div className="min-h-screen gradient-mesh flex items-center justify-center p-4">
       <div className="w-full max-w-md animate-scale-in">
@@ -53,7 +45,9 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
             <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             <div className="relative z-10">
               <div className="w-28 h-28 rounded-full mx-auto mb-5 ring-4 ring-white/20 shadow-xl overflow-hidden">
-                {photos[0] ? (
+                {customer.logoUrl ? (
+                  <img src={customer.logoUrl} alt={customer.name} className="w-full h-full object-cover" />
+                ) : photos[0] ? (
                   <img src={photos[0]} alt={customer.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-white/20">
@@ -107,6 +101,12 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
                 <svg className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
                 <span className="text-sm text-gray-700">{customer.website}</span>
               </a>
+            )}
+            {fullAddress && (
+              <div className="flex items-center gap-3 p-3.5 glass-subtle rounded-2xl">
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                <span className="text-sm text-gray-700">{fullAddress}</span>
+              </div>
             )}
             {/* Social Links */}
             {Object.entries(socialLinks).map(([platform, url]) => (

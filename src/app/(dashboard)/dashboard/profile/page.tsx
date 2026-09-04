@@ -1,6 +1,15 @@
 "use client"
 import { useEffect, useState } from 'react'
 
+async function uploadFile(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch('/api/upload', { method: 'POST', body: formData })
+  const data = await res.json()
+  if (!data.success) throw new Error(data.error || 'Upload failed')
+  return data.url
+}
+
 export default function EditProfilePage() {
   const [profile, setProfile] = useState<any>(null)
   const [readableCardId, setReadableCardId] = useState('')
@@ -16,11 +25,15 @@ export default function EditProfilePage() {
         if (d.success) {
           const c = d.data
           setReadableCardId(c.card?.cardId || '')
+          let photos: string[] = []
+          try { photos = JSON.parse(c.photos || '[]') } catch { photos = [] }
           setProfile({
             name: c.name || '', designation: c.designation || '', company: c.company || '',
             mobile: c.mobile || '', whatsapp: c.whatsapp || '', email: c.email || '',
             website: c.website || '', logoUrl: c.logoUrl || '',
-            description: c.description || '',
+            description: c.description || '', address: c.address || '',
+            city: c.city || '', state: c.state || '', pincode: c.pincode || '',
+            photos,
             socialLinks: JSON.parse(c.socialLinks || '{}'),
           })
         }
@@ -35,6 +48,22 @@ export default function EditProfilePage() {
 
   function updateSocial(platform: string, value: string) {
     setProfile((p: any) => ({ ...p, socialLinks: { ...p.socialLinks, [platform]: value } }))
+  }
+
+  function updatePhoto(index: number, value: string) {
+    setProfile((p: any) => {
+      const photos = [...(p.photos || [])]
+      photos[index] = value
+      return { ...p, photos }
+    })
+  }
+
+  function removePhoto(index: number) {
+    setProfile((p: any) => {
+      const photos = [...(p.photos || [])]
+      photos.splice(index, 1)
+      return { ...p, photos }
+    })
   }
 
   async function handleSave() {
@@ -93,6 +122,16 @@ export default function EditProfilePage() {
         </div>
 
         <div className="card space-y-4">
+          <h2 className="font-semibold text-lg">Address</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="md:col-span-2"><label className="label">Address</label><input className="input-field" value={profile.address} onChange={e => updateField('address', e.target.value)} /></div>
+            <div><label className="label">City</label><input className="input-field" value={profile.city} onChange={e => updateField('city', e.target.value)} /></div>
+            <div><label className="label">State</label><input className="input-field" value={profile.state} onChange={e => updateField('state', e.target.value)} /></div>
+            <div><label className="label">PIN Code</label><input className="input-field" value={profile.pincode} onChange={e => updateField('pincode', e.target.value)} /></div>
+          </div>
+        </div>
+
+        <div className="card space-y-4">
           <h2 className="font-semibold text-lg">Social Links</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {['instagram', 'facebook', 'linkedin', 'twitter', 'youtube'].map(p => (
@@ -102,10 +141,48 @@ export default function EditProfilePage() {
         </div>
 
         <div className="card space-y-4">
-          <h2 className="font-semibold text-lg">Media</h2>
-          <div>
-            <label className="label">Logo URL</label>
-            <input className="input-field" value={profile.logoUrl} onChange={e => updateField('logoUrl', e.target.value)} />
+          <h2 className="font-semibold text-lg">Logo</h2>
+          <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+            <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                const url = await uploadFile(file)
+                updateField('logoUrl', url)
+              }
+            }} />
+            {profile.logoUrl ? (
+              <img src={profile.logoUrl} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+              </div>
+            )}
+            <span className="text-sm text-gray-500">{profile.logoUrl ? 'Change logo' : 'Upload logo'}</span>
+          </label>
+        </div>
+
+        <div className="card space-y-4">
+          <h2 className="font-semibold text-lg">Photos</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {(profile.photos || []).map((photo: string, idx: number) => (
+              <div key={idx} className="relative group">
+                <img src={photo} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
+                <button onClick={() => removePhoto(idx)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
+              </div>
+            ))}
+            {(profile.photos || []).length < 4 && (
+              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-primary-400 transition-colors">
+                <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const url = await uploadFile(file)
+                    updatePhoto(profile.photos?.length || 0, url)
+                  }
+                }} />
+                <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                <span className="text-xs text-gray-400">Add Photo</span>
+              </label>
+            )}
           </div>
         </div>
 

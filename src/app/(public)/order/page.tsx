@@ -37,6 +37,15 @@ const initialForm: OrderForm = {
   photo1: '', photo2: '', photo3: '', photo4: '',
 }
 
+async function uploadFile(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch('/api/upload', { method: 'POST', body: formData })
+  const data = await res.json()
+  if (!data.success) throw new Error(data.error || 'Upload failed')
+  return data.url
+}
+
 function OrderContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -293,30 +302,9 @@ function OrderContent() {
 
                     {/* Design name + features */}
                     <div className="p-5 pt-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 text-lg">{d.name}</h3>
-
-                          {/* What's included */}
-                          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
-                            {[
-                              { icon: '📡', text: 'NFC Tap to Share' },
-                              { icon: '📱', text: 'Digital Profile Page' },
-                              { icon: '🔗', text: 'Profile QR Code' },
-                              { icon: '💳', text: 'UPI Payment QR' },
-                              { icon: '✏️', text: 'Editable Online' },
-                              { icon: '🚚', text: 'Free Delivery' },
-                            ].map((f) => (
-                              <div key={f.text} className="flex items-center gap-1.5 text-xs text-gray-500">
-                                <span className="text-sm">{f.icon}</span>
-                                {f.text}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Price + Radio */}
-                        <div className="flex flex-col items-end gap-3 shrink-0">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <h3 className="font-semibold text-gray-900 text-lg">{d.name}</h3>
+                        <div className="flex flex-col items-end gap-2 shrink-0">
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                             form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-md shadow-primary-600/30' : 'border-gray-300'
                           }`}>
@@ -327,6 +315,67 @@ function OrderContent() {
                             <div className="text-[10px] text-gray-400 mt-0.5">incl. all features</div>
                           </div>
                         </div>
+                      </div>
+
+                      {/* What's included - detailed */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                        {[
+                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" /></svg>, title: 'NFC Tap', desc: 'Tap phone to share' },
+                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>, title: 'Profile QR', desc: 'Scan to view profile' },
+                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>, title: 'Payment QR', desc: 'Receive UPI payments' },
+                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" /></svg>, title: 'Digital Profile', desc: 'Editable online page' },
+                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3" /></svg>, title: 'Social Links', desc: 'All platforms linked' },
+                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>, title: 'Free Delivery', desc: 'Across India' },
+                        ].map((f) => (
+                          <div key={f.title} className="flex items-start gap-2">
+                            <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center shrink-0 text-primary-600 mt-0.5">
+                              {f.icon}
+                            </div>
+                            <div>
+                              <div className="text-xs font-semibold text-gray-900">{f.title}</div>
+                              <div className="text-[11px] text-gray-400 leading-tight">{f.desc}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Tap Connect Share */}
+                      <div className="flex items-center justify-center gap-3 text-[11px] text-gray-500 mb-4 py-3 bg-gray-50/80 rounded-xl">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0" /></svg>
+                          </div>
+                          <span className="font-semibold">Tap</span>
+                        </div>
+                        <svg className="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+                          </div>
+                          <span className="font-semibold">Connect</span>
+                        </div>
+                        <svg className="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
+                          </div>
+                          <span className="font-semibold">Share</span>
+                        </div>
+                      </div>
+
+                      {/* Social links */}
+                      <div className="flex items-center gap-2 mb-3">
+                        {[
+                          { name: 'Instagram', color: 'bg-pink-50 text-pink-500', icon: <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg> },
+                          { name: 'LinkedIn', color: 'bg-blue-50 text-blue-600', icon: <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg> },
+                          { name: 'WhatsApp', color: 'bg-green-50 text-green-500', icon: <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg> },
+                          { name: 'Website', color: 'bg-gray-100 text-gray-500', icon: <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg> },
+                        ].map((s) => (
+                          <div key={s.name} className={`w-7 h-7 rounded-lg flex items-center justify-center ${s.color}`}>
+                            {s.icon}
+                          </div>
+                        ))}
+                        <span className="text-[11px] text-gray-400 ml-1">All platforms linked</span>
                       </div>
                     </div>
                   </label>
@@ -458,9 +507,24 @@ function OrderContent() {
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Profile & Branding</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="label">Logo URL</label>
-                      <input type="url" value={form.logoUrl} onChange={(e) => setField('logoUrl', e.target.value)}
-                        className="input-field" placeholder="https://example.com/logo.png" />
+                      <label className="label">Logo</label>
+                      <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+                        <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const url = await uploadFile(file)
+                            setField('logoUrl', url)
+                          }
+                        }} />
+                        {form.logoUrl ? (
+                          <img src={form.logoUrl} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                          </div>
+                        )}
+                        <span className="text-sm text-gray-500">{form.logoUrl ? 'Change logo' : 'Upload logo (optional)'}</span>
+                      </label>
                     </div>
                     <div>
                       <label className="label">Description / Bio</label>
@@ -475,26 +539,25 @@ function OrderContent() {
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Your Photos</h3>
                   <p className="text-xs text-gray-400 mb-4">Upload 3-4 photos of yourself for your digital profile card</p>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="label">Photo 1 URL</label>
-                      <input type="url" value={form.photo1} onChange={(e) => setField('photo1', e.target.value)}
-                        className="input-field" placeholder="https://example.com/photo1.jpg" />
-                    </div>
-                    <div>
-                      <label className="label">Photo 2 URL</label>
-                      <input type="url" value={form.photo2} onChange={(e) => setField('photo2', e.target.value)}
-                        className="input-field" placeholder="https://example.com/photo2.jpg" />
-                    </div>
-                    <div>
-                      <label className="label">Photo 3 URL</label>
-                      <input type="url" value={form.photo3} onChange={(e) => setField('photo3', e.target.value)}
-                        className="input-field" placeholder="https://example.com/photo3.jpg" />
-                    </div>
-                    <div>
-                      <label className="label">Photo 4 URL</label>
-                      <input type="url" value={form.photo4} onChange={(e) => setField('photo4', e.target.value)}
-                        className="input-field" placeholder="https://example.com/photo4.jpg" />
-                    </div>
+                    {(['photo1', 'photo2', 'photo3', 'photo4'] as const).map((field, idx) => (
+                      <label key={field} className="flex flex-col items-center gap-2 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+                        <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const url = await uploadFile(file)
+                            setField(field, url)
+                          }
+                        }} />
+                        {form[field] ? (
+                          <img src={form[field]} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-full h-32 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                            <span className="text-xs text-gray-400">Photo {idx + 1}</span>
+                          </div>
+                        )}
+                      </label>
+                    ))}
                   </div>
                 </div>
 

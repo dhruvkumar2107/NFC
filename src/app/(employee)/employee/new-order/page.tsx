@@ -2,6 +2,15 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
+async function uploadFile(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch('/api/upload', { method: 'POST', body: formData })
+  const data = await res.json()
+  if (!data.success) throw new Error(data.error || 'Upload failed')
+  return data.url
+}
+
 export default function EmployeeNewOrderPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -9,7 +18,10 @@ export default function EmployeeNewOrderPage() {
   const [employee, setEmployee] = useState<any>(null)
   const [form, setForm] = useState({
     name: '', email: '', mobile: '', designation: '', company: '',
-    whatsapp: '', website: '',
+    whatsapp: '', website: '', address: '', city: '', state: '', pincode: '',
+    instagram: '', facebook: '', linkedin: '',
+    logoUrl: '', description: '',
+    photo1: '', photo2: '', photo3: '', photo4: '',
     designId: '',
   })
 
@@ -45,10 +57,20 @@ export default function EmployeeNewOrderPage() {
       const meData = await meRes.json()
       const referralCode = meData.data?.referralLinkCode
 
+      const photos = [form.photo1, form.photo2, form.photo3, form.photo4].filter(p => p.trim())
+
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, referralCode, attributionType: 'link' }),
+        body: JSON.stringify({
+          name: form.name, email: form.email, mobile: form.mobile,
+          designation: form.designation, company: form.company,
+          whatsapp: form.whatsapp || form.mobile, website: form.website,
+          address: form.address, city: form.city, state: form.state, pincode: form.pincode,
+          socialLinks: { instagram: form.instagram, facebook: form.facebook, linkedin: form.linkedin },
+          logoUrl: form.logoUrl, description: form.description, photos,
+          designId: form.designId, referralCode, attributionType: 'link',
+        }),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
@@ -67,7 +89,6 @@ export default function EmployeeNewOrderPage() {
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold mb-6">Register New Customer</h1>
 
-      {/* Shareable Link Box */}
       {employee && (
         <div className="card mb-6 bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
           <h2 className="font-semibold text-primary-800 mb-2">Your Shareable Referral Link</h2>
@@ -83,8 +104,6 @@ export default function EmployeeNewOrderPage() {
           </div>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span>Or share code: <span className="font-mono font-bold text-primary-600">{employee.referralLinkCode}</span></span>
-            <span>•</span>
-            <span>Customer can also enter this code manually at checkout</span>
           </div>
         </div>
       )}
@@ -102,6 +121,73 @@ export default function EmployeeNewOrderPage() {
             <div><label className="label">Designation</label><input className="input-field" value={form.designation} onChange={e => update('designation', e.target.value)} /></div>
             <div><label className="label">Company</label><input className="input-field" value={form.company} onChange={e => update('company', e.target.value)} /></div>
             <div><label className="label">Website</label><input className="input-field" value={form.website} onChange={e => update('website', e.target.value)} /></div>
+          </div>
+        </div>
+
+        <div className="card space-y-4">
+          <h2 className="font-semibold">Address</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="md:col-span-2"><label className="label">Address</label><input className="input-field" value={form.address} onChange={e => update('address', e.target.value)} /></div>
+            <div><label className="label">City</label><input className="input-field" value={form.city} onChange={e => update('city', e.target.value)} /></div>
+            <div><label className="label">State</label><input className="input-field" value={form.state} onChange={e => update('state', e.target.value)} /></div>
+            <div><label className="label">PIN Code</label><input className="input-field" value={form.pincode} onChange={e => update('pincode', e.target.value)} /></div>
+          </div>
+        </div>
+
+        <div className="card space-y-4">
+          <h2 className="font-semibold">Social Links</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div><label className="label">Instagram</label><input className="input-field" placeholder="@username" value={form.instagram} onChange={e => update('instagram', e.target.value)} /></div>
+            <div><label className="label">Facebook</label><input className="input-field" placeholder="facebook.com/username" value={form.facebook} onChange={e => update('facebook', e.target.value)} /></div>
+            <div><label className="label">LinkedIn</label><input className="input-field" placeholder="linkedin.com/in/username" value={form.linkedin} onChange={e => update('linkedin', e.target.value)} /></div>
+          </div>
+        </div>
+
+        <div className="card space-y-4">
+          <h2 className="font-semibold">Profile & Branding</h2>
+          <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+            <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                const url = await uploadFile(file)
+                update('logoUrl', url)
+              }
+            }} />
+            {form.logoUrl ? (
+              <img src={form.logoUrl} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+              </div>
+            )}
+            <span className="text-sm text-gray-500">{form.logoUrl ? 'Change logo' : 'Upload logo'}</span>
+          </label>
+          <div><label className="label">Description / Bio</label><textarea className="input-field resize-none" rows={3} value={form.description} onChange={e => update('description', e.target.value)} placeholder="Tell people about yourself or your business..." /></div>
+        </div>
+
+        <div className="card space-y-4">
+          <h2 className="font-semibold">Photos</h2>
+          <p className="text-xs text-gray-400">Upload 3-4 photos for the digital profile card</p>
+          <div className="grid grid-cols-2 gap-4">
+            {(['photo1', 'photo2', 'photo3', 'photo4'] as const).map((field, idx) => (
+              <label key={field} className="flex flex-col items-center gap-2 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+                <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const url = await uploadFile(file)
+                    update(field, url)
+                  }
+                }} />
+                {(form as any)[field] ? (
+                  <img src={(form as any)[field]} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-full h-32 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                    <span className="text-xs text-gray-400">Photo {idx + 1}</span>
+                  </div>
+                )}
+              </label>
+            ))}
           </div>
         </div>
 
