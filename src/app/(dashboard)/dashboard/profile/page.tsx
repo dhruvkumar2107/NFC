@@ -16,6 +16,8 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
+  const [uploading, setUploading] = useState<string | null>(null)
+  const [uploadMsg, setUploadMsg] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -136,35 +138,54 @@ export default function EditProfilePage() {
         <div className="card space-y-4">
           <h2 className="font-semibold text-lg">Social Links</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {['instagram', 'facebook', 'linkedin', 'twitter', 'youtube'].map(p => (
-              <div key={p}><label className="label capitalize">{p}</label><input className="input-field" placeholder={`https://${p}.com/...`} value={profile.socialLinks[p] || ''} onChange={e => updateSocial(p, e.target.value)} /></div>
+            {[
+              { id: 'instagram', label: 'Instagram', placeholder: 'username' },
+              { id: 'facebook', label: 'Facebook', placeholder: 'username' },
+              { id: 'linkedin', label: 'LinkedIn', placeholder: 'username' },
+              { id: 'twitter', label: 'Twitter / X', placeholder: 'username' },
+              { id: 'youtube', label: 'YouTube', placeholder: 'channelname' },
+            ].map(p => (
+              <div key={p.id}><label className="label">{p.label}</label><input className="input-field" placeholder={p.placeholder} value={profile.socialLinks[p.id] || ''} onChange={e => updateSocial(p.id, e.target.value)} /></div>
             ))}
           </div>
         </div>
 
         <div className="card space-y-4">
           <h2 className="font-semibold text-lg">Logo</h2>
-          <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+          {uploadMsg && uploadMsg.startsWith('Logo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
+          <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
             <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
               const file = e.target.files?.[0]
               if (file) {
-                const url = await uploadFile(file)
-                updateField('logoUrl', url)
+                setUploading('logo')
+                setUploadMsg('')
+                try {
+                  const url = await uploadFile(file)
+                  updateField('logoUrl', url)
+                  setUploadMsg('Logo uploaded successfully!')
+                  setTimeout(() => setUploadMsg(''), 3000)
+                } catch {}
+                setUploading(null)
               }
             }} />
-            {profile.logoUrl ? (
+            {uploading === 'logo' ? (
+              <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              </div>
+            ) : profile.logoUrl ? (
               <img src={profile.logoUrl} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             ) : (
               <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
                 <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
               </div>
             )}
-            <span className="text-sm text-gray-500">{profile.logoUrl ? 'Change logo' : 'Upload logo'}</span>
+            <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : profile.logoUrl ? 'Change logo' : 'Upload logo'}</span>
           </label>
         </div>
 
         <div className="card space-y-4">
           <h2 className="font-semibold text-lg">Photos</h2>
+          {uploadMsg && uploadMsg.startsWith('Photo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {(profile.photos || []).map((photo: string, idx: number) => (
               <div key={idx} className="relative group">
@@ -173,16 +194,27 @@ export default function EditProfilePage() {
               </div>
             ))}
             {(profile.photos || []).length < 4 && (
-              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-primary-400 transition-colors">
+              <label className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploading === 'photo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                 <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                   const file = e.target.files?.[0]
                   if (file) {
-                    const url = await uploadFile(file)
-                    updatePhoto(profile.photos?.length || 0, url)
+                    setUploading('photo')
+                    setUploadMsg('')
+                    try {
+                      const url = await uploadFile(file)
+                      updatePhoto(profile.photos?.length || 0, url)
+                      setUploadMsg(`Photo ${(profile.photos?.length || 0) + 1} uploaded successfully!`)
+                      setTimeout(() => setUploadMsg(''), 3000)
+                    } catch {}
+                    setUploading(null)
                   }
                 }} />
-                <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                <span className="text-xs text-gray-400">Add Photo</span>
+                {uploading === 'photo' ? (
+                  <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                ) : (
+                  <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                )}
+                <span className="text-xs text-gray-400">{uploading === 'photo' ? 'Uploading...' : 'Add Photo'}</span>
               </label>
             )}
           </div>

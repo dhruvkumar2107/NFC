@@ -16,6 +16,8 @@ export default function EmployeeNewOrderPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [employee, setEmployee] = useState<any>(null)
+  const [uploading, setUploading] = useState<string | null>(null)
+  const [uploadMsg, setUploadMsg] = useState('')
   const [form, setForm] = useState({
     name: '', email: '', mobile: '', designation: '', company: '', college: '',
     whatsapp: '', website: '', address: '', city: '', state: '', pincode: '',
@@ -138,30 +140,42 @@ export default function EmployeeNewOrderPage() {
         <div className="card space-y-4">
           <h2 className="font-semibold">Social Links</h2>
           <div className="grid md:grid-cols-3 gap-4">
-            <div><label className="label">Instagram</label><input className="input-field" placeholder="@username" value={form.instagram} onChange={e => update('instagram', e.target.value)} /></div>
-            <div><label className="label">Facebook</label><input className="input-field" placeholder="facebook.com/username" value={form.facebook} onChange={e => update('facebook', e.target.value)} /></div>
-            <div><label className="label">LinkedIn</label><input className="input-field" placeholder="linkedin.com/in/username" value={form.linkedin} onChange={e => update('linkedin', e.target.value)} /></div>
+            <div><label className="label">Instagram</label><input className="input-field" placeholder="username" value={form.instagram} onChange={e => update('instagram', e.target.value)} /></div>
+            <div><label className="label">Facebook</label><input className="input-field" placeholder="username" value={form.facebook} onChange={e => update('facebook', e.target.value)} /></div>
+            <div><label className="label">LinkedIn</label><input className="input-field" placeholder="username" value={form.linkedin} onChange={e => update('linkedin', e.target.value)} /></div>
           </div>
         </div>
 
         <div className="card space-y-4">
           <h2 className="font-semibold">Profile & Branding</h2>
-          <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+          {uploadMsg && uploadMsg.startsWith('Logo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
+          <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
             <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
               const file = e.target.files?.[0]
               if (file) {
-                const url = await uploadFile(file)
-                update('logoUrl', url)
+                setUploading('logo')
+                setUploadMsg('')
+                try {
+                  const url = await uploadFile(file)
+                  update('logoUrl', url)
+                  setUploadMsg('Logo uploaded successfully!')
+                  setTimeout(() => setUploadMsg(''), 3000)
+                } catch {}
+                setUploading(null)
               }
             }} />
-            {form.logoUrl ? (
+            {uploading === 'logo' ? (
+              <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              </div>
+            ) : form.logoUrl ? (
               <img src={form.logoUrl} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
             ) : (
               <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
                 <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
               </div>
             )}
-            <span className="text-sm text-gray-500">{form.logoUrl ? 'Change logo' : 'Upload logo'}</span>
+            <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : form.logoUrl ? 'Change logo' : 'Upload logo'}</span>
           </label>
           <div><label className="label">Description / Bio</label><textarea className="input-field resize-none" rows={3} value={form.description} onChange={e => update('description', e.target.value)} placeholder="Tell people about yourself or your business..." /></div>
         </div>
@@ -169,17 +183,30 @@ export default function EmployeeNewOrderPage() {
         <div className="card space-y-4">
           <h2 className="font-semibold">Photos</h2>
           <p className="text-xs text-gray-400">Upload 3-4 photos for the digital profile card</p>
+          {uploadMsg && uploadMsg.startsWith('Photo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
           <div className="grid grid-cols-2 gap-4">
             {(['photo1', 'photo2', 'photo3', 'photo4'] as const).map((field, idx) => (
-              <label key={field} className="flex flex-col items-center gap-2 p-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 transition-colors">
+              <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                 <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                   const file = e.target.files?.[0]
                   if (file) {
-                    const url = await uploadFile(file)
-                    update(field, url)
+                    setUploading(field)
+                    setUploadMsg('')
+                    try {
+                      const url = await uploadFile(file)
+                      update(field, url)
+                      setUploadMsg(`Photo ${idx + 1} uploaded successfully!`)
+                      setTimeout(() => setUploadMsg(''), 3000)
+                    } catch {}
+                    setUploading(null)
                   }
                 }} />
-                {(form as any)[field] ? (
+                {uploading === field ? (
+                  <div className="w-full h-32 rounded-lg bg-primary-100 flex flex-col items-center justify-center">
+                    <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    <span className="text-xs text-primary-600">Uploading...</span>
+                  </div>
+                ) : (form as any)[field] ? (
                   <img src={(form as any)[field]} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
                 ) : (
                   <div className="w-full h-32 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
