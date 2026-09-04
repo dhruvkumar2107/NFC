@@ -40,21 +40,20 @@ async function main() {
     console.log('Employee created:', employee.employeeId, employee.name);
   }
 
+  // Delete old designs and recreate with new images and ₹599 price
+  await prisma.cardDesign.deleteMany();
+
   const designs = [
-    { id: 'premium-pvc', name: 'Premium PVC Card', price: 999, imageUrl: '/photos/premium pvc card.jpeg' },
-    { name: 'Premium Wood', price: 1499, imageUrl: '/photos/premium wooden pvc card.jpeg' },
-    { name: 'Premium Metal', price: 2499, imageUrl: '/photos/premium mattel card.jpeg' },
+    { id: 'premium-pvc-1', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design1-front.jpeg', backImage: '/photos/design1-back.jpeg' },
+    { id: 'premium-pvc-2', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design2-front.jpeg', backImage: '/photos/design2-back.jpeg' },
+    { id: 'premium-pvc-3', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design3-front.jpeg', backImage: '/photos/design3-back.jpeg' },
+    { id: 'premium-pvc-4', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design4-front.jpeg', backImage: '/photos/design4-back.jpeg' },
+    { id: 'premium-pvc-5', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design5-front.jpeg', backImage: '/photos/design5-back.jpeg' },
   ];
 
   for (const design of designs) {
-    const designId = (design as any).id || design.name.toLowerCase().replace(/\s+/g, '-');
-    const cardDesign = await prisma.cardDesign.upsert({
-      where: { id: designId },
-      update: { name: design.name },
-      create: {
-        id: designId,
-        ...design,
-      },
+    const cardDesign = await prisma.cardDesign.create({
+      data: design,
     });
     console.log('Card design created:', cardDesign.name, '₹' + cardDesign.price);
   }

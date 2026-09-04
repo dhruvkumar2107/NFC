@@ -25,7 +25,7 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
       'BEGIN:VCARD',
       'VERSION:3.0',
       `FN:${c.name}`,
-      c.company ? `ORG:${c.company}` : '',
+      c.company ? `ORG:${c.company}${c.college ? `;${c.college}` : ''}` : c.college ? `ORG:${c.college}` : '',
       c.designation ? `TITLE:${c.designation}` : '',
       c.mobile ? `TEL:${c.mobile}` : '',
       c.whatsapp ? `TEL;TYPE=WHATSAPP:${c.whatsapp}` : '',

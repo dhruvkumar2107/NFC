@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
-      name: rawName, fullName, designation, company, mobile, whatsapp, email, website,
+      name: rawName, fullName, designation, company, college, mobile, whatsapp, email, website,
       socialLinks, address, city, state, pincode, logoUrl, description,
       photos, designId, referralCode, attributionType,
     } = body
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       customer = await prisma.customer.update({
         where: { id: customer.id },
         data: {
-          name, designation, company, mobile, whatsapp, website,
+          name, designation, company, college, mobile, whatsapp, website,
           socialLinks: JSON.stringify(socialLinks || {}),
           address, city, state, pincode, logoUrl, description,
           photos: JSON.stringify(photos || []),
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       const tempPassword = await hashPassword(email + '_mysmartcard_temp')
       customer = await prisma.customer.create({
         data: {
-          name, designation, company, mobile, whatsapp, email, website,
+          name, designation, company, college, mobile, whatsapp, email, website,
           socialLinks: JSON.stringify(socialLinks || {}),
           address, city, state, pincode, logoUrl, description,
           photos: JSON.stringify(photos || []),

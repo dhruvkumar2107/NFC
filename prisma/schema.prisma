@@ -12,6 +12,7 @@ model Customer {
   name             String
   designation      String?
   company          String?
+  college          String?
   mobile           String?
   whatsapp         String?
   email            String?  @unique
@@ -129,6 +130,7 @@ model CardDesign {
   id        String   @id @default(uuid())
   name      String
   imageUrl  String?
+  backImage String?
   price     Float
   active    Boolean  @default(true)
   createdAt DateTime @default(now())

@@ -58,6 +58,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
               <h1 className="text-2xl font-bold">{customer.name}</h1>
               {customer.designation && <p className="text-primary-100 mt-1 text-sm">{customer.designation}</p>}
               {customer.company && <p className="text-primary-200 text-sm mt-0.5">{customer.company}</p>}
+              {customer.college && <p className="text-primary-200 text-sm mt-0.5">{customer.college}</p>}
               {design && <p className="text-primary-300 text-xs mt-3 font-medium tracking-wide">{design.name} Card</p>}
             </div>
           </div>

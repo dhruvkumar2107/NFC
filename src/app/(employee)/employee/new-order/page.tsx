@@ -17,7 +17,7 @@ export default function EmployeeNewOrderPage() {
   const [error, setError] = useState('')
   const [employee, setEmployee] = useState<any>(null)
   const [form, setForm] = useState({
-    name: '', email: '', mobile: '', designation: '', company: '',
+    name: '', email: '', mobile: '', designation: '', company: '', college: '',
     whatsapp: '', website: '', address: '', city: '', state: '', pincode: '',
     instagram: '', facebook: '', linkedin: '',
     logoUrl: '', description: '',
@@ -64,7 +64,7 @@ export default function EmployeeNewOrderPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.name, email: form.email, mobile: form.mobile,
-          designation: form.designation, company: form.company,
+          designation: form.designation, company: form.company, college: form.college,
           whatsapp: form.whatsapp || form.mobile, website: form.website,
           address: form.address, city: form.city, state: form.state, pincode: form.pincode,
           socialLinks: { instagram: form.instagram, facebook: form.facebook, linkedin: form.linkedin },
@@ -120,6 +120,7 @@ export default function EmployeeNewOrderPage() {
             <div><label className="label">WhatsApp</label><input className="input-field" value={form.whatsapp} onChange={e => update('whatsapp', e.target.value)} /></div>
             <div><label className="label">Designation</label><input className="input-field" value={form.designation} onChange={e => update('designation', e.target.value)} /></div>
             <div><label className="label">Company</label><input className="input-field" value={form.company} onChange={e => update('company', e.target.value)} /></div>
+            <div><label className="label">University / College</label><input className="input-field" value={form.college} onChange={e => update('college', e.target.value)} /></div>
             <div><label className="label">Website</label><input className="input-field" value={form.website} onChange={e => update('website', e.target.value)} /></div>
           </div>
         </div>

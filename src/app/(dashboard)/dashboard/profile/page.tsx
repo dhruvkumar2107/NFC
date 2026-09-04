@@ -29,6 +29,7 @@ export default function EditProfilePage() {
           try { photos = JSON.parse(c.photos || '[]') } catch { photos = [] }
           setProfile({
             name: c.name || '', designation: c.designation || '', company: c.company || '',
+            college: c.college || '',
             mobile: c.mobile || '', whatsapp: c.whatsapp || '', email: c.email || '',
             website: c.website || '', logoUrl: c.logoUrl || '',
             description: c.description || '', address: c.address || '',
@@ -107,6 +108,7 @@ export default function EditProfilePage() {
             <div><label className="label">Full Name *</label><input className="input-field" value={profile.name} onChange={e => updateField('name', e.target.value)} /></div>
             <div><label className="label">Designation</label><input className="input-field" value={profile.designation} onChange={e => updateField('designation', e.target.value)} /></div>
             <div><label className="label">Company</label><input className="input-field" value={profile.company} onChange={e => updateField('company', e.target.value)} /></div>
+            <div><label className="label">University / College</label><input className="input-field" value={profile.college} onChange={e => updateField('college', e.target.value)} /></div>
           </div>
           <div><label className="label">About / Description</label><textarea className="input-field" rows={3} value={profile.description} onChange={e => updateField('description', e.target.value)} /></div>
         </div>

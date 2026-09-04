@@ -24,6 +24,7 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
       name: customer.name,
       designation: customer.designation,
       company: customer.company,
+      college: customer.college,
       email: customer.email,
       mobile: customer.mobile,
       whatsapp: customer.whatsapp,

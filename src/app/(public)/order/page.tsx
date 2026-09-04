@@ -9,6 +9,7 @@ interface OrderForm {
   fullName: string
   designation: string
   company: string
+  college: string
   mobile: string
   whatsapp: string
   email: string
@@ -30,7 +31,7 @@ interface OrderForm {
 }
 
 const initialForm: OrderForm = {
-  designId: '', fullName: '', designation: '', company: '', mobile: '', whatsapp: '',
+  designId: '', fullName: '', designation: '', company: '', college: '', mobile: '', whatsapp: '',
   email: '', website: '', instagram: '', facebook: '', linkedin: '',
   address: '', city: '', state: '', pincode: '',
   logoUrl: '', description: '', referralCode: '',
@@ -143,6 +144,7 @@ function OrderContent() {
           fullName: form.fullName.trim(),
           designation: form.designation.trim(),
           company: form.company.trim(),
+          college: form.college.trim(),
           mobile: form.mobile.trim(),
           whatsapp: form.whatsapp.trim() || form.mobile.trim(),
           email: form.email.trim(),
@@ -413,6 +415,11 @@ function OrderContent() {
                       <label className="label">Company / Business</label>
                       <input type="text" value={form.company} onChange={(e) => setField('company', e.target.value)}
                         className="input-field" placeholder="Acme Pvt. Ltd." />
+                    </div>
+                    <div>
+                      <label className="label">University / College</label>
+                      <input type="text" value={form.college} onChange={(e) => setField('college', e.target.value)}
+                        className="input-field" placeholder="Your university or college" />
                     </div>
                     <div>
                       <label className="label">Website</label>

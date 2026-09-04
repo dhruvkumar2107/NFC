@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
         ]
         if (c.designation) infoChildren.push(fieldRow('Designation', c.designation))
         if (c.company) infoChildren.push(fieldRow('Company', c.company))
+        if (c.college) infoChildren.push(fieldRow('University/College', c.college))
         if (c.email) infoChildren.push(fieldRow('Email', c.email))
         if (c.mobile) infoChildren.push(fieldRow('Mobile', c.mobile))
         if (c.whatsapp) infoChildren.push(fieldRow('WhatsApp', c.whatsapp))
