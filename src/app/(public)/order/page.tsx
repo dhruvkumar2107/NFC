@@ -383,6 +383,22 @@ function OrderContent() {
                         ))}
                         <span className="text-[11px] text-gray-400 ml-1">All platforms linked</span>
                       </div>
+
+                      {/* Continue Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setField('designId', d.id)
+                          handleNext()
+                        }}
+                        className="w-full btn-primary py-3 text-sm mt-2"
+                      >
+                        Continue with {d.name}
+                        <svg className="w-4 h-4 ml-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </button>
                     </div>
                   </label>
                 ))}
@@ -392,17 +408,6 @@ function OrderContent() {
                   </div>
                 )}
               </div>
-
-              {form.designId && (
-                <div className="mt-8 flex justify-center">
-                  <button onClick={handleNext} className="btn-primary px-12 py-3.5 text-base shadow-lg shadow-primary-600/30">
-                    Continue
-                    <svg className="w-4 h-4 ml-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
