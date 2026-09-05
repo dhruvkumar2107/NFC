@@ -109,6 +109,8 @@ export async function POST(request: NextRequest) {
         razorpayKey = (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || null)
       } catch (e: any) {
         console.error('Razorpay order creation failed:', e.message)
+        await prisma.order.update({ where: { id: order.id }, data: { status: 'Cancelled' } })
+        return errorResponse('Payment gateway error. Please try again.', 500)
       }
     }
 
@@ -119,7 +121,6 @@ export async function POST(request: NextRequest) {
       amount: design.price,
       design: design.name,
       customerEmail: email,
-      razorpayCheckoutUrl: razorpayOrderId ? null : `/order/success?orderId=${orderId}`,
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Order creation failed', 500)

@@ -1,21 +1,84 @@
 "use client"
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
+  const razorpayPaymentId = searchParams.get('razorpay_payment_id')
+  const razorpayOrderId = searchParams.get('razorpay_order_id')
+  const razorpaySignature = searchParams.get('razorpay_signature')
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [verifying, setVerifying] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+
+  const verifyPayment = useCallback(async (oid: string, paymentId?: string, orderId?: string, signature?: string) => {
+    if (!paymentId || !orderId || !signature) return false
+    try {
+      const res = await fetch('/api/orders/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: oid,
+          razorpay_payment_id: paymentId,
+          razorpay_order_id: orderId,
+          razorpay_signature: signature,
+        }),
+      })
+      const result = await res.json()
+      return result.success
+    } catch {
+      return false
+    }
+  }, [])
+
+  const fetchOrderStatus = useCallback(async (oid: string) => {
+    try {
+      const res = await fetch(`/api/orders/status?orderId=${oid}`)
+      const d = await res.json()
+      if (d.success) setData(d.data)
+      setLoading(false)
+      return d.data
+    } catch {
+      setLoading(false)
+      return null
+    }
+  }, [])
 
   useEffect(() => {
     if (!orderId) { setLoading(false); return }
-    fetch(`/api/orders/status?orderId=${orderId}`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setData(d.data); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [orderId])
+
+    const init = async () => {
+      if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
+        setVerifying(true)
+        const success = await verifyPayment(orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature)
+        setVerifying(false)
+      }
+      await fetchOrderStatus(orderId)
+    }
+    init()
+  }, [orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature, verifyPayment, fetchOrderStatus])
+
+  useEffect(() => {
+    if (!orderId || !data || retryCount >= 5) return
+    if (data.status === 'Pending') {
+      const timer = setTimeout(async () => {
+        setRetryCount(prev => prev + 1)
+        const updated = await fetchOrderStatus(orderId)
+        if (updated && updated.status === 'Pending' && retryCount < 4) {
+          if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
+            setVerifying(true)
+            await verifyPayment(orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature)
+            setVerifying(false)
+            await fetchOrderStatus(orderId)
+          }
+        }
+      }, 3000 * (retryCount + 1))
+      return () => clearTimeout(timer)
+    }
+  }, [data, orderId, retryCount, fetchOrderStatus, verifyPayment, razorpayPaymentId, razorpayOrderId, razorpaySignature])
 
   function sendToWhatsApp() {
     if (!data) return
@@ -42,10 +105,10 @@ function SuccessContent() {
     }
   }
 
-  if (loading) return (
+  if (loading || verifying) return (
     <div className="py-20 text-center">
       <div className="animate-spin h-12 w-12 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-      <p className="text-gray-500">Loading order details...</p>
+      <p className="text-gray-500">{verifying ? 'Verifying your payment...' : 'Loading order details...'}</p>
     </div>
   )
 
@@ -55,6 +118,29 @@ function SuccessContent() {
       <h1 className="text-3xl font-bold mb-4">Order Not Found</h1>
       <p className="text-gray-500 mb-8">We couldn&apos;t find your order. Please check your order ID.</p>
       <Link href="/order" className="btn-primary">Place New Order</Link>
+    </div>
+  )
+
+  if (data.status === 'Pending') return (
+    <div className="py-20 text-center">
+      <div className="animate-spin h-12 w-12 border-4 border-yellow-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+      <h1 className="text-3xl font-bold mb-4">Payment Processing</h1>
+      <p className="text-gray-500 mb-4">Your payment is being verified. This may take a few moments.</p>
+      <p className="text-sm text-gray-400 mb-6">Order ID: <span className="font-mono font-bold">{data.orderId}</span></p>
+      <p className="text-sm text-gray-400 mb-8">If money was deducted, your order will be confirmed shortly. Please do not close this page.</p>
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <button onClick={async () => {
+          setRetryCount(0)
+          setLoading(true)
+          if (razorpayPaymentId && razorpayOrderId && razorpaySignature) {
+            setVerifying(true)
+            await verifyPayment(orderId!, razorpayPaymentId, razorpayOrderId, razorpaySignature)
+            setVerifying(false)
+          }
+          await fetchOrderStatus(orderId!)
+        }} className="btn-primary">Retry Verification</button>
+        <Link href="/order" className="btn-secondary">Place New Order</Link>
+      </div>
     </div>
   )
 

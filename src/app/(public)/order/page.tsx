@@ -181,7 +181,7 @@ function OrderContent() {
           order_id: orderData.razorpayOrderId,
           handler: async function (response: any) {
             try {
-              await fetch('/api/orders/verify', {
+              const verifyRes = await fetch('/api/orders/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -191,6 +191,11 @@ function OrderContent() {
                   razorpay_signature: response.razorpay_signature,
                 }),
               })
+              const verifyData = await verifyRes.json()
+              if (verifyData.success) {
+                router.push(`/order/success?orderId=${orderData.orderId}`)
+                return
+              }
             } catch {}
             router.push(`/order/success?orderId=${orderData.orderId}`)
           },
@@ -205,11 +210,6 @@ function OrderContent() {
         const rzp = new (window as any).Razorpay(options)
         rzp.open()
       } else {
-        await fetch('/api/orders/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: orderData.orderId }),
-        })
         router.push(`/order/success?orderId=${orderData.orderId}`)
       }
     } catch { alert('Failed to place order. Please try again.'); setSubmitting(false) }

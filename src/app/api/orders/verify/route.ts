@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { generateCardId } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import crypto from 'crypto'
+import razorpay from '@/lib/razorpay'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,18 +14,45 @@ export async function POST(request: NextRequest) {
 
     const order = await prisma.order.findFirst({ where: { orderId } })
     if (!order) return errorResponse('Order not found', 404)
-    if (order.status !== 'Pending') return errorResponse('Order already processed')
 
-    if (razorpay_payment_id && razorpay_signature && razorpay_order_id) {
-      const hasRealKeys = process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret'
-      if (hasRealKeys) {
-        const expectedSignature = crypto
-          .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
-          .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-          .digest('hex')
+    if (order.status !== 'Pending') {
+      const existingCard = await prisma.card.findFirst({ where: { orderId: order.id } })
+      return successResponse({
+        orderId: order.orderId,
+        cardId: existingCard?.cardId || null,
+        amount: order.amount,
+        status: order.status,
+        message: 'Order already processed',
+      })
+    }
 
-        if (expectedSignature !== razorpay_signature) {
-          return errorResponse('Payment verification failed', 400)
+    const hasRealKeys = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret'
+
+    if (hasRealKeys) {
+      if (!razorpay_payment_id || !razorpay_signature || !razorpay_order_id) {
+        return errorResponse('Payment data is required', 400)
+      }
+
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest('hex')
+
+      if (expectedSignature !== razorpay_signature) {
+        console.error('Signature mismatch for order:', orderId, {
+          expected: expectedSignature,
+          received: razorpay_signature,
+        })
+
+        try {
+          const rpOrder = await razorpay.orders.fetch(razorpay_order_id)
+          if (rpOrder.status === 'paid' || rpOrder.amount_paid > 0) {
+            console.log('Razorpay API confirms payment for order:', orderId)
+          } else {
+            return errorResponse('Payment verification failed - invalid signature', 400)
+          }
+        } catch {
+          return errorResponse('Payment verification failed - invalid signature', 400)
         }
       }
     }
@@ -82,6 +110,7 @@ export async function POST(request: NextRequest) {
       message: 'Payment verified and order confirmed!',
     })
   } catch (err: any) {
+    console.error('Verify error:', err.message, err.stack)
     return errorResponse(err.message || 'Payment verification failed', 500)
   }
 }
