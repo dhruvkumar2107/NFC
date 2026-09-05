@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'MySmartCard - Tap. Connect. Get Paid.',
   description: 'NFC smart card to share your profile instantly and receive payments via QR.',
+  icons: { icon: '/favicon.svg' },
   openGraph: {
     title: 'MySmartCard - Tap. Connect. Get Paid.',
     description: 'NFC smart card to share your profile instantly and receive payments via QR.',
@@ -24,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>

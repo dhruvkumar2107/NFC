@@ -163,31 +163,33 @@ function OrderContent() {
           attributionType: form.referralCode.trim() ? attributionType : 'direct',
         }),
       })
-      const data = await res.json()
-      if (!data.success) { alert(data.error || 'Something went wrong.'); setSubmitting(false); return }
+      const result = await res.json()
+      if (!result.success) { alert(result.error || 'Something went wrong.'); setSubmitting(false); return }
 
-      if (data.razorpayOrderId && data.razorpayKey) {
+      const orderData = result.data
+
+      if (orderData.razorpayOrderId && orderData.razorpayKey) {
         const options = {
-          key: data.razorpayKey,
-          amount: data.amount * 100,
+          key: orderData.razorpayKey,
+          amount: orderData.amount * 100,
           currency: 'INR',
           name: 'MySmartCard',
-          description: `${data.design} NFC Smart Card`,
-          order_id: data.razorpayOrderId,
+          description: `${orderData.design} NFC Smart Card`,
+          order_id: orderData.razorpayOrderId,
           handler: async function (response: any) {
             try {
               await fetch('/api/orders/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  orderId: data.orderId,
+                  orderId: orderData.orderId,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_signature: response.razorpay_signature,
                 }),
               })
             } catch {}
-            router.push(`/order/success?orderId=${data.orderId}`)
+            router.push(`/order/success?orderId=${orderData.orderId}`)
           },
           prefill: { name: form.fullName, email: form.email, contact: form.mobile },
           theme: { color: '#2563eb' },
@@ -203,9 +205,9 @@ function OrderContent() {
         await fetch('/api/orders/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: data.orderId }),
+          body: JSON.stringify({ orderId: orderData.orderId }),
         })
-        router.push(`/order/success?orderId=${data.orderId}`)
+        router.push(`/order/success?orderId=${orderData.orderId}`)
       }
     } catch { alert('Failed to place order. Please try again.'); setSubmitting(false) }
   }

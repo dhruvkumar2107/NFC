@@ -15,17 +15,17 @@ export async function POST(request: NextRequest) {
     if (!order) return errorResponse('Order not found', 404)
     if (order.status !== 'Pending') return errorResponse('Order already processed')
 
-    const isTestMode = (process.env.RAZORPAY_KEY_ID || '').startsWith('rzp_test_')
-    const hasRealKeys = process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret'
+    if (razorpay_payment_id && razorpay_signature && razorpay_order_id) {
+      const hasRealKeys = process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret'
+      if (hasRealKeys) {
+        const expectedSignature = crypto
+          .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+          .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+          .digest('hex')
 
-    if (isTestMode && hasRealKeys && razorpay_payment_id && razorpay_signature) {
-      const expectedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex')
-
-      if (expectedSignature !== razorpay_signature) {
-        return errorResponse('Payment verification failed', 400)
+        if (expectedSignature !== razorpay_signature) {
+          return errorResponse('Payment verification failed', 400)
+        }
       }
     }
 

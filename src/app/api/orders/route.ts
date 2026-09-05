@@ -98,9 +98,7 @@ export async function POST(request: NextRequest) {
     let razorpayOrderId: string | null = null
     let razorpayKey: string | null = null
 
-    const isTestMode = (process.env.RAZORPAY_KEY_ID || '').startsWith('rzp_test_')
-
-    if (isTestMode && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret') {
+    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret') {
       try {
         const razorpayOrder = await razorpay.orders.create({
           amount: Math.round(design.price * 100),
