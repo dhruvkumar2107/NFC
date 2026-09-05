@@ -84,7 +84,7 @@ export default async function HomePage() {
           {/* Buy Now + Trust Bar */}
           <div className="mt-4 flex flex-col items-center gap-4 relative z-30">
             <Link href="/order" className="btn-primary text-base px-10 py-3.5 shadow-lg shadow-primary-600/30 hover:shadow-xl hover:shadow-primary-600/40 inline-flex items-center gap-2 min-h-[48px]">
-              Buy Now - Starting ₹599
+              Buy Now - Starting ₹101
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
@@ -323,7 +323,7 @@ export default async function HomePage() {
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">Ready to Go Digital?</h2>
             <p className="text-white/70 mb-12 text-lg leading-relaxed">Get your MySmartCard today and start sharing your profile with a tap.</p>
             <Link href="/order" className="glass-strong text-gray-900 px-12 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-all duration-300 shadow-glass-lg hover:shadow-glass-xl hover:-translate-y-0.5 inline-block">
-              Order Now - Starting ₹599
+              Order Now - Starting ₹101
             </Link>
           </ScrollReveal>
         </div>

@@ -39,6 +39,9 @@ const initialForm: OrderForm = {
 }
 
 async function uploadFile(file: File): Promise<string> {
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('File too large. Max size is 5MB.')
+  }
   const formData = new FormData()
   formData.append('file', file)
   const res = await fetch('/api/upload', { method: 'POST', body: formData })
@@ -535,7 +538,7 @@ function OrderContent() {
                   <div className="space-y-4">
                     <div>
                       <label className="label">Logo</label>
-                      {uploadMsg && uploadMsg.startsWith('Logo') && <p className="text-green-600 text-xs mb-1.5">{uploadMsg}</p>}
+                      {uploadMsg && uploadMsg.startsWith('Logo') && <p className={`text-xs mb-1.5 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
                       <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                         <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                           const file = e.target.files?.[0]
@@ -547,7 +550,10 @@ function OrderContent() {
                               setField('logoUrl', url)
                               setUploadMsg('Logo uploaded successfully!')
                               setTimeout(() => setUploadMsg(''), 3000)
-                            } catch { setUploadMsg('') }
+                            } catch (err: any) {
+                              setUploadMsg('Logo upload failed: ' + (err.message || 'Please try again.'))
+                              setTimeout(() => setUploadMsg(''), 5000)
+                            }
                             setUploading(null)
                           }
                         }} />
@@ -577,7 +583,7 @@ function OrderContent() {
                 <div className="glass rounded-2xl p-6">
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Your Photos</h3>
                   <p className="text-xs text-gray-400 mb-4">Upload 3-4 photos of yourself for your digital profile card</p>
-                  {uploadMsg && uploadMsg.startsWith('Photo') && <p className="text-green-600 text-xs mb-3">{uploadMsg}</p>}
+                  {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs mb-3 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
                   <div className="grid sm:grid-cols-2 gap-4">
                     {(['photo1', 'photo2', 'photo3', 'photo4'] as const).map((field, idx) => (
                       <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
@@ -591,7 +597,10 @@ function OrderContent() {
                               setField(field, url)
                               setUploadMsg(`Photo ${idx + 1} uploaded successfully!`)
                               setTimeout(() => setUploadMsg(''), 3000)
-                            } catch { setUploadMsg('') }
+                            } catch (err: any) {
+                              setUploadMsg(`Photo ${idx + 1} upload failed: ` + (err.message || 'Please try again.'))
+                              setTimeout(() => setUploadMsg(''), 5000)
+                            }
                             setUploading(null)
                           }
                         }} />

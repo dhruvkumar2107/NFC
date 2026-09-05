@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 async function uploadFile(file: File): Promise<string> {
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('File too large. Max size is 5MB.')
+  }
   const formData = new FormData()
   formData.append('file', file)
   const res = await fetch('/api/upload', { method: 'POST', body: formData })
@@ -148,7 +151,7 @@ export default function EmployeeNewOrderPage() {
 
         <div className="card space-y-4">
           <h2 className="font-semibold">Profile & Branding</h2>
-          {uploadMsg && uploadMsg.startsWith('Logo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
+          {uploadMsg && uploadMsg.startsWith('Logo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
             <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
               const file = e.target.files?.[0]
@@ -160,7 +163,10 @@ export default function EmployeeNewOrderPage() {
                   update('logoUrl', url)
                   setUploadMsg('Logo uploaded successfully!')
                   setTimeout(() => setUploadMsg(''), 3000)
-                } catch {}
+                } catch (err: any) {
+                  setUploadMsg('Logo upload failed: ' + (err.message || 'Please try again.'))
+                  setTimeout(() => setUploadMsg(''), 5000)
+                }
                 setUploading(null)
               }
             }} />
@@ -183,7 +189,7 @@ export default function EmployeeNewOrderPage() {
         <div className="card space-y-4">
           <h2 className="font-semibold">Photos</h2>
           <p className="text-xs text-gray-400">Upload 3-4 photos for the digital profile card</p>
-          {uploadMsg && uploadMsg.startsWith('Photo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
+          {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           <div className="grid grid-cols-2 gap-4">
             {(['photo1', 'photo2', 'photo3', 'photo4'] as const).map((field, idx) => (
               <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
@@ -197,7 +203,10 @@ export default function EmployeeNewOrderPage() {
                       update(field, url)
                       setUploadMsg(`Photo ${idx + 1} uploaded successfully!`)
                       setTimeout(() => setUploadMsg(''), 3000)
-                    } catch {}
+                    } catch (err: any) {
+                      setUploadMsg(`Photo ${idx + 1} upload failed: ` + (err.message || 'Please try again.'))
+                      setTimeout(() => setUploadMsg(''), 5000)
+                    }
                     setUploading(null)
                   }
                 }} />

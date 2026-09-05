@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react'
 
 async function uploadFile(file: File): Promise<string> {
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('File too large. Max size is 5MB.')
+  }
   const formData = new FormData()
   formData.append('file', file)
   const res = await fetch('/api/upload', { method: 'POST', body: formData })
@@ -152,7 +155,7 @@ export default function EditProfilePage() {
 
         <div className="card space-y-4">
           <h2 className="font-semibold text-lg">Logo</h2>
-          {uploadMsg && uploadMsg.startsWith('Logo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
+          {uploadMsg && uploadMsg.startsWith('Logo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
             <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
               const file = e.target.files?.[0]
@@ -164,7 +167,10 @@ export default function EditProfilePage() {
                   updateField('logoUrl', url)
                   setUploadMsg('Logo uploaded successfully!')
                   setTimeout(() => setUploadMsg(''), 3000)
-                } catch {}
+                } catch (err: any) {
+                  setUploadMsg('Logo upload failed: ' + (err.message || 'Please try again.'))
+                  setTimeout(() => setUploadMsg(''), 5000)
+                }
                 setUploading(null)
               }
             }} />
@@ -185,7 +191,7 @@ export default function EditProfilePage() {
 
         <div className="card space-y-4">
           <h2 className="font-semibold text-lg">Photos</h2>
-          {uploadMsg && uploadMsg.startsWith('Photo') && <p className="text-green-600 text-xs">{uploadMsg}</p>}
+          {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {(profile.photos || []).map((photo: string, idx: number) => (
               <div key={idx} className="relative group">
@@ -205,7 +211,10 @@ export default function EditProfilePage() {
                       updatePhoto(profile.photos?.length || 0, url)
                       setUploadMsg(`Photo ${(profile.photos?.length || 0) + 1} uploaded successfully!`)
                       setTimeout(() => setUploadMsg(''), 3000)
-                    } catch {}
+                    } catch (err: any) {
+                      setUploadMsg('Photo upload failed: ' + (err.message || 'Please try again.'))
+                      setTimeout(() => setUploadMsg(''), 5000)
+                    }
                     setUploading(null)
                   }
                 }} />
