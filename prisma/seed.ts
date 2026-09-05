@@ -43,10 +43,10 @@ async function main() {
   // Update/create designs with new images and ₹599 price
   const designs = [
     { id: 'premium-pvc-1', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design1-front.jpeg', backImage: '/photos/design1-back.jpeg' },
-    { id: 'premium-pvc-2', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design2-front.jpeg', backImage: '/photos/design2-back.jpeg' },
-    { id: 'premium-pvc-3', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design3-front.jpeg', backImage: '/photos/design3-back.jpeg' },
-    { id: 'premium-pvc-4', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design4-front.jpeg', backImage: '/photos/design4-back.jpeg' },
-    { id: 'premium-pvc-5', name: 'Premium PVC Card', price: 599, imageUrl: '/photos/design5-front.jpeg', backImage: '/photos/design5-back.jpeg' },
+    { id: 'premium-pvc-2', name: 'Classic Matte Card', price: 599, imageUrl: '/photos/design2-front.jpeg', backImage: '/photos/design2-back.jpeg' },
+    { id: 'premium-pvc-3', name: 'Royal Gold Card', price: 599, imageUrl: '/photos/design3-front.jpeg', backImage: '/photos/design3-back.jpeg' },
+    { id: 'premium-pvc-4', name: 'Sleek Black Card', price: 599, imageUrl: '/photos/design4-front.jpeg', backImage: '/photos/design4-back.jpeg' },
+    { id: 'premium-pvc-5', name: 'Wood Finish Card', price: 599, imageUrl: '/photos/design5-front.jpeg', backImage: '/photos/design5-back.jpeg' },
   ];
 
   // Deactivate old designs first
