@@ -172,6 +172,7 @@ function OrderContent() {
       const orderData = result.data
 
       if (orderData.razorpayOrderId && orderData.razorpayKey) {
+        const successUrl = `/order/success?orderId=${orderData.orderId}`
         const options = {
           key: orderData.razorpayKey,
           amount: orderData.amount * 100,
@@ -193,21 +194,37 @@ function OrderContent() {
               })
               const verifyData = await verifyRes.json()
               if (verifyData.success) {
-                router.push(`/order/success?orderId=${orderData.orderId}`)
+                const params = new URLSearchParams({
+                  orderId: orderData.orderId,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                })
+                router.push(`/order/success?${params.toString()}`)
                 return
               }
-            } catch {}
-            router.push(`/order/success?orderId=${orderData.orderId}`)
+            } catch (err) {
+              console.error('Payment verify call failed:', err)
+            }
+            router.push(successUrl)
           },
           prefill: { name: form.fullName, email: form.email, contact: form.mobile },
           theme: { color: '#2563eb' },
           modal: {
             ondismiss: function () {
               setSubmitting(false)
+            },
+            handler: function () {
+              setSubmitting(false)
             }
           }
         }
         const rzp = new (window as any).Razorpay(options)
+        rzp.on('payment.failed', function (response: any) {
+          console.error('Payment failed:', response.error)
+          setSubmitting(false)
+          alert(`Payment failed: ${response.error?.description || 'Please try again.'}`)
+        })
         rzp.open()
       } else {
         router.push(`/order/success?orderId=${orderData.orderId}`)

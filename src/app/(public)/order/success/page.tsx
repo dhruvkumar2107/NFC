@@ -84,7 +84,8 @@ function SuccessContent() {
     if (!data) return
     const phone = data.customerWhatsapp || data.customerMobile || ''
     const cleanedPhone = phone.replace(/[^0-9]/g, '')
-    const message = encodeURIComponent(
+    const profileUrl = `${window.location.origin}/p/${data.cardId}`
+    const message =
       `*MySmartCard Order Confirmation*\n\n` +
       `Order ID: ${data.orderId}\n` +
       `Card ID: ${data.cardId || 'Pending'}\n` +
@@ -95,12 +96,11 @@ function SuccessContent() {
       `Email: ${data.customerEmail || '-'}\n` +
       `Mobile: ${data.customerMobile || '-'}\n\n` +
       `Thank you for your order!\n` +
-      `Profile: ${typeof window !== 'undefined' ? window.location.origin : ''}/p/${data.cardId}`
-    )
+      `Profile: ${profileUrl}`
     if (cleanedPhone) {
-      window.open(`https://wa.me/${cleanedPhone}?text=${message}`, '_blank')
+      window.open(`https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`, '_blank')
     } else {
-      navigator.clipboard.writeText(message.replace(/%20/g, ' ').replace(/\n/g, '\n'))
+      navigator.clipboard.writeText(message)
       alert('Order details copied to clipboard! No WhatsApp number found.')
     }
   }
@@ -165,14 +165,14 @@ function SuccessContent() {
           <p className="text-sm text-blue-700 mb-2">Use these to log in to your customer dashboard:</p>
           <div className="bg-white rounded-lg p-3 text-sm">
             <div><span className="text-gray-500">Email:</span> <span className="font-mono">{data.customerEmail}</span></div>
-            <div><span className="text-gray-500">Password:</span> <span className="font-mono">Use your email as password (first login)</span></div>
+            <div><span className="text-gray-500">Password:</span> <span className="font-mono">{data.customerEmail}_mysmartcard_temp</span></div>
           </div>
         </div>
 
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-8 text-left">
           <h2 className="font-semibold text-green-800 mb-2">Profile URL</h2>
           <p className="text-sm text-green-700">Your digital profile is live at:</p>
-          <p className="font-mono text-sm text-green-800 mt-1 break-all">/p/{data.cardId}</p>
+          <p className="font-mono text-sm text-green-800 mt-1 break-all">{typeof window !== 'undefined' ? window.location.origin : ''}/p/{data.cardId}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">

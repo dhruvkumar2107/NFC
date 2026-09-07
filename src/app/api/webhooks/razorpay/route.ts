@@ -28,13 +28,15 @@ export async function POST(request: NextRequest) {
       const razorpayOrderId = payment.order_id
       const razorpayPaymentId = payment.id
 
-      const order = await prisma.order.findFirst({
-        where: { razorpayPaymentLinkId: razorpayOrderId },
-      })
+      await prisma.$transaction(async (tx) => {
+        const order = await tx.order.findFirst({
+          where: { razorpayPaymentLinkId: razorpayOrderId },
+        })
 
-      if (order && order.status === 'Pending') {
+        if (!order || order.status !== 'Pending') return
+
         const cardIdNum = generateCardId()
-        const card = await prisma.card.create({
+        const card = await tx.card.create({
           data: {
             cardId: cardIdNum,
             orderId: order.id,
@@ -44,12 +46,12 @@ export async function POST(request: NextRequest) {
           },
         })
 
-        await prisma.customer.update({
+        await tx.customer.update({
           where: { id: order.customerId! },
           data: { cardId: card.id },
         })
 
-        await prisma.order.update({
+        await tx.order.update({
           where: { id: order.id },
           data: {
             cardId: card.id,
@@ -60,14 +62,14 @@ export async function POST(request: NextRequest) {
         })
 
         if (order.employeeId && order.commissionPoints > 0) {
-          await prisma.employee.update({
+          await tx.employee.update({
             where: { id: order.employeeId },
             data: {
               totalPoints: { increment: order.commissionPoints },
               availablePoints: { increment: order.commissionPoints },
             },
           })
-          await prisma.walletTransaction.create({
+          await tx.walletTransaction.create({
             data: {
               employeeId: order.employeeId,
               orderId: order.id,
@@ -77,6 +79,23 @@ export async function POST(request: NextRequest) {
             },
           })
         }
+      })
+    }
+
+    if (event.event === 'payment.failed') {
+      const payment = event.payload.payment.entity
+      const razorpayOrderId = payment.order_id
+
+      const order = await prisma.order.findFirst({
+        where: { razorpayPaymentLinkId: razorpayOrderId },
+      })
+
+      if (order && order.status === 'Pending') {
+        console.error('Payment failed for order:', order.orderId, {
+          paymentId: payment.id,
+          errorCode: payment.error_code,
+          errorDescription: payment.error_description,
+        })
       }
     }
 

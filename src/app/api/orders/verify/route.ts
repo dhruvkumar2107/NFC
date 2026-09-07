@@ -12,20 +12,6 @@ export async function POST(request: NextRequest) {
 
     if (!orderId) return errorResponse('Order ID is required')
 
-    const order = await prisma.order.findFirst({ where: { orderId } })
-    if (!order) return errorResponse('Order not found', 404)
-
-    if (order.status !== 'Pending') {
-      const existingCard = await prisma.card.findFirst({ where: { orderId: order.id } })
-      return successResponse({
-        orderId: order.orderId,
-        cardId: existingCard?.cardId || null,
-        amount: order.amount,
-        status: order.status,
-        message: 'Order already processed',
-      })
-    }
-
     const hasRealKeys = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret'
 
     if (hasRealKeys) {
@@ -57,60 +43,97 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const cardIdNum = generateCardId()
-    const card = await prisma.card.create({
-      data: {
-        cardId: cardIdNum,
-        orderId: order.id,
-        soldByEmployeeId: order.employeeId,
-        designId: order.designId,
-        status: 'Pending',
-      },
-    })
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findFirst({ where: { orderId } })
+      if (!order) throw new Error('Order not found')
 
-    await prisma.customer.update({ where: { id: order.customerId! }, data: { cardId: card.id } })
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        cardId: card.id,
-        status: 'Payment Received',
-        razorpayPaymentId: razorpay_payment_id || null,
-        razorpayPaymentLinkId: razorpay_order_id || null,
-      },
-    })
+      if (order.status !== 'Pending') {
+        const existingCard = await tx.card.findFirst({ where: { orderId: order.id } })
+        return {
+          alreadyProcessed: true,
+          orderId: order.orderId,
+          cardId: existingCard?.cardId || null,
+          amount: order.amount,
+          status: order.status,
+        }
+      }
 
-    if (order.employeeId && order.commissionPoints > 0) {
-      await prisma.employee.update({
-        where: { id: order.employeeId },
+      const cardIdNum = generateCardId()
+      const card = await tx.card.create({
         data: {
-          totalPoints: { increment: order.commissionPoints },
-          availablePoints: { increment: order.commissionPoints },
+          cardId: cardIdNum,
+          orderId: order.id,
+          soldByEmployeeId: order.employeeId,
+          designId: order.designId,
+          status: 'Pending',
         },
       })
-      await prisma.walletTransaction.create({
+
+      await tx.customer.update({ where: { id: order.customerId! }, data: { cardId: card.id } })
+      await tx.order.update({
+        where: { id: order.id },
         data: {
-          employeeId: order.employeeId,
-          orderId: order.id,
-          type: 'commission_earned',
-          points: order.commissionPoints,
-          description: `Commission for order ${orderId}: ${order.commissionPoints} points (₹${order.commissionAmount})`,
+          cardId: card.id,
+          status: 'Payment Received',
+          razorpayPaymentId: razorpay_payment_id || null,
+          razorpayPaymentLinkId: razorpay_order_id || null,
         },
+      })
+
+      if (order.employeeId && order.commissionPoints > 0) {
+        await tx.employee.update({
+          where: { id: order.employeeId },
+          data: {
+            totalPoints: { increment: order.commissionPoints },
+            availablePoints: { increment: order.commissionPoints },
+          },
+        })
+        await tx.walletTransaction.create({
+          data: {
+            employeeId: order.employeeId,
+            orderId: order.id,
+            type: 'commission_earned',
+            points: order.commissionPoints,
+            description: `Commission for order ${orderId}: ${order.commissionPoints} points (₹${order.commissionAmount})`,
+          },
+        })
+      }
+
+      const customer = await tx.customer.findUnique({ where: { id: order.customerId! } })
+
+      return {
+        alreadyProcessed: false,
+        orderId: order.orderId,
+        cardId: card.cardId,
+        amount: order.amount,
+        design: order.designId,
+        customerEmail: customer?.email,
+        status: 'Payment Received',
+      }
+    })
+
+    if (result.alreadyProcessed) {
+      return successResponse({
+        orderId: result.orderId,
+        cardId: result.cardId,
+        amount: result.amount,
+        status: result.status,
+        message: 'Order already processed',
       })
     }
 
-    const customer = await prisma.customer.findUnique({ where: { id: order.customerId! } })
-
     return successResponse({
-      orderId: order.orderId,
-      cardId: card.cardId,
-      amount: order.amount,
-      design: order.designId,
-      customerEmail: customer?.email,
-      status: 'Payment Received',
+      orderId: result.orderId,
+      cardId: result.cardId,
+      amount: result.amount,
+      design: result.design,
+      customerEmail: result.customerEmail,
+      status: result.status,
       message: 'Payment verified and order confirmed!',
     })
   } catch (err: any) {
     console.error('Verify error:', err.message, err.stack)
+    if (err.message === 'Order not found') return errorResponse('Order not found', 404)
     return errorResponse(err.message || 'Payment verification failed', 500)
   }
 }
