@@ -5,16 +5,39 @@ import { Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableC
 import { join } from 'path'
 import { readFile } from 'fs/promises'
 
-async function fetchImageBuffer(url: string): Promise<Buffer | null> {
+function decodeDataUri(dataUri: string): { buffer: Buffer; mime: string } | null {
+  const match = dataUri.match(/^data:([^;]+);base64,(.+)$/)
+  if (!match) return null
+  const mime = match[1]
+  const base64 = match[2]
+  const buffer = Buffer.from(base64, 'base64')
+  return { buffer, mime }
+}
+
+function mimeToDocxType(mime: string): 'png' | 'jpg' | 'gif' {
+  if (mime === 'image/png') return 'png'
+  if (mime === 'image/gif') return 'gif'
+  return 'jpg'
+}
+
+async function fetchImageBuffer(url: string): Promise<{ buffer: Buffer; type: 'png' | 'jpg' | 'gif' } | null> {
   try {
+    if (url.startsWith('data:')) {
+      const decoded = decodeDataUri(url)
+      if (!decoded) return null
+      return { buffer: decoded.buffer, type: mimeToDocxType(decoded.mime) }
+    }
     if (url.startsWith('/uploads/')) {
       const filePath = join(process.cwd(), 'public', url)
-      return await readFile(filePath)
+      const buffer = await readFile(filePath)
+      return { buffer, type: 'png' }
     }
     const res = await fetch(url)
     if (!res.ok) return null
     const arrayBuffer = await res.arrayBuffer()
-    return Buffer.from(arrayBuffer)
+    const buffer = Buffer.from(arrayBuffer)
+    const contentType = res.headers.get('content-type') || 'image/jpeg'
+    return { buffer, type: mimeToDocxType(contentType) }
   } catch {
     return null
   }
@@ -89,13 +112,13 @@ export async function POST(request: NextRequest) {
       const fullAddress = addressParts.join(', ')
 
       // Fetch images
-      let logoBuffer: Buffer | null = null
+      let logoBuffer: { buffer: Buffer; type: 'png' | 'jpg' | 'gif' } | null = null
       if (c.logoUrl) logoBuffer = await fetchImageBuffer(c.logoUrl)
 
-      let profileBuffer: Buffer | null = null
+      let profileBuffer: { buffer: Buffer; type: 'png' | 'jpg' | 'gif' } | null = null
       if (photos[0]) profileBuffer = await fetchImageBuffer(photos[0])
 
-      const photoBuffers: Buffer[] = []
+      const photoBuffers: { buffer: Buffer; type: 'png' | 'jpg' | 'gif' }[] = []
       for (const p of photos) {
         const buf = await fetchImageBuffer(p)
         if (buf) photoBuffers.push(buf)
@@ -113,9 +136,9 @@ export async function POST(request: NextRequest) {
           profileImageChildren.push(
             new Paragraph({
               children: [new ImageRun({
-                data: profileBuffer,
+                data: profileBuffer.buffer,
                 transformation: { width: 150, height: 150 },
-                type: 'png',
+                type: profileBuffer.type,
               })],
               alignment: AlignmentType.CENTER,
             })
@@ -213,19 +236,6 @@ export async function POST(request: NextRequest) {
       if (photoBuffers.length > 0) {
         sections.push(sectionHeading('Photos'))
         const photoRowCells: TableRow[] = []
-        const photoRowParagraphs: Paragraph[] = []
-        for (const buf of photoBuffers) {
-          photoRowParagraphs.push(
-            new Paragraph({
-              children: [new ImageRun({
-                data: buf,
-                transformation: { width: 180, height: 180 },
-                type: 'png',
-              })],
-              alignment: AlignmentType.CENTER,
-            })
-          )
-        }
 
         // Create photo grid - 3 per row
         for (let j = 0; j < photoBuffers.length; j += 3) {
@@ -237,9 +247,9 @@ export async function POST(request: NextRequest) {
                 new TableCell({
                   children: [new Paragraph({
                     children: [new ImageRun({
-                      data: photoBuffers[idx],
+                      data: photoBuffers[idx].buffer,
                       transformation: { width: 170, height: 170 },
-                      type: 'png',
+                      type: photoBuffers[idx].type,
                     })],
                     alignment: AlignmentType.CENTER,
                   })],
