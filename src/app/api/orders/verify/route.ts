@@ -69,23 +69,34 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      await tx.customer.update({ where: { id: order.customerId! }, data: { cardId: card.id } })
+      await tx.customer.update({
+        where: { id: order.customerId! },
+        data: {
+          cardId: card.id,
+          ...(order.employeeId ? { soldByEmployeeId: order.employeeId } : {}),
+        },
+      })
+      const commissionPoints = order.commissionPoints > 0 ? order.commissionPoints : (order.employeeId ? 100 : 0)
+      const commissionAmount = (order.commissionAmount && order.commissionAmount > 0) ? order.commissionAmount : (order.employeeId ? 100 : 0)
+
       await tx.order.update({
         where: { id: order.id },
         data: {
           cardId: card.id,
           status: 'Payment Received',
+          commissionPoints,
+          commissionAmount,
           razorpayPaymentId: razorpay_payment_id || null,
           razorpayPaymentLinkId: razorpay_order_id || null,
         },
       })
 
-      if (order.employeeId && order.commissionPoints > 0) {
+      if (order.employeeId && commissionPoints > 0) {
         await tx.employee.update({
           where: { id: order.employeeId },
           data: {
-            totalPoints: { increment: order.commissionPoints },
-            availablePoints: { increment: order.commissionPoints },
+            totalPoints: { increment: commissionPoints },
+            availablePoints: { increment: commissionPoints },
           },
         })
         await tx.walletTransaction.create({
@@ -93,8 +104,8 @@ export async function POST(request: NextRequest) {
             employeeId: order.employeeId,
             orderId: order.id,
             type: 'commission_earned',
-            points: order.commissionPoints,
-            description: `Commission for order ${orderId}: ${order.commissionPoints} points (₹${order.commissionAmount})`,
+            points: commissionPoints,
+            description: `Commission for order ${orderId}: ${commissionPoints} points (₹${commissionAmount})`,
           },
         })
       }

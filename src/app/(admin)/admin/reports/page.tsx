@@ -63,18 +63,28 @@ export default function AdminReportsPage() {
 
       {data && (
         <>
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <div className="grid md:grid-cols-4 gap-4 mb-8">
             <div className="card text-center">
-              <div className="text-sm text-gray-500">Total Orders</div>
-              <div className="text-3xl font-bold">{data.totalOrders}</div>
+              <div className="text-sm text-gray-500 font-medium">Confirmed Sales</div>
+              <div className="text-3xl font-bold text-gray-900 mt-1">{data.totalOrders}</div>
+              <div className="text-xs text-gray-400 mt-0.5">verified purchases</div>
             </div>
             <div className="card text-center">
-              <div className="text-sm text-gray-500">Total Revenue</div>
-              <div className="text-3xl font-bold">₹{data.totalRevenue.toLocaleString()}</div>
+              <div className="text-sm text-gray-500 font-medium">Confirmed Revenue</div>
+              <div className="text-3xl font-bold text-green-600 mt-1">₹{data.totalRevenue.toLocaleString()}</div>
+              <div className="text-xs text-gray-400 mt-0.5">excludes failed/pending</div>
             </div>
             <div className="card text-center">
-              <div className="text-sm text-gray-500">Direct Sales (No Employee)</div>
-              <div className="text-3xl font-bold">{data.directSales}</div>
+              <div className="text-sm text-gray-500 font-medium">Direct Sales</div>
+              <div className="text-3xl font-bold text-blue-600 mt-1">{data.directSales}</div>
+              <div className="text-xs text-gray-400 mt-0.5">organic web purchases</div>
+            </div>
+            <div className={`card text-center ${data.failedOrdersCount > 0 ? 'bg-red-50/60 border-red-200' : ''}`}>
+              <div className="text-sm text-gray-500 font-medium">Failed Payments</div>
+              <div className={`text-3xl font-bold mt-1 ${data.failedOrdersCount > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                {data.failedOrdersCount || 0}
+              </div>
+              <div className="text-xs text-gray-400 mt-0.5">isolated from revenue</div>
             </div>
           </div>
 

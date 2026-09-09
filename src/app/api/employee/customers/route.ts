@@ -8,9 +8,24 @@ export async function GET(request: NextRequest) {
     const { user, error } = await requireAuth(request, 'employee')
     if (error) return error
 
+    // Only show customers with at least one confirmed order (Payment Received or Delivered)
     const customers = await prisma.customer.findMany({
-      where: { soldByEmployeeId: user!.id },
-      include: { card: true, orders: true },
+      where: {
+        soldByEmployeeId: user!.id,
+        orders: {
+          some: {
+            employeeId: user!.id,
+            status: { in: ['Payment Received', 'Delivered'] },
+          },
+        },
+      },
+      include: {
+        card: true,
+        orders: {
+          where: { employeeId: user!.id },
+          orderBy: { orderDate: 'desc' },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     })
     return successResponse(customers)

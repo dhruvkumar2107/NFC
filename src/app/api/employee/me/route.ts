@@ -8,9 +8,26 @@ export async function GET(request: NextRequest) {
     const { user, error } = await requireAuth(request, 'employee')
     if (error) return error
 
+    // Only include confirmed customers and confirmed orders in employee profile overview
     const employee = await prisma.employee.findUnique({
       where: { id: user!.id },
-      include: { customers: true, orders: true },
+      include: {
+        customers: {
+          where: {
+            orders: {
+              some: {
+                employeeId: user!.id,
+                status: { in: ['Payment Received', 'Delivered'] },
+              },
+            },
+          },
+        },
+        orders: {
+          where: {
+            status: { in: ['Payment Received', 'Delivered'] },
+          },
+        },
+      },
     })
     return successResponse(employee)
   } catch (err: any) {

@@ -220,8 +220,21 @@ function OrderContent() {
           }
         }
         const rzp = new (window as any).Razorpay(options)
-        rzp.on('payment.failed', function (response: any) {
+        rzp.on('payment.failed', async function (response: any) {
           console.error('Payment failed:', response.error)
+          try {
+            await fetch('/api/orders/fail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: orderData.orderId,
+                reason: response.error?.description || 'Payment failed',
+                paymentId: response.error?.metadata?.payment_id || null,
+              }),
+            })
+          } catch (e) {
+            console.error('Failed to notify backend of payment failure:', e)
+          }
           setSubmitting(false)
           alert(`Payment failed: ${response.error?.description || 'Please try again.'}`)
         })

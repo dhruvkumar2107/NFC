@@ -63,20 +63,17 @@ async function main() {
 
   await prisma.commissionRule.updateMany({ where: { active: true }, data: { active: false } });
   const rules = [
-    { minCards: 1, maxCards: 20, commissionPerCard: 50, pointsPerCard: 50 },
-    { minCards: 21, maxCards: 50, commissionPerCard: 75, pointsPerCard: 75 },
-    { minCards: 51, maxCards: 100, commissionPerCard: 100, pointsPerCard: 100 },
-    { minCards: 101, maxCards: null, commissionPerCard: 125, pointsPerCard: 125 },
+    { minCards: 1, maxCards: null, commissionPerCard: 100, pointsPerCard: 100 },
   ];
 
   for (const rule of rules) {
     const existing = await prisma.commissionRule.findFirst({ where: { minCards: rule.minCards } });
     if (existing) {
       await prisma.commissionRule.update({ where: { id: existing.id }, data: { ...rule, active: true } });
-      console.log('Commission rule updated:', `${rule.minCards}-${rule.maxCards || '∞'} cards`);
+      console.log('Commission rule updated:', `${rule.minCards}-${rule.maxCards || '∞'} cards: ₹${rule.commissionPerCard}`);
     } else {
       const commissionRule = await prisma.commissionRule.create({ data: { ...rule, active: true } });
-      console.log('Commission rule created:', `${rule.minCards}-${rule.maxCards || '∞'} cards`);
+      console.log('Commission rule created:', `${rule.minCards}-${rule.maxCards || '∞'} cards: ₹${rule.commissionPerCard}`);
     }
   }
 

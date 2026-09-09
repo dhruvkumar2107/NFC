@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
           socialLinks: JSON.stringify(socialLinks || {}),
           address, city, state, pincode, logoUrl, description,
           photos: JSON.stringify(photos || []),
-          soldByEmployeeId: employeeId || customer.soldByEmployeeId,
         },
       })
     } else {
@@ -53,7 +52,7 @@ export async function POST(request: NextRequest) {
           socialLinks: JSON.stringify(socialLinks || {}),
           address, city, state, pincode, logoUrl, description,
           photos: JSON.stringify(photos || []),
-          soldByEmployeeId: employeeId,
+          soldByEmployeeId: null,
           passwordHash: tempPassword,
         },
       })
@@ -66,17 +65,12 @@ export async function POST(request: NextRequest) {
         where: { active: true },
         orderBy: { minCards: 'asc' },
       })
-      const employeeOrderCount = await prisma.order.count({
-        where: { employeeId, status: { not: 'Cancelled' } },
-      })
-      const newCount = employeeOrderCount + 1
-
-      for (const rule of activeRules) {
-        if (newCount >= rule.minCards && (rule.maxCards === null || newCount <= rule.maxCards)) {
-          commissionAmount = rule.commissionPerCard
-          commissionPoints = rule.pointsPerCard || rule.commissionPerCard
-          break
-        }
+      if (activeRules.length > 0) {
+        commissionAmount = activeRules[0].commissionPerCard
+        commissionPoints = activeRules[0].pointsPerCard || activeRules[0].commissionPerCard
+      } else {
+        commissionAmount = 100
+        commissionPoints = 100
       }
     }
 

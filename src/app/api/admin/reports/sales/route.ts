@@ -32,8 +32,14 @@ export async function GET(request: NextRequest) {
       select: { id: true, employeeId: true, name: true },
     })
 
+    const isConfirmed = (status: string) => status === 'Payment Received' || status === 'Delivered'
+    const isFailed = (status: string) => status === 'Payment Failed' || status === 'Failed'
+
+    const confirmedOrders = orders.filter(o => isConfirmed(o.status))
+    const failedOrders = orders.filter(o => isFailed(o.status))
+
     const summary = employees.map((emp) => {
-      const empOrders = orders.filter(o => o.employeeId === emp.id && o.status === 'Payment Received')
+      const empOrders = confirmedOrders.filter(o => o.employeeId === emp.id)
       return {
         employee: emp,
         totalSales: empOrders.length,
@@ -42,11 +48,14 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const directOrders = orders.filter(o => !o.employeeId && o.status === 'Payment Received')
+    const directOrders = confirmedOrders.filter(o => !o.employeeId)
 
     return successResponse({
-      totalOrders: orders.length,
-      totalRevenue: orders.filter(o => o.status === 'Payment Received').reduce((s, o) => s + o.amount, 0),
+      totalOrders: confirmedOrders.length, // Only confirmed sales
+      totalRevenue: confirmedOrders.reduce((s, o) => s + o.amount, 0),
+      totalCommission: confirmedOrders.reduce((s, o) => s + (o.commissionAmount || 0), 0),
+      failedOrdersCount: failedOrders.length,
+      allOrdersCount: orders.length,
       summary,
       directSales: directOrders.length,
       orders,
