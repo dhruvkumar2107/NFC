@@ -3,6 +3,26 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+async function downloadPhoto(customerId: string, index: number) {
+  const token = localStorage.getItem('token')
+  const res = await fetch(`/api/admin/customers/${customerId}/photos?index=${index}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Download failed')
+  const blob = await res.blob()
+  const disposition = res.headers.get('Content-Disposition') || ''
+  const filenameMatch = disposition.match(/filename="(.+)"/)
+  const filename = filenameMatch ? filenameMatch[1] : `photo-${index + 1}.jpg`
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 export default function CustomerDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -11,6 +31,7 @@ export default function CustomerDetailPage() {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState<any>({})
   const [msg, setMsg] = useState('')
+  const [downloading, setDownloading] = useState<string | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -120,13 +141,76 @@ export default function CustomerDetailPage() {
               <div className="space-y-1 text-sm">{Object.entries(socialLinks).map(([k, v]) => <div key={k}><span className="text-gray-500 capitalize">{k}:</span> <a href={v as string} target="_blank" className="text-primary-600 hover:underline">{v as string}</a></div>)}</div>
             ) : <p className="text-gray-500 text-sm">No social links</p>}
           </div>
+          {customer.logoUrl && (
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-semibold">Logo</h2>
+                <button
+                  onClick={async () => {
+                    setDownloading('logo')
+                    try {
+                      const token = localStorage.getItem('token')
+                      const res = await fetch(`/api/admin/customers/${customer.id}/photos?index=-1`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                      })
+                      if (res.ok) {
+                        const blob = await res.blob()
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = 'logo.jpg'
+                        document.body.appendChild(a)
+                        a.click()
+                        document.body.removeChild(a)
+                        URL.revokeObjectURL(url)
+                      }
+                    } catch {}
+                    setDownloading(null)
+                  }}
+                  className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Download Logo
+                </button>
+              </div>
+              <img src={customer.logoUrl} alt="Logo" className="w-20 h-20 rounded-xl object-cover" />
+            </div>
+          )}
           <div className="card">
-            <h2 className="font-semibold mb-3">Photos ({photos.length})</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold">Photos ({photos.length})</h2>
+              {photos.length > 0 && (
+                <button
+                  onClick={async () => {
+                    setDownloading('all')
+                    try {
+                      for (let i = 0; i < photos.length; i++) {
+                        await downloadPhoto(customer.id, i)
+                        await new Promise(r => setTimeout(r, 300))
+                      }
+                    } catch { alert('Some photos failed to download') }
+                    setDownloading(null)
+                  }}
+                  disabled={downloading === 'all'}
+                  className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                >
+                  {downloading === 'all' ? 'Downloading...' : 'Download All'}
+                </button>
+              )}
+            </div>
             {photos.length > 0 ? (
               <div className="grid grid-cols-2 gap-2">
                 {photos.map((photo, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden aspect-square">
+                  <div key={i} className="relative group rounded-xl overflow-hidden aspect-square">
                     <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => downloadPhoto(customer.id, i)}
+                      className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-black/90 flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                      Save
+                    </button>
                   </div>
                 ))}
               </div>
