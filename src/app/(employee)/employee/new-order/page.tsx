@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 async function uploadFile(file: File): Promise<string> {
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error('File too large. Max size is 5MB.')
+  if (file.size > 20 * 1024 * 1024) {
+    throw new Error('File too large. Max size is 20MB.')
   }
   const formData = new FormData()
   formData.append('file', file)
