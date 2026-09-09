@@ -3,6 +3,9 @@ import { join } from 'path'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 
+// Detect Vercel environment - files written to /tmp cannot be served via HTTP on Vercel
+const IS_VERCEL = !!process.env.VERCEL
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -13,46 +16,36 @@ export async function POST(request: NextRequest) {
       return Response.json({ success: false, error: 'File too large. Max size is 20MB.' }, { status: 400 })
     }
 
-    const allowedTypes = [
-      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
-      'image/bmp', 'image/tiff', 'image/svg+xml', 'image/avif',
-      'image/heic', 'image/heif', 'image/jpg'
-    ]
-    const isImage = file.type.startsWith('image/')
-    if (!isImage && !allowedTypes.includes(file.type)) {
+    // Accept all image formats — MIME type must start with "image/"
+    // Also allow empty MIME (some mobile browsers send blank type)
+    const mime = file.type || 'image/jpeg'
+    if (mime && !mime.startsWith('image/')) {
       return Response.json({ success: false, error: 'Invalid file type. Please upload an image file.' }, { status: 400 })
     }
-
-    const ext = file.type.split('/')[1]
-    const safeExt = ext === 'jpeg' ? 'jpg' : ext === 'svg+xml' ? 'svg' : ext === 'heic' ? 'heic' : ext === 'heif' ? 'heif' : ext
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const uploadDirs = [
-      join(process.cwd(), 'public', 'uploads'),
-      join('/tmp', 'uploads'),
-    ]
-
-    let saved = false
-    for (const uploadDir of uploadDirs) {
-      try {
-        if (!existsSync(uploadDir)) {
-          await mkdir(uploadDir, { recursive: true })
-        }
-        const filePath = join(uploadDir, filename)
-        await writeFile(filePath, buffer)
-        const url = `/uploads/${filename}`
-        saved = true
-        return Response.json({ success: true, url })
-      } catch {
-        continue
-      }
+    // On Vercel: always use base64 data URI (no writable public dir)
+    if (IS_VERCEL) {
+      const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`
+      return Response.json({ success: true, url: dataUrl })
     }
 
-    if (!saved) {
-      const dataUrl = `data:${file.type};base64,${buffer.toString('base64')}`
+    // Locally: try to save to public/uploads so Next.js can serve it
+    const ext = mime.split('/')[1]?.replace('svg+xml', 'svg').replace('jpeg', 'jpg') || 'jpg'
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+
+    try {
+      const uploadDir = join(process.cwd(), 'public', 'uploads')
+      if (!existsSync(uploadDir)) {
+        await mkdir(uploadDir, { recursive: true })
+      }
+      await writeFile(join(uploadDir, filename), buffer)
+      return Response.json({ success: true, url: `/uploads/${filename}` })
+    } catch {
+      // Fallback to base64 if disk write fails locally too
+      const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`
       return Response.json({ success: true, url: dataUrl })
     }
   } catch (err: any) {
