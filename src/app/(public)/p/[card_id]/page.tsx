@@ -102,7 +102,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
               </a>
             )}
             {customer.whatsapp && (
-              <a href={`https://wa.me/${customer.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${customer.name}, I found your MySmartCard profile!`)}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-4 glass rounded-2xl hover:shadow-md transition-all duration-300 group">
+              <a href={`https://wa.me/${customer.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${customer.name}, Buy your NFC Smart Card at www.mysmartcard.net`)}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-4 glass rounded-2xl hover:shadow-md transition-all duration-300 group">
                 <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                   <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-12 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12z" /></svg>
                 </div>
@@ -149,6 +149,15 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
                 <span className="text-sm text-gray-700">{getSocialDisplay(platform, url as string)}</span>
               </a>
             ))}
+
+            {/* Payment QR */}
+            {customer.paymentQrUrl && (
+              <div className="p-4 glass-subtle rounded-2xl mt-4">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Payment QR</p>
+                <img src={customer.paymentQrUrl} alt="Payment QR" className="w-28 h-28 rounded-xl object-contain bg-white border border-gray-100" />
+                <p className="text-[11px] text-gray-400 mt-2">Scan to pay</p>
+              </div>
+            )}
 
             {/* Description */}
             {customer.description && (

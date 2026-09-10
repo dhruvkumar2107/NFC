@@ -8,6 +8,7 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [paymentQrUrl, setPaymentQrUrl] = useState('')
   const [qrSaving, setQrSaving] = useState(false)
+  const [qrUploading, setQrUploading] = useState(false)
   const [qrMsg, setQrMsg] = useState('')
 
   useEffect(() => {
@@ -39,6 +40,20 @@ export default function AdminSettingsPage() {
     setSaving(false)
   }
 
+  async function onQrUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setQrUploading(true); setQrMsg('')
+    const fd = new FormData()
+    fd.append('file', file)
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+    const d = await res.json()
+    if (d.success && d.data) setPaymentQrUrl(d.data)
+    else setQrMsg(d.error || 'Upload failed')
+    setQrUploading(false)
+  }
+
   async function savePaymentQr() {
     setQrSaving(true); setQrMsg('')
     const token = localStorage.getItem('token')
@@ -66,21 +81,18 @@ export default function AdminSettingsPage() {
 
       <div className="card mb-6">
         <h2 className="font-semibold text-lg mb-4">Payment QR Code</h2>
-        <p className="text-sm text-gray-500 mb-4">Set the payment QR code URL that customers will see on their profile for receiving payments.</p>
+        <p className="text-sm text-gray-500 mb-4">Upload the payment QR code image (from your gallery) that customers see on their profile for receiving payments.</p>
         {qrMsg && <div className={`p-3 rounded-lg mb-4 text-sm ${qrMsg.includes('saved') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{qrMsg}</div>}
         <div className="space-y-4">
           <div>
-            <label className="label">Payment QR Code URL</label>
-            <input type="url" className="input-field" value={paymentQrUrl} onChange={e => setPaymentQrUrl(e.target.value)} placeholder="https://example.com/payment-qr.png" />
+            <label className="label">Payment QR Code Image</label>
+            <label className="mt-1 flex flex-col items-center justify-center w-full h-40 rounded-xl border-2 border-dashed border-gray-300 cursor-pointer hover:border-[#1677ff] transition-colors bg-gray-50 overflow-hidden">
+              {!paymentQrUrl && <span className="text-sm text-gray-500">Upload from gallery</span>}
+              {paymentQrUrl && <img src={paymentQrUrl} alt="Payment QR Preview" className="w-full h-full object-contain" />}
+              <input type="file" accept="image/*" className="hidden" onChange={onQrUpload} />
+            </label>
           </div>
-          {paymentQrUrl && (
-            <div className="flex items-center gap-4">
-              <div className="w-32 h-32 rounded-xl border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
-                <img src={paymentQrUrl} alt="Payment QR Preview" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-              </div>
-              <div className="text-sm text-gray-500">Preview of your payment QR code</div>
-            </div>
-          )}
+          {qrUploading && <div className="text-sm text-gray-500">Uploading...</div>}
           <button onClick={savePaymentQr} disabled={qrSaving} className="btn-primary">{qrSaving ? 'Saving...' : 'Save QR Code'}</button>
         </div>
       </div>

@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json()
     const {
       name, designation, company, college, mobile, whatsapp, email, website,
-      socialLinks, logoUrl, description, address, city, state, pincode, photos,
+      socialLinks, logoUrl, paymentQrUrl, description, address, city, state, pincode, photos,
     } = body
 
     const updated = await prisma.customer.update({
@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest) {
       data: {
         name, designation, company, college, mobile, whatsapp, email, website,
         socialLinks: socialLinks ? JSON.stringify(socialLinks) : undefined,
-        logoUrl, description, address, city, state, pincode,
+        logoUrl, paymentQrUrl, description, address, city, state, pincode,
         photos: photos ? JSON.stringify(photos) : undefined,
       },
     })

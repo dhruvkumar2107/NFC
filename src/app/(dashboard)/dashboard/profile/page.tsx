@@ -36,7 +36,7 @@ export default function EditProfilePage() {
             name: c.name || '', designation: c.designation || '', company: c.company || '',
             college: c.college || '',
             mobile: c.mobile || '', whatsapp: c.whatsapp || '', email: c.email || '',
-            website: c.website || '', logoUrl: c.logoUrl || '',
+            website: c.website || '', logoUrl: c.logoUrl || '', paymentQrUrl: c.paymentQrUrl || '',
             description: c.description || '', address: c.address || '',
             city: c.city || '', state: c.state || '', pincode: c.pincode || '',
             photos,
@@ -154,7 +154,7 @@ export default function EditProfilePage() {
         </div>
 
         <div className="card space-y-4">
-          <h2 className="font-semibold text-lg">Logo</h2>
+          <h2 className="font-semibold text-lg">Logo / Profile Picture</h2>
           {uploadMsg && uploadMsg.startsWith('Logo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
             <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
@@ -185,21 +185,57 @@ export default function EditProfilePage() {
                 <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
               </div>
             )}
-            <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : profile.logoUrl ? 'Change logo' : 'Upload logo'}</span>
+            <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : profile.logoUrl ? 'Change logo' : "If you don't have a logo, upload a profile picture"}</span>
+          </label>
+        </div>
+
+        <div className="card space-y-4">
+          <h2 className="font-semibold text-lg">Payment QR Code (UPI)</h2>
+          {uploadMsg && uploadMsg.startsWith('QR') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+          <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'qr' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
+            <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                setUploading('qr')
+                setUploadMsg('')
+                try {
+                  const url = await uploadFile(file)
+                  updateField('paymentQrUrl', url)
+                  setUploadMsg('Payment QR uploaded successfully!')
+                  setTimeout(() => setUploadMsg(''), 3000)
+                } catch (err: any) {
+                  setUploadMsg('Payment QR upload failed: ' + (err.message || 'Please try again.'))
+                  setTimeout(() => setUploadMsg(''), 5000)
+                }
+                setUploading(null)
+              }
+            }} />
+            {uploading === 'qr' ? (
+              <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              </div>
+            ) : profile.paymentQrUrl ? (
+              <img src={profile.paymentQrUrl} alt="Payment QR" className="w-12 h-12 rounded-lg object-contain" />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>
+              </div>
+            )}
+            <span className="text-sm text-gray-500">{uploading === 'qr' ? 'Uploading...' : profile.paymentQrUrl ? 'Change payment QR' : 'Upload UPI payment QR code'}</span>
           </label>
         </div>
 
         <div className="card space-y-4">
           <h2 className="font-semibold text-lg">Photos</h2>
           {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {(profile.photos || []).map((photo: string, idx: number) => (
               <div key={idx} className="relative group">
                 <img src={photo} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
                 <button onClick={() => removePhoto(idx)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
               </div>
             ))}
-            {(profile.photos || []).length < 4 && (
+            {(profile.photos || []).length < 3 && (
               <label className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploading === 'photo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                 <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                   const file = e.target.files?.[0]

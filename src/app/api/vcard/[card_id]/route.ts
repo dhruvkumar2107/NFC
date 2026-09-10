@@ -21,17 +21,21 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
     let socialLinks: Record<string, string> = {}
     try { socialLinks = JSON.parse(c.socialLinks || '{}') } catch { socialLinks = {} }
 
+    const primaryNumber = c.mobile || c.whatsapp || ''
+
     const vcard = [
       'BEGIN:VCARD',
       'VERSION:3.0',
+      `N:${c.name.split(' ').slice(1).join(' ') || ''};${c.name.split(' ')[0] || ''};;;`,
       `FN:${c.name}`,
+      `NICKNAME:${c.name}`,
       c.company ? `ORG:${c.company}${c.college ? `;${c.college}` : ''}` : c.college ? `ORG:${c.college}` : '',
       c.designation ? `TITLE:${c.designation}` : '',
-      c.mobile ? `TEL:${c.mobile}` : '',
-      c.whatsapp ? `TEL;TYPE=WHATSAPP:${c.whatsapp}` : '',
-      c.email ? `EMAIL:${c.email}` : '',
+      primaryNumber ? `TEL;TYPE=CELL,PREF:${primaryNumber}` : '',
+      c.mobile && c.whatsapp && c.mobile !== c.whatsapp ? `TEL;TYPE=CELL:${c.whatsapp}` : '',
+      c.email ? `EMAIL;TYPE=WORK,INTERNET:${c.email}` : '',
       c.website ? `URL:${c.website}` : '',
-      [c.address, c.city, c.state, c.pincode].filter(Boolean).length ? `ADR:;;${[c.address, c.city, c.state, c.pincode].filter(Boolean).join(', ')};;;;` : '',
+      [c.address, c.city, c.state, c.pincode].filter(Boolean).length ? `ADR;TYPE=WORK:;;${[c.address, c.city, c.state, c.pincode].filter(Boolean).join(', ')};;;;` : '',
       c.description ? `NOTE:${c.description}` : '',
       socialLinks.instagram ? `X-INSTAGRAM:${socialLinks.instagram}` : '',
       socialLinks.facebook ? `X-FACEBOOK:${socialLinks.facebook}` : '',
@@ -41,10 +45,14 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
       'END:VCARD',
     ].filter(Boolean).join('\r\n')
 
+    const fileName = `${c.name.replace(/[^a-zA-Z0-9]/g, '_')}.vcf`
+
     return new Response(vcard, {
       headers: {
-        'Content-Type': 'text/vcard; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${c.name.replace(/[^a-zA-Z0-9]/g, '_')}.vcf"`,
+        'Content-Type': 'text/x-vcard; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'no-store',
       },
     })
   } catch (err: any) {

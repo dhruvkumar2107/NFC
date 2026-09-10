@@ -22,20 +22,19 @@ interface OrderForm {
   state: string
   pincode: string
   logoUrl: string
-  description: string
+  paymentQrUrl: string
   referralCode: string
   photo1: string
   photo2: string
   photo3: string
-  photo4: string
 }
 
 const initialForm: OrderForm = {
   designId: '', fullName: '', designation: '', company: '', college: '', mobile: '', whatsapp: '',
   email: '', website: '', instagram: '', facebook: '', linkedin: '',
   address: '', city: '', state: '', pincode: '',
-  logoUrl: '', description: '', referralCode: '',
-  photo1: '', photo2: '', photo3: '', photo4: '',
+  logoUrl: '', paymentQrUrl: '', referralCode: '',
+  photo1: '', photo2: '', photo3: '',
 }
 
 async function uploadFile(file: File): Promise<string> {
@@ -140,7 +139,7 @@ function OrderContent() {
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
-      const photos = [form.photo1, form.photo2, form.photo3, form.photo4].filter(p => p.trim())
+      const photos = [form.photo1, form.photo2, form.photo3].filter(p => p.trim())
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -160,7 +159,7 @@ function OrderContent() {
           state: form.state.trim(),
           pincode: form.pincode.trim(),
           logoUrl: form.logoUrl.trim(),
-          description: form.description.trim(),
+          paymentQrUrl: form.paymentQrUrl.trim(),
           photos,
           referralCode: form.referralCode.trim() || undefined,
           attributionType: form.referralCode.trim() ? attributionType : 'direct',
@@ -567,7 +566,7 @@ function OrderContent() {
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Profile & Branding</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="label">Logo</label>
+                      <label className="label">Logo / Profile Picture</label>
                       {uploadMsg && uploadMsg.startsWith('Logo') && <p className={`text-xs mb-1.5 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
                       <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                         <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
@@ -598,13 +597,43 @@ function OrderContent() {
                             <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
                           </div>
                         )}
-                        <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : form.logoUrl ? 'Change logo' : 'Upload logo (optional)'}</span>
+                        <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : form.logoUrl ? 'Change logo' : "If you don't have a logo, upload a profile picture"}</span>
                       </label>
                     </div>
                     <div>
-                      <label className="label">Description / Bio</label>
-                      <textarea value={form.description} onChange={(e) => setField('description', e.target.value)} rows={3}
-                        className="input-field resize-none" placeholder="Tell people about yourself or your business..." />
+                      <label className="label">Payment QR Code (UPI)</label>
+                      {uploadMsg && uploadMsg.startsWith('QR') && <p className={`text-xs mb-1.5 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+                      <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'qr' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
+                        <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            setUploading('qr')
+                            setUploadMsg('')
+                            try {
+                              const url = await uploadFile(file)
+                              setField('paymentQrUrl', url)
+                              setUploadMsg('Payment QR uploaded successfully!')
+                              setTimeout(() => setUploadMsg(''), 3000)
+                            } catch (err: any) {
+                              setUploadMsg('Payment QR upload failed: ' + (err.message || 'Please try again.'))
+                              setTimeout(() => setUploadMsg(''), 5000)
+                            }
+                            setUploading(null)
+                          }
+                        }} />
+                        {uploading === 'qr' ? (
+                          <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                            <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                          </div>
+                        ) : form.paymentQrUrl ? (
+                          <img src={form.paymentQrUrl} alt="Payment QR" className="w-12 h-12 rounded-lg object-contain" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>
+                          </div>
+                        )}
+                        <span className="text-sm text-gray-500">{uploading === 'qr' ? 'Uploading...' : form.paymentQrUrl ? 'Change payment QR' : 'Upload UPI payment QR code (optional)'}</span>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -612,10 +641,10 @@ function OrderContent() {
                 {/* Photos */}
                 <div className="glass rounded-2xl p-6">
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Your Photos</h3>
-                  <p className="text-xs text-gray-400 mb-4">Upload 3-4 photos of yourself for your digital profile card</p>
+                  <p className="text-xs text-gray-400 mb-4">Upload up to 3 photos of yourself for your digital profile card</p>
                   {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs mb-3 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {(['photo1', 'photo2', 'photo3', 'photo4'] as const).map((field, idx) => (
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    {(['photo1', 'photo2', 'photo3'] as const).map((field, idx) => (
                       <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                         <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                           const file = e.target.files?.[0]
@@ -687,7 +716,6 @@ function OrderContent() {
                   {form.company && <p className="text-primary-200 text-sm mt-0.5">{form.company}</p>}
                 </div>
                 <div className="p-6 space-y-4">
-                  {form.description && <p className="text-gray-600 text-sm leading-relaxed">{form.description}</p>}
                   <div className="space-y-2.5 text-sm">
                     {form.mobile && (
                       <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
@@ -713,6 +741,12 @@ function OrderContent() {
                       {form.instagram && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-pink-600">Instagram</span>}
                       {form.facebook && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-600">Facebook</span>}
                       {form.linkedin && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-700">LinkedIn</span>}
+                    </div>
+                  )}
+                  {form.paymentQrUrl && (
+                    <div className="pt-2">
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment QR</div>
+                      <img src={form.paymentQrUrl} alt="Payment QR" className="w-24 h-24 rounded-lg object-contain bg-white border border-gray-100" />
                     </div>
                   )}
                 </div>
