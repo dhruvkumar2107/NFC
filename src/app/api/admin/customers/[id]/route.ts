@@ -23,7 +23,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { user, error } = await requireAuth(request, 'admin')
     if (error) return error
     const body = await request.json()
-    const allowed = ['name','designation','company','college','mobile','whatsapp','email','website','socialLinks','address','city','state','pincode','logoUrl','paymentQrUrl','description','type','photos','upiId']
+    const allowed = ['name','designation','company','college','mobile','whatsapp','email','website','socialLinks','address','taluk','city','state','pincode','logoUrl','paymentQrUrl','description','type','photos','upiId']
     const safeData: Record<string, any> = {}
     for (const k of allowed) { if (body[k] !== undefined) safeData[k] = body[k] }
     if (safeData.socialLinks && typeof safeData.socialLinks === 'object') safeData.socialLinks = JSON.stringify(safeData.socialLinks)

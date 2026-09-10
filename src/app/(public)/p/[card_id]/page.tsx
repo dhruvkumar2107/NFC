@@ -33,7 +33,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
   let photos: string[] = []
   try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
 
-  const addressParts = [customer.address, customer.city, customer.state, customer.pincode].filter(Boolean)
+  const addressParts = [customer.address, customer.taluk, customer.city, customer.state, customer.pincode].filter(Boolean)
   const fullAddress = addressParts.join(', ')
 
   function getSocialUrl(platform: string, value: string): string {

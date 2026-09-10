@@ -38,6 +38,7 @@ export default function EditProfilePage() {
             mobile: c.mobile || '', whatsapp: c.whatsapp || '', email: c.email || '',
             website: c.website || '', logoUrl: c.logoUrl || '', paymentQrUrl: c.paymentQrUrl || '',
             description: c.description || '', address: c.address || '',
+            taluk: c.taluk || '',
             city: c.city || '', state: c.state || '', pincode: c.pincode || '',
             photos,
             socialLinks: JSON.parse(c.socialLinks || '{}'),
@@ -132,6 +133,7 @@ export default function EditProfilePage() {
           <h2 className="font-semibold text-lg">Address</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2"><label className="label">Address</label><input className="input-field" value={profile.address} onChange={e => updateField('address', e.target.value)} /></div>
+            <div><label className="label">Taluk</label><input className="input-field" value={profile.taluk} onChange={e => updateField('taluk', e.target.value)} /></div>
             <div><label className="label">City</label><input className="input-field" value={profile.city} onChange={e => updateField('city', e.target.value)} /></div>
             <div><label className="label">State</label><input className="input-field" value={profile.state} onChange={e => updateField('state', e.target.value)} /></div>
             <div><label className="label">PIN Code</label><input className="input-field" value={profile.pincode} onChange={e => updateField('pincode', e.target.value)} /></div>

@@ -18,6 +18,7 @@ interface OrderForm {
   facebook: string
   linkedin: string
   address: string
+  taluk: string
   city: string
   state: string
   pincode: string
@@ -32,7 +33,7 @@ interface OrderForm {
 const initialForm: OrderForm = {
   designId: '', fullName: '', designation: '', company: '', college: '', mobile: '', whatsapp: '',
   email: '', website: '', instagram: '', facebook: '', linkedin: '',
-  address: '', city: '', state: '', pincode: '',
+  address: '', taluk: '', city: '', state: '', pincode: '',
   logoUrl: '', paymentQrUrl: '', referralCode: '',
   photo1: '', photo2: '', photo3: '',
 }
@@ -155,6 +156,7 @@ function OrderContent() {
           website: form.website.trim(),
           socialLinks: { instagram: form.instagram.trim(), facebook: form.facebook.trim(), linkedin: form.linkedin.trim() },
           address: form.address.trim(),
+          taluk: form.taluk.trim(),
           city: form.city.trim(),
           state: form.state.trim(),
           pincode: form.pincode.trim(),
@@ -469,9 +471,9 @@ function OrderContent() {
                         className="input-field" placeholder="Acme Pvt. Ltd." />
                     </div>
                     <div>
-                      <label className="label">University / College</label>
+                      <label className="label">University / College / Qualification</label>
                       <input type="text" value={form.college} onChange={(e) => setField('college', e.target.value)}
-                        className="input-field" placeholder="Your university or college" />
+                        className="input-field" placeholder="Your university, college or qualification" />
                     </div>
                     <div>
                       <label className="label">Website</label>
@@ -516,7 +518,12 @@ function OrderContent() {
                         className={`input-field ${errors.address ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="Flat/House No., Building, Street, Area" />
                       {errors.address && <p className="text-red-500 text-xs mt-1.5">{errors.address}</p>}
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div>
+                        <label className="label">Taluk</label>
+                        <input type="text" value={form.taluk} onChange={(e) => setField('taluk', e.target.value)}
+                          className="input-field" placeholder="e.g. Madurai North" />
+                      </div>
                       <div>
                         <label className="label">City *</label>
                         <input type="text" value={form.city} onChange={(e) => setField('city', e.target.value)}

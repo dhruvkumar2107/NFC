@@ -23,7 +23,7 @@ export default function EmployeeNewOrderPage() {
   const [uploadMsg, setUploadMsg] = useState('')
   const [form, setForm] = useState({
     name: '', email: '', mobile: '', designation: '', company: '', college: '',
-    whatsapp: '', website: '', address: '', city: '', state: '', pincode: '',
+    whatsapp: '', website: '', address: '', taluk: '', city: '', state: '', pincode: '',
     instagram: '', facebook: '', linkedin: '',
     logoUrl: '', paymentQrUrl: '', description: '',
     photo1: '', photo2: '', photo3: '',
@@ -71,7 +71,7 @@ export default function EmployeeNewOrderPage() {
           name: form.name, email: form.email, mobile: form.mobile,
           designation: form.designation, company: form.company, college: form.college,
           whatsapp: form.whatsapp || form.mobile, website: form.website,
-          address: form.address, city: form.city, state: form.state, pincode: form.pincode,
+          address: form.address, taluk: form.taluk, city: form.city, state: form.state, pincode: form.pincode,
           socialLinks: { instagram: form.instagram, facebook: form.facebook, linkedin: form.linkedin },
           logoUrl: form.logoUrl, paymentQrUrl: form.paymentQrUrl, description: form.description, photos,
           designId: form.designId, referralCode, attributionType: 'link',
@@ -134,6 +134,7 @@ export default function EmployeeNewOrderPage() {
           <h2 className="font-semibold">Address</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2"><label className="label">Address</label><input className="input-field" value={form.address} onChange={e => update('address', e.target.value)} /></div>
+            <div><label className="label">Taluk</label><input className="input-field" value={form.taluk} onChange={e => update('taluk', e.target.value)} /></div>
             <div><label className="label">City</label><input className="input-field" value={form.city} onChange={e => update('city', e.target.value)} /></div>
             <div><label className="label">State</label><input className="input-field" value={form.state} onChange={e => update('state', e.target.value)} /></div>
             <div><label className="label">PIN Code</label><input className="input-field" value={form.pincode} onChange={e => update('pincode', e.target.value)} /></div>

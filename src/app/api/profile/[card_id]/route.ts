@@ -34,6 +34,7 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
       logoUrl: customer.logoUrl,
       description: customer.description,
       address: customer.address,
+      taluk: customer.taluk,
       city: customer.city,
       state: customer.state,
       pincode: customer.pincode,

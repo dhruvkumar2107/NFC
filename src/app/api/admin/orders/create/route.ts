@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       name, email, mobile, whatsapp, designation, company, college,
-      website, address, city, state, pincode,
+      website, address, taluk, city, state, pincode,
       socialLinks, logoUrl, paymentQrUrl, description, photos,
       designId, employeeId, amount,
     } = body
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         data: {
           name, designation, company, college, mobile, whatsapp, website,
           socialLinks: JSON.stringify(socialLinks || {}),
-          address, city, state, pincode, logoUrl, paymentQrUrl, description,
+          address, taluk, city, state, pincode, logoUrl, paymentQrUrl, description,
           photos: JSON.stringify(photos || []),
         },
       })
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         data: {
           name, designation, company, college, mobile, whatsapp, email, website,
           socialLinks: JSON.stringify(socialLinks || {}),
-          address, city, state, pincode, logoUrl, paymentQrUrl, description,
+          address, taluk, city, state, pincode, logoUrl, paymentQrUrl, description,
           photos: JSON.stringify(photos || []),
           soldByEmployeeId: employeeId || null,
           passwordHash: tempPassword,

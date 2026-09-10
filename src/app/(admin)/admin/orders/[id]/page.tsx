@@ -151,7 +151,7 @@ export default function OrderDetailPage() {
           <div className="space-y-1 text-sm">
             <div>{order.customer.name}</div>
             <div>{order.customer.address}</div>
-            <div>{[order.customer.city, order.customer.state, order.customer.pincode].filter(Boolean).join(', ')}</div>
+            <div>{[order.customer.taluk, order.customer.city, order.customer.state, order.customer.pincode].filter(Boolean).join(', ')}</div>
             <div>{order.customer.country || 'India'}</div>
             <div className="text-gray-500 mt-1">Mobile: {order.customer.mobile}</div>
           </div>

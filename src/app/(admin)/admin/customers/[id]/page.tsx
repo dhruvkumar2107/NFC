@@ -203,7 +203,8 @@ export default function CustomerDetailPage() {
             <div><label className="label">Company</label><input className="input-field" value={form.company || ''} onChange={e => setForm((f: any) => ({ ...f, company: e.target.value }))} /></div>
             <div><label className="label">University / College</label><input className="input-field" value={form.college || ''} onChange={e => setForm((f: any) => ({ ...f, college: e.target.value }))} /></div>
             <div><label className="label">Website</label><input className="input-field" value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div><label className="label">Taluk</label><input className="input-field" value={form.taluk || ''} onChange={e => setForm((f: any) => ({ ...f, taluk: e.target.value }))} /></div>
               <div><label className="label">City</label><input className="input-field" value={form.city || ''} onChange={e => setForm((f: any) => ({ ...f, city: e.target.value }))} /></div>
               <div><label className="label">State</label><input className="input-field" value={form.state || ''} onChange={e => setForm((f: any) => ({ ...f, state: e.target.value }))} /></div>
               <div><label className="label">PIN Code</label><input className="input-field" value={form.pincode || ''} onChange={e => setForm((f: any) => ({ ...f, pincode: e.target.value }))} /></div>
@@ -287,6 +288,7 @@ export default function CustomerDetailPage() {
               <div><span className="text-gray-500">College:</span> {customer.college || '-'}</div>
               <div><span className="text-gray-500">Website:</span> {customer.website || '-'}</div>
               <div><span className="text-gray-500">Address:</span> {customer.address || '-'}</div>
+              <div><span className="text-gray-500">Taluk:</span> {customer.taluk || '-'}</div>
               <div><span className="text-gray-500">City:</span> {customer.city || '-'}</div>
               <div><span className="text-gray-500">State:</span> {customer.state || '-'}</div>
               <div><span className="text-gray-500">PIN Code:</span> {customer.pincode || '-'}</div>

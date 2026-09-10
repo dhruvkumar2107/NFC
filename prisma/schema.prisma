@@ -21,6 +21,7 @@ model Customer {
   socialLinks      String   @default("{}")
   address          String?
   city             String?
+  taluk            String?
   state            String?
   pincode          String?
   country          String?  @default("India")

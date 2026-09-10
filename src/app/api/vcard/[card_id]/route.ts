@@ -35,7 +35,7 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
       c.mobile && c.whatsapp && c.mobile !== c.whatsapp ? `TEL;TYPE=CELL:${c.whatsapp}` : '',
       c.email ? `EMAIL;TYPE=WORK,INTERNET:${c.email}` : '',
       c.website ? `URL:${c.website}` : '',
-      [c.address, c.city, c.state, c.pincode].filter(Boolean).length ? `ADR;TYPE=WORK:;;${[c.address, c.city, c.state, c.pincode].filter(Boolean).join(', ')};;;;` : '',
+      [c.address, c.taluk, c.city, c.state, c.pincode].filter(Boolean).length ? `ADR;TYPE=WORK:;;${[c.address, c.taluk, c.city, c.state, c.pincode].filter(Boolean).join(', ')};;;;` : '',
       c.description ? `NOTE:${c.description}` : '',
       socialLinks.instagram ? `X-INSTAGRAM:${socialLinks.instagram}` : '',
       socialLinks.facebook ? `X-FACEBOOK:${socialLinks.facebook}` : '',

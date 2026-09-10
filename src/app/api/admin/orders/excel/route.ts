@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       { header: 'Photo 1', key: 'photo1', width: 60 },
       { header: 'Photo 2', key: 'photo2', width: 60 },
       { header: 'Photo 3', key: 'photo3', width: 60 },
-      { header: 'Photo 4', key: 'photo4', width: 60 },
+      { header: 'Taluk', key: 'taluk', width: 20 },
     ]
 
     const headerRow = sheet.getRow(1)
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         photo1: photos[0] || '',
         photo2: photos[1] || '',
         photo3: photos[2] || '',
-        photo4: photos[3] || '',
+        taluk: c.taluk || '',
       })
 
       if (nfcUrl) {
@@ -105,7 +105,6 @@ export async function POST(request: NextRequest) {
       writeCell(row, 'photo1', photos[0] || '')
       writeCell(row, 'photo2', photos[1] || '')
       writeCell(row, 'photo3', photos[2] || '')
-      writeCell(row, 'photo4', photos[3] || '')
     }
 
     const buffer = await workbook.xlsx.writeBuffer()
