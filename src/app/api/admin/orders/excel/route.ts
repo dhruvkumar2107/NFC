@@ -5,6 +5,22 @@ import ExcelJS from 'exceljs'
 
 const BASE_URL = 'https://www.mysmartcard.net'
 
+function toAbsoluteUrl(value: string): string {
+  if (!value) return ''
+  if (value.startsWith('/uploads/')) return `${BASE_URL}${value}`
+  return value
+}
+
+function writeCell(row: ExcelJS.Row, key: string, value: string) {
+  if (!value) return
+  const absolute = toAbsoluteUrl(value)
+  if (/^https?:\/\//i.test(absolute)) {
+    const cell = row.getCell(key)
+    cell.value = { text: absolute, hyperlink: absolute }
+    cell.font = { color: { argb: 'FF2563EB' }, underline: true }
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { user, error } = await requireAuth(request, 'admin')
@@ -41,6 +57,11 @@ export async function POST(request: NextRequest) {
       { header: 'Company', key: 'company', width: 25 },
       { header: 'Card Number', key: 'cardNumber', width: 18 },
       { header: 'NFC URL', key: 'nfcUrl', width: 50 },
+      { header: 'Logo URL', key: 'logoUrl', width: 60 },
+      { header: 'Photo 1', key: 'photo1', width: 60 },
+      { header: 'Photo 2', key: 'photo2', width: 60 },
+      { header: 'Photo 3', key: 'photo3', width: 60 },
+      { header: 'Photo 4', key: 'photo4', width: 60 },
     ]
 
     const headerRow = sheet.getRow(1)
@@ -55,6 +76,9 @@ export async function POST(request: NextRequest) {
       const nfcCardNumber = order.card?.nfcCardNumber || ''
       const nfcUrl = nfcCardNumber ? `${BASE_URL}/card/${nfcCardNumber}` : ''
 
+      let photos: string[] = []
+      try { photos = JSON.parse(c.photos || '[]') } catch { photos = [] }
+
       const row = sheet.addRow({
         name: c.name || '',
         email: c.email || '',
@@ -64,6 +88,11 @@ export async function POST(request: NextRequest) {
         company: c.company || '',
         cardNumber: nfcCardNumber,
         nfcUrl: nfcUrl,
+        logoUrl: c.logoUrl || '',
+        photo1: photos[0] || '',
+        photo2: photos[1] || '',
+        photo3: photos[2] || '',
+        photo4: photos[3] || '',
       })
 
       if (nfcUrl) {
@@ -71,6 +100,12 @@ export async function POST(request: NextRequest) {
         urlCell.value = { text: nfcUrl, hyperlink: nfcUrl }
         urlCell.font = { color: { argb: 'FF2563EB' }, underline: true }
       }
+
+      writeCell(row, 'logoUrl', c.logoUrl || '')
+      writeCell(row, 'photo1', photos[0] || '')
+      writeCell(row, 'photo2', photos[1] || '')
+      writeCell(row, 'photo3', photos[2] || '')
+      writeCell(row, 'photo4', photos[3] || '')
     }
 
     const buffer = await workbook.xlsx.writeBuffer()
