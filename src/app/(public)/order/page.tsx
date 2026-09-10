@@ -645,38 +645,47 @@ function OrderContent() {
                   {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs mb-3 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
                   <div className="grid sm:grid-cols-3 gap-4">
                     {(['photo1', 'photo2', 'photo3'] as const).map((field, idx) => (
-                      <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
-                        <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            setUploading(field)
-                            setUploadMsg('')
-                            try {
-                              const url = await uploadFile(file)
-                              setField(field, url)
-                              setUploadMsg(`Photo ${idx + 1} uploaded successfully!`)
-                              setTimeout(() => setUploadMsg(''), 3000)
-                            } catch (err: any) {
-                              setUploadMsg(`Photo ${idx + 1} upload failed: ` + (err.message || 'Please try again.'))
-                              setTimeout(() => setUploadMsg(''), 5000)
+                      <div key={field} className={`relative flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200'}`}>
+                        <label className={`w-full flex-col items-center gap-2 cursor-pointer flex ${uploading === field ? '' : 'hover:border-primary-400'}`}>
+                          <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              setUploading(field)
+                              setUploadMsg('')
+                              try {
+                                const url = await uploadFile(file)
+                                setField(field, url)
+                                setUploadMsg(`Photo ${idx + 1} uploaded successfully!`)
+                                setTimeout(() => setUploadMsg(''), 3000)
+                              } catch (err: any) {
+                                setUploadMsg(`Photo ${idx + 1} upload failed: ` + (err.message || 'Please try again.'))
+                                setTimeout(() => setUploadMsg(''), 5000)
+                              }
+                              setUploading(null)
                             }
-                            setUploading(null)
-                          }
-                        }} />
-                        {uploading === field ? (
-                          <div className="w-full h-32 rounded-lg bg-primary-100 flex flex-col items-center justify-center">
-                            <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                            <span className="text-xs text-primary-600">Uploading...</span>
-                          </div>
-                        ) : form[field] ? (
-                          <img src={form[field]} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
-                        ) : (
-                          <div className="w-full h-32 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
-                            <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
-                            <span className="text-xs text-gray-400">Photo {idx + 1}</span>
-                          </div>
+                          }} />
+                          {uploading === field ? (
+                            <div className="w-full h-32 rounded-lg bg-primary-100 flex flex-col items-center justify-center">
+                              <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                              <span className="text-xs text-primary-600">Uploading...</span>
+                            </div>
+                          ) : form[field] ? (
+                            <img src={form[field]} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
+                          ) : (
+                            <div className="w-full h-32 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                              <span className="text-xs text-gray-400">Photo {idx + 1}</span>
+                            </div>
+                          )}
+                          <span className="text-xs text-gray-500">{uploading === field ? '' : form[field] ? 'Tap to replace' : 'Tap to upload'}</span>
+                        </label>
+                        {form[field] && uploading !== field && (
+                          <button type="button" onClick={() => setField(field, '')} title={`Remove photo ${idx + 1}`}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
                         )}
-                      </label>
+                      </div>
                     ))}
                   </div>
                 </div>
