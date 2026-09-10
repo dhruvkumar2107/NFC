@@ -95,6 +95,18 @@ export default function CardDetailsPage() {
         <h2 className="font-semibold text-lg mb-2">NFC Information</h2>
         <p className="text-gray-600 text-sm">Your NFC chip is programmed with your profile URL. Anyone with an NFC-enabled phone can tap your card to view your digital profile.</p>
         <p className="text-sm text-gray-600 mt-2">Profile URL: <span className="font-mono text-primary-600">{baseUrl}/p/{readableCardId}</span></p>
+        {customer.card?.nfcCardNumber && (
+          <div className="mt-3 p-3 bg-primary-50 rounded-lg">
+            <p className="text-sm text-gray-600">NFC Card Number: <span className="font-mono font-bold text-primary-600">{customer.card.nfcCardNumber}</span></p>
+            <p className="text-sm text-gray-600 mt-1">NFC URL: <span className="font-mono text-primary-600">{baseUrl}/card/{customer.card.nfcCardNumber}</span></p>
+            <button
+              onClick={() => { navigator.clipboard.writeText(`${baseUrl}/card/${customer.card.nfcCardNumber}`); alert('NFC URL copied!') }}
+              className="btn-secondary mt-2 text-sm"
+            >
+              Copy NFC URL
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,0 +1,47 @@
+import { NextRequest } from 'next/server'
+import { prisma } from '@/lib/db'
+import { successResponse, errorResponse } from '@/lib/api-response'
+
+export async function GET(_request: NextRequest, { params }: { params: { nfcCardNumber: string } }) {
+  try {
+    const card = await prisma.card.findUnique({
+      where: { nfcCardNumber: params.nfcCardNumber },
+      include: { design: true },
+    })
+    if (!card) return errorResponse('Card not found', 404)
+
+    const customer = await prisma.customer.findUnique({
+      where: { cardId: card.id },
+    })
+    if (!customer) return errorResponse('Customer not found', 404)
+
+    const socialLinks = JSON.parse(customer.socialLinks || '{}')
+    let photos: string[] = []
+    try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
+
+    return successResponse({
+      nfcCardNumber: card.nfcCardNumber,
+      cardId: card.cardId,
+      name: customer.name,
+      designation: customer.designation,
+      company: customer.company,
+      college: customer.college,
+      email: customer.email,
+      mobile: customer.mobile,
+      whatsapp: customer.whatsapp,
+      website: customer.website,
+      socialLinks,
+      photos,
+      logoUrl: customer.logoUrl,
+      description: customer.description,
+      address: customer.address,
+      city: customer.city,
+      state: customer.state,
+      pincode: customer.pincode,
+      country: customer.country,
+      design: { name: card.design.name },
+    })
+  } catch (err: any) {
+    return errorResponse(err.message || 'Failed to fetch profile', 500)
+  }
+}

@@ -43,6 +43,7 @@ model Customer {
 model Card {
   id               String   @id @default(uuid())
   cardId           String   @unique
+  nfcCardNumber    String?  @unique
   orderId          String?  @unique
   soldByEmployeeId String?
   designId         String

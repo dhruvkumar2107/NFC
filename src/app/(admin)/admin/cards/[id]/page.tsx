@@ -28,8 +28,21 @@ export default function CardDetailPage() {
     else setMsg(d.error)
   }
 
+  async function assignNfcNumber() {
+    const token = localStorage.getItem('token')
+    const res = await fetch(`/api/admin/cards/${params.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ assignNfcNumber: true }),
+    })
+    const d = await res.json()
+    if (d.success) { setCard((c: any) => ({ ...c, nfcCardNumber: d.data.nfcCardNumber })); setMsg('NFC Card Number assigned!') }
+    else setMsg(d.error || 'Failed to assign NFC number')
+  }
+
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48"></div></div>
   if (!card) return <div className="text-center py-12 text-gray-500">Card not found.</div>
+
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
   return (
     <div>
@@ -46,6 +59,32 @@ export default function CardDetailPage() {
         <div className="card"><div className="text-sm text-gray-500">Profile URL</div><div className="text-sm font-mono text-primary-600 break-all">/p/{card.cardId}</div></div>
         <div className="card"><div className="text-sm text-gray-500">Created</div><div className="text-sm">{new Date(card.createdAt).toLocaleDateString()}</div></div>
       </div>
+
+      {card.nfcCardNumber ? (
+        <div className="card mb-6">
+          <h2 className="font-semibold mb-3">NFC Details</h2>
+          <div className="space-y-2 text-sm">
+            <div><span className="text-gray-500">NFC Card Number:</span> <span className="font-mono font-bold text-primary-600">{card.nfcCardNumber}</span></div>
+            <div className="flex items-start gap-2">
+              <span className="text-gray-500">NFC URL:</span>
+              <span className="font-mono text-xs text-primary-600 break-all">{baseUrl}/card/{card.nfcCardNumber}</span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(`${baseUrl}/card/${card.nfcCardNumber}`); alert('NFC URL copied!') }}
+                className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded hover:bg-primary-200 transition-colors flex-shrink-0"
+              >
+                Copy
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Program this URL into the physical NFC chip. When tapped, it will open the customer's complete public profile.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="card mb-6 bg-yellow-50 border border-yellow-200">
+          <h2 className="font-semibold mb-3 text-yellow-800">NFC Card Number Not Assigned</h2>
+          <p className="text-sm text-yellow-700 mb-3">This card does not have an NFC card number yet. Click below to generate one.</p>
+          <button onClick={assignNfcNumber} className="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors">Generate NFC Card Number</button>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div className="card">

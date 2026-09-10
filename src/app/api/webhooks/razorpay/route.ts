@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
-import { generateCardId } from '@/lib/auth'
+import { generateCardId, generateNfcCardNumber } from '@/lib/auth'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -36,9 +36,11 @@ export async function POST(request: NextRequest) {
         if (!order || order.status !== 'Pending') return
 
         const cardIdNum = generateCardId()
+        const nfcCardNumber = await generateNfcCardNumber()
         const card = await tx.card.create({
           data: {
             cardId: cardIdNum,
+            nfcCardNumber,
             orderId: order.id,
             soldByEmployeeId: order.employeeId,
             designId: order.designId,

@@ -61,6 +61,23 @@ export default function CustomerDetailPage() {
     else alert(d.error)
   }
 
+  async function assignNfcNumber() {
+    if (!customer?.card?.id) return
+    const token = localStorage.getItem('token')
+    const res = await fetch(`/api/admin/cards/${customer.card.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ assignNfcNumber: true }),
+    })
+    const d = await res.json()
+    if (d.success && !d.data.alreadyAssigned) {
+      setCustomer((c: any) => ({ ...c, card: { ...c.card, nfcCardNumber: d.data.nfcCardNumber } }))
+      setMsg('NFC Card Number assigned!')
+    } else if (d.data?.alreadyAssigned) {
+      setCustomer((c: any) => ({ ...c, card: { ...c.card, nfcCardNumber: d.data.nfcCardNumber } }))
+      setMsg('NFC Card Number already assigned.')
+    } else setMsg(d.error || 'Failed')
+  }
+
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48"></div></div>
   if (!customer) return <div className="text-center py-12 text-gray-500">Customer not found.</div>
 
@@ -130,6 +147,28 @@ export default function CustomerDetailPage() {
             {customer.card ? (
               <div className="space-y-2 text-sm">
                 <div><span className="text-gray-500">Card ID:</span> <span className="font-mono font-bold text-primary-600">{customer.card.cardId}</span></div>
+                {customer.card.nfcCardNumber && (
+                  <>
+                    <div><span className="text-gray-500">NFC Card Number:</span> <span className="font-mono font-bold text-primary-600">{customer.card.nfcCardNumber}</span></div>
+                    <div>
+                      <span className="text-gray-500">NFC URL:</span>{' '}
+                      <span className="font-mono text-xs text-primary-600 break-all">{typeof window !== 'undefined' ? window.location.origin : 'https://www.mysmartcard.net'}/card/{customer.card.nfcCardNumber}</span>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${customer.card.nfcCardNumber}`); alert('NFC URL copied!') }}
+                        className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded hover:bg-primary-200 transition-colors"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </>
+                )}
+                {!customer.card.nfcCardNumber && (
+                  <div>
+                    <button onClick={assignNfcNumber} className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg hover:bg-yellow-200 transition-colors font-medium mt-1">
+                      Generate NFC Card Number
+                    </button>
+                  </div>
+                )}
                 <div><span className="text-gray-500">Status:</span> <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${customer.card.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{customer.card.status}</span></div>
                 <div><Link href={`/admin/cards/${customer.card.id}`} className="text-primary-600 text-sm hover:underline">View Card →</Link></div>
               </div>

@@ -115,6 +115,21 @@ export default function OrderDetailPage() {
           {order.card ? (
             <div className="space-y-2 text-sm">
               <div><span className="text-gray-500">Card ID:</span> <span className="font-mono font-bold">{order.card.cardId}</span></div>
+              {order.card.nfcCardNumber && (
+                <>
+              <div><span className="text-gray-500">NFC Card Number:</span> <span className="font-mono font-bold text-primary-600">{order.card.nfcCardNumber}</span></div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-500">NFC URL:</span>
+                      <span className="font-mono text-xs text-primary-600 break-all">{`${window.location.origin}/card/${order.card.nfcCardNumber}`}</span>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${order.card.nfcCardNumber}`); alert('NFC URL copied!') }}
+                      className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded hover:bg-primary-200 transition-colors flex-shrink-0"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </>
+              )}
               <div><span className="text-gray-500">Design:</span> {order.design?.name}</div>
               <div><Link href={`/admin/cards/${order.card.id}`} className="text-primary-600 text-sm hover:underline">View Card →</Link></div>
             </div>

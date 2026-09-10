@@ -39,6 +39,7 @@ export default function AdminCustomersPage() {
               <th className="text-left p-3 font-medium text-gray-600">Email</th>
               <th className="text-left p-3 font-medium text-gray-600">Mobile</th>
               <th className="text-left p-3 font-medium text-gray-600">Card</th>
+              <th className="text-left p-3 font-medium text-gray-600">NFC URL</th>
               <th className="text-left p-3 font-medium text-gray-600">Type</th>
               <th className="text-left p-3 font-medium text-gray-600">Sold By</th>
               <th className="text-left p-3 font-medium text-gray-600">Orders</th>
@@ -52,6 +53,11 @@ export default function AdminCustomersPage() {
                 <td className="p-3 text-gray-600">{c.email}</td>
                 <td className="p-3 text-gray-600">{c.mobile || '-'}</td>
                 <td className="p-3 font-mono text-primary-600 text-xs">{c.card?.cardId || '-'}</td>
+                <td className="p-3 font-mono text-xs text-gray-600">
+                  {c.card?.nfcCardNumber ? (
+                    <span className="break-all">{`${window.location.origin}/card/${c.card.nfcCardNumber}`}</span>
+                  ) : '-'}
+                </td>
                 <td className="p-3"><span className="px-2 py-0.5 rounded text-xs bg-gray-100">{c.type}</span></td>
                 <td className="p-3 text-gray-600">{c.employee ? <Link href={`/admin/employees/${c.employee.id}`} className="text-primary-600 hover:underline text-xs">{c.employee.employeeId}</Link> : <span className="text-xs text-gray-400">Direct</span>}</td>
                 <td className="p-3">{c.orders?.length || 0}</td>

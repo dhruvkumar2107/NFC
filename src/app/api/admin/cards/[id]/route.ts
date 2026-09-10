@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import { generateNfcCardNumber } from '@/lib/auth'
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -24,6 +25,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { user, error } = await requireAuth(request, 'admin')
     if (error) return error
     const body = await request.json()
+    if (body.assignNfcNumber === true) {
+      const card = await prisma.card.findUnique({ where: { id: params.id } })
+      if (!card) return errorResponse('Card not found', 404)
+      if (card.nfcCardNumber) return successResponse({ ...card, alreadyAssigned: true })
+      const nfcCardNumber = await generateNfcCardNumber()
+      const updated = await prisma.card.update({ where: { id: params.id }, data: { nfcCardNumber } })
+      return successResponse(updated)
+    }
     const allowed = ['status','designId','activatedAt']
     const safeData: Record<string, any> = {}
     for (const k of allowed) { if (body[k] !== undefined) safeData[k] = body[k] }

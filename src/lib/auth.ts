@@ -50,6 +50,26 @@ export function generateEmployeeId(sequence: number): string {
   return `MSC-SE-${padded}`
 }
 
+export async function generateNfcCardNumber(): Promise<string> {
+  const { prisma } = await import('@/lib/db')
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const maxCard = await prisma.card.findFirst({
+      where: { nfcCardNumber: { not: null } },
+      orderBy: { nfcCardNumber: 'desc' },
+      select: { nfcCardNumber: true },
+    })
+    let next = 1
+    if (maxCard?.nfcCardNumber) {
+      const match = maxCard.nfcCardNumber.match(/MSC-(\d+)/)
+      if (match) next = parseInt(match[1], 10) + 1
+    }
+    const candidate = `MSC-${next.toString().padStart(6, '0')}`
+    const exists = await prisma.card.findUnique({ where: { nfcCardNumber: candidate }, select: { id: true } })
+    if (!exists) return candidate
+  }
+  throw new Error('Failed to generate unique NFC card number')
+}
+
 export function generateReferralCode(name: string): string {
   return name
     .toLowerCase()

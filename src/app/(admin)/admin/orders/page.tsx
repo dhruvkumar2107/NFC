@@ -15,6 +15,7 @@ function AdminOrdersContent() {
   const [statusFilter, setStatusFilter] = useState(initialStatus)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [downloading, setDownloading] = useState(false)
+  const [downloadingExcel, setDownloadingExcel] = useState(false)
 
   const fetchOrders = useCallback((q?: string, s?: string) => {
     const token = localStorage.getItem('token')
@@ -106,6 +107,46 @@ function AdminOrdersContent() {
     downloadDocx(orders.map(o => o.id))
   }
 
+  const downloadExcel = useCallback(async (orderIds: string[]) => {
+    setDownloadingExcel(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/orders/excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ orderIds }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        alert(err.error || 'Download failed')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = orderIds.length === 1 ? `nfc-data-${orderIds[0]}.xlsx` : `nfc-data-${new Date().toISOString().slice(0, 10)}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      alert('Download failed. Please try again.')
+    } finally {
+      setDownloadingExcel(false)
+    }
+  }, [])
+
+  const handleExcelDownload = () => {
+    if (selected.size === 0) { alert('Please select orders first'); return }
+    downloadExcel(Array.from(selected))
+  }
+
+  const handleExcelDownloadAll = () => {
+    if (orders.length === 0) { alert('No orders to download'); return }
+    downloadExcel(orders.map(o => o.id))
+  }
+
   const isConfirmedTab = statusFilter === 'confirmed'
   const isFailedTab = statusFilter === 'Payment Failed' || statusFilter === 'failed'
 
@@ -131,16 +172,28 @@ function AdminOrdersContent() {
             onChange={e => setSearch(e.target.value)}
           />
           {selected.size > 0 && (
-            <button
-              onClick={handleBulkDownload}
-              disabled={downloading}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
-              {downloading ? 'Generating...' : `Download Selected (${selected.size})`}
-            </button>
+            <>
+              <button
+                onClick={handleBulkDownload}
+                disabled={downloading}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                {downloading ? 'Generating...' : `Download Selected (${selected.size})`}
+              </button>
+              <button
+                onClick={handleExcelDownload}
+                disabled={downloadingExcel}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                {downloadingExcel ? 'Generating...' : `NFC Excel Selected (${selected.size})`}
+              </button>
+            </>
           )}
           <button
             onClick={handleDownloadAll}
@@ -151,6 +204,16 @@ function AdminOrdersContent() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
             {downloading ? 'Generating...' : 'Download All DOCX'}
+          </button>
+          <button
+            onClick={handleExcelDownloadAll}
+            disabled={downloadingExcel || orders.length === 0}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            {downloadingExcel ? 'Generating...' : 'Download All NFC Excel'}
           </button>
         </div>
       </div>

@@ -33,6 +33,7 @@ export default function AdminCardsPage() {
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="text-left p-3 font-medium text-gray-600">Card ID</th>
+              <th className="text-left p-3 font-medium text-gray-600">NFC Card No.</th>
               <th className="text-left p-3 font-medium text-gray-600">Customer</th>
               <th className="text-left p-3 font-medium text-gray-600">Design</th>
               <th className="text-left p-3 font-medium text-gray-600">Employee</th>
@@ -45,6 +46,7 @@ export default function AdminCardsPage() {
             {cards.map((c) => (
               <tr key={c.id} className="hover:bg-gray-50">
                 <td className="p-3 font-mono font-bold"><Link href={`/admin/cards/${c.id}`} className="text-primary-600 hover:underline">{c.cardId}</Link></td>
+                <td className="p-3 font-mono text-primary-600 font-bold">{c.nfcCardNumber || '-'}</td>
                 <td className="p-3">{c.customer ? <Link href={`/admin/customers/${c.customer.id}`} className="text-primary-600 hover:underline">{c.customer.name}</Link> : <span className="text-gray-400">-</span>}</td>
                 <td className="p-3">{c.design?.name || '-'}</td>
                 <td className="p-3 text-gray-600 text-xs">{c.employee?.employeeId || '-'}</td>
