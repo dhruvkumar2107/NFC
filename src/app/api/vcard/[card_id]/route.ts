@@ -2,8 +2,9 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { errorResponse } from '@/lib/api-response'
 
-export async function GET(_request: NextRequest, { params }: { params: { card_id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { card_id: string } }) {
   try {
+    const isDownload = request.nextUrl.searchParams.get('download') === '1'
     const card = await prisma.card.findUnique({
       where: { cardId: params.card_id },
     })
@@ -49,8 +50,8 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
 
     return new Response(vcard, {
       headers: {
-        'Content-Type': 'text/x-vcard; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Type': 'text/vcard; charset=utf-8',
+        ...(isDownload ? { 'Content-Disposition': `attachment; filename="${fileName}"` } : {}),
         'X-Content-Type-Options': 'nosniff',
         'Cache-Control': 'no-store',
       },

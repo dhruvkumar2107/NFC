@@ -109,11 +109,21 @@ export default async function NfcCardProfilePage({ params }: { params: { nfcCard
                 <span className="text-xs font-semibold text-gray-600">WhatsApp</span>
               </a>
             )}
-            <a href={`/api/vcard/${card.cardId}`} className="flex flex-col items-center gap-2 p-4 glass rounded-2xl hover:shadow-md transition-all duration-300 group">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            {(customer.mobile ?? customer.whatsapp) && (
+              <a href={`/api/vcard/${card.cardId}`} className="flex flex-col items-center gap-2 p-4 glass rounded-2xl hover:shadow-md transition-all duration-300 group">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-6 15h6m-1.5 3h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 010-1.5z" /></svg>
+                </div>
+                <span className="text-xs font-semibold text-gray-600">Save Contact</span>
+              </a>
+            )}
+          </div>
+          <div className="px-5 pb-5">
+            <a href={`/api/vcard/${card.cardId}?download=1`} className="flex items-center justify-center gap-2 p-3.5 glass rounded-2xl hover:shadow-md transition-all duration-300 group w-full">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
               </div>
-              <span className="text-xs font-semibold text-gray-600">Save Contact</span>
+              <span className="text-sm font-semibold text-gray-600">Download Contact File</span>
             </a>
           </div>
 
