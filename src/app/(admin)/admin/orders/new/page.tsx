@@ -4,14 +4,16 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 
+import { compressImage } from '@/lib/compress-image'
+
 async function uploadFile(file: File): Promise<string> {
-  if (file.size > 20 * 1024 * 1024) {
-    throw new Error('File too large. Max size is 20MB.')
-  }
+  const compressed = await compressImage(file)
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', compressed)
   const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const data = await res.json()
+  const text = await res.text()
+  let data: any
+  try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
   if (!data.success) throw new Error(data.error || 'Upload failed')
   return data.url
 }
@@ -77,7 +79,9 @@ function AdminNewOrderContent() {
           amount: form.amount ? parseFloat(form.amount) : undefined,
         }),
       })
-      const data = await res.json()
+      const text = await res.text()
+      let data: any
+      try { data = JSON.parse(text) } catch { throw new Error('Server returned an invalid response. The request may be too large — try using smaller images.') }
       if (!data.success) throw new Error(data.error)
       alert(`Order created successfully!\nOrder ID: ${data.data.orderId}\nCard ID: ${data.data.cardId}`)
       router.push('/admin/orders?status=confirmed')

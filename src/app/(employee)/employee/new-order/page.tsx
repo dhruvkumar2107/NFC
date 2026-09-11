@@ -2,14 +2,16 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { compressImage } from '@/lib/compress-image'
+
 async function uploadFile(file: File): Promise<string> {
-  if (file.size > 20 * 1024 * 1024) {
-    throw new Error('File too large. Max size is 20MB.')
-  }
+  const compressed = await compressImage(file)
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', compressed)
   const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const data = await res.json()
+  const text = await res.text()
+  let data: any
+  try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
   if (!data.success) throw new Error(data.error || 'Upload failed')
   return data.url
 }
@@ -77,7 +79,9 @@ export default function EmployeeNewOrderPage() {
           designId: form.designId, referralCode, attributionType: 'link',
         }),
       })
-      const data = await res.json()
+      const text = await res.text()
+      let data: any
+      try { data = JSON.parse(text) } catch { throw new Error('Server returned an invalid response. The request may be too large — try using smaller images.') }
       if (!data.success) throw new Error(data.error)
       alert(`Order created! Card ID: ${data.data.cardId}\nCommission: ${data.data.commissionPoints} points`)
       router.push('/employee/orders')
