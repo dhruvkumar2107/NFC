@@ -40,13 +40,19 @@ async function main() {
     console.log('Employee created:', employee.employeeId, employee.name);
   }
 
-  // Update/create designs with new images and ₹699 price
+  // Update/create designs with correct images and ₹699 price
   const designs = [
-    { id: 'premium-pvc-1', name: 'Premium PVC Card', price: 699, imageUrl: '/photos/design1-front.jpeg', backImage: '/photos/design1-back.jpeg' },
-    { id: 'premium-pvc-2', name: 'Classic Matte Card', price: 699, imageUrl: '/photos/design2-front.jpeg', backImage: '/photos/design2-back.jpeg' },
-    { id: 'premium-pvc-3', name: 'Royal Gold Card', price: 699, imageUrl: '/photos/design3-front.jpeg', backImage: '/photos/design3-back.jpeg' },
-    { id: 'premium-pvc-4', name: 'Sleek Black Card', price: 699, imageUrl: '/photos/design4-front.jpeg', backImage: '/photos/design4-back.jpeg' },
-    { id: 'premium-pvc-5', name: 'Wood Finish Card', price: 699, imageUrl: '/photos/design5-front.jpeg', backImage: '/photos/design5-back.jpeg' },
+    { id: 'design-velvet', name: 'Velvet Premium Pvc Card', price: 699, imageUrl: '/photos/velvet-front.jpeg', backImage: '/photos/velvet-back.jpeg' },
+    { id: 'design-pink-butterfly', name: 'Pink Butterfly Premium Pvc Card', price: 699, imageUrl: '/photos/pink-butterfly-front.jpeg', backImage: '/photos/pink-butterfly-back.jpeg' },
+    { id: 'design-green-leaf', name: 'Green Leaf Glass Premium Pvc Card', price: 699, imageUrl: '/photos/green-leaf-glass-front.jpeg', backImage: '/photos/green-leaf-glass-back.jpeg' },
+    { id: 'design-glass-transparent', name: 'Glass Transparent Premium Pvc Card', price: 699, imageUrl: '/photos/glass-transparent-front.jpeg', backImage: '/photos/glass-transparent-back.jpeg' },
+    { id: 'design-wooden', name: 'Wooden Premium Pvc Card', price: 699, imageUrl: '/photos/wooden-front.jpeg', backImage: '/photos/wooden-back.jpeg' },
+    { id: 'design-golden-car', name: 'Golden Car Premium Pvc Card', price: 699, imageUrl: '/photos/golden-car-front.jpeg', backImage: '/photos/golden-car-back.jpeg' },
+    { id: 'design-fire-lion', name: 'Fire Lion Premium Pvc Card', price: 699, imageUrl: '/photos/fire-lion-front.jpeg', backImage: '/photos/fire-lion-back.jpeg' },
+    { id: 'design-fish-aquarium', name: 'Fish Aquarium Premium Pvc Card', price: 699, imageUrl: '/photos/fish-aquarium-front.jpeg', backImage: '/photos/fish-aquarium-back.jpeg' },
+    { id: 'design-silver', name: 'Silver Premium Pvc Card', price: 699, imageUrl: '/photos/silver-front.jpeg', backImage: '/photos/silver-back.jpeg' },
+    { id: 'design-golden-lion', name: 'Golden Lion Premium Pvc Card', price: 699, imageUrl: '/photos/golden-lion-front.jpeg', backImage: '/photos/golden-lion-back.jpeg' },
+    { id: 'design-diamond', name: 'Diamond Premium Pvc Card', price: 699, imageUrl: '/photos/diamond-front.jpeg', backImage: '/photos/diamond-back.jpeg' },
   ];
 
   // Deactivate old designs first
