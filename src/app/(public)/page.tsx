@@ -44,46 +44,51 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* ─── Premium Hero Banner ─── */}
-      <section className="relative w-full overflow-hidden bg-white min-h-[600px] lg:min-h-[700px] flex items-center">
-        {/* Subtle background accents */}
+      {/* ─── HERO BANNER ─── */}
+      <section className="relative w-full overflow-hidden bg-white" style={{ minHeight: 'clamp(520px, 65vw, 700px)' }}>
+        {/* Subtle background glows */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-amber-50/60 to-orange-50/30 blur-[100px]" />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-primary-50/40 to-blue-50/20 blur-[80px]" />
+          <div className="absolute top-[-30%] right-[-8%] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-gray-100/80 to-gray-50/40 blur-[120px]" />
+          <div className="absolute bottom-[-20%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-gray-50/60 to-white/30 blur-[100px]" />
         </div>
 
         <div className="relative w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-24 lg:py-0 lg:min-h-[700px]">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-6 items-center" style={{ minHeight: 'clamp(520px, 65vw, 700px)' }}>
 
-            {/* ── LEFT: Content ── */}
-            <div className="order-2 lg:order-1 text-center lg:text-left">
+            {/* ── LEFT: Text Content ── */}
+            <div className="order-2 lg:order-1 text-center lg:text-left py-12 lg:py-0">
               <ScrollReveal>
                 {/* Eyebrow */}
-                <p className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-5 sm:mb-6">
-                  <span className="w-8 h-px bg-gradient-to-r from-transparent to-amber-400" />
-                  Smarter Connections. Better Impressions.
+                <p className="inline-flex items-center gap-2.5 text-[10px] sm:text-[11px] font-bold tracking-[0.25em] uppercase text-gray-400 mb-6 sm:mb-7">
+                  <span className="w-6 h-px bg-gray-300" />
+                  SMARTER CONNECTIONS
                 </p>
 
-                {/* Heading */}
-                <h1 className="font-extrabold text-gray-900 leading-[1.08] tracking-tight mb-5 sm:mb-6"
-                  style={{ fontSize: 'clamp(2rem, 5vw, 3.75rem)' }}>
-                  Your Digital Identity,<br className="hidden sm:block" /> Made <span className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">Smarter</span>.
+                {/* Main Heading */}
+                <h1 className="font-extrabold text-gray-900 leading-[1.06] tracking-[-0.02em] mb-5 sm:mb-6"
+                  style={{ fontSize: 'clamp(2.1rem, 4.5vw, 3.6rem)' }}>
+                  Your Digital Identity.<br />
+                  <span className="text-gray-900">One Tap</span>{' '}
+                  <span className="relative inline-block">
+                    <span className="relative z-10">Away.</span>
+                    <span className="absolute bottom-1 left-0 right-0 h-3 bg-amber-200/50 -z-0 rounded-sm" />
+                  </span>
                 </h1>
 
                 {/* Subheading */}
-                <p className="text-gray-500 leading-relaxed max-w-lg mx-auto lg:mx-0 mb-8 sm:mb-10"
-                  style={{ fontSize: 'clamp(0.9rem, 1.8vw, 1.125rem)' }}>
+                <p className="text-gray-500 leading-relaxed max-w-md mx-auto lg:mx-0 mb-8 sm:mb-9"
+                  style={{ fontSize: 'clamp(0.875rem, 1.6vw, 1.05rem)' }}>
                   Share your profile, social links, contact details and business information instantly with one smart card.
                 </p>
 
-                {/* CTAs */}
+                {/* CTA */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-10 justify-center lg:justify-start">
                   <Link
                     href="/order"
-                    className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl font-semibold text-sm sm:text-base text-white transition-all duration-300 min-h-[48px]"
+                    className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-white transition-all duration-300 min-h-[50px]"
                     style={{
-                      background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
-                      boxShadow: '0 2px 8px rgba(212, 160, 23, 0.3), 0 8px 24px -4px rgba(212, 160, 23, 0.25), inset 0 1px 0 0 rgba(255,255,255,0.2)',
+                      background: 'linear-gradient(135deg, #1a1a1a 0%, #333 100%)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 8px 24px -4px rgba(0,0,0,0.2)',
                     }}
                   >
                     Get Your MySmartCard
@@ -91,107 +96,120 @@ export default async function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                     </svg>
                   </Link>
-                  <Link
-                    href="/cards"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl font-semibold text-sm sm:text-base text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 min-h-[48px]"
-                    style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-                  >
-                    Explore Designs
-                  </Link>
                 </div>
 
-                {/* Feature pills */}
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs sm:text-sm text-gray-400">
-                  <span className="inline-flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" /></svg>
-                    NFC Enabled
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>
-                    QR Ready
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
-                    One Tap Sharing
+                {/* Feature tag */}
+                <div className="flex items-center justify-center lg:justify-start gap-2 text-xs text-gray-400 font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100">
+                    <svg className="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" />
+                    </svg>
+                    NFC + QR Enabled
                   </span>
                 </div>
               </ScrollReveal>
             </div>
 
-            {/* ── RIGHT: Product Cards ── */}
-            <div className="order-1 lg:order-2 relative flex items-center justify-center">
+            {/* ── RIGHT: 6 Product Cards Showcase ── */}
+            <div className="order-1 lg:order-2 relative flex items-center justify-center lg:justify-end">
               <ScrollReveal direction="right">
-                <div className="relative w-full max-w-[420px] sm:max-w-[480px] mx-auto">
-                  {/* Desktop: Stacked card composition */}
-                  <div className="hidden sm:block relative" style={{ perspective: '1200px' }}>
-                    {/* Background card - Golden Lion */}
-                    <div className="absolute top-6 left-4 right-4 sm:left-8 sm:right-0 z-10">
-                      <div className="relative rounded-2xl overflow-hidden shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-700"
-                        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                        <img src="/photos/golden-lion-front.jpeg" alt="Golden Lion Card" className="w-full h-auto" loading="lazy" />
+                <div className="relative w-full" style={{ maxWidth: '560px' }}>
+
+                  {/* ── Desktop: 6-card fan arrangement ── */}
+                  <div className="hidden lg:block relative" style={{ height: '480px', perspective: '1500px' }}>
+
+                    {/* Silver Back — far back left, peeking */}
+                    <div className="absolute z-[5] transition-all duration-700 hover:z-[20]"
+                      style={{ top: '18px', left: '0px', width: '220px', transform: 'rotate(-8deg)' }}>
+                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 6px 20px rgba(0,0,0,0.1)' }}>
+                        <img src="/photos/silver-back.jpeg" alt="Silver Back" className="w-full h-auto block" loading="lazy" />
                       </div>
                     </div>
 
-                    {/* Middle card - Glass Transparent */}
-                    <div className="absolute top-3 left-0 right-8 sm:left-0 sm:right-12 z-20">
-                      <div className="relative rounded-2xl overflow-hidden shadow-xl transform rotate-2 hover:rotate-0 transition-transform duration-700"
-                        style={{ boxShadow: '0 12px 40px rgba(0,0,0,0.15)' }}>
-                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent Card" className="w-full h-auto" loading="lazy" />
+                    {/* Silver Front — back left */}
+                    <div className="absolute z-[10] transition-all duration-700 hover:z-[20]"
+                      style={{ top: '0px', left: '20px', width: '230px', transform: 'rotate(-5deg)' }}>
+                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 28px rgba(0,0,0,0.12)' }}>
+                        <img src="/photos/silver-front.jpeg" alt="Silver Card" className="w-full h-auto block" loading="lazy" />
                       </div>
                     </div>
 
-                    {/* Front card - Diamond (hero) */}
-                    <div className="relative z-30">
-                      <div className="relative rounded-2xl overflow-hidden shadow-2xl transform hover:-translate-y-2 transition-all duration-500"
-                        style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1)' }}>
-                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto" />
-                        {/* Subtle reflection overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+                    {/* Glass Back — middle back, peeking from behind Glass Front */}
+                    <div className="absolute z-[15] transition-all duration-700 hover:z-[20]"
+                      style={{ top: '10px', left: '140px', width: '230px', transform: 'rotate(2deg)' }}>
+                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.11)' }}>
+                        <img src="/photos/glass-transparent-back.jpeg" alt="Glass Back" className="w-full h-auto block" loading="lazy" />
                       </div>
                     </div>
 
-                    {/* Tap • Connect • Share label */}
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-40">
-                      <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[11px] font-semibold tracking-wider uppercase text-gray-500 bg-white border border-gray-100"
+                    {/* Glass Transparent Front — middle layer */}
+                    <div className="absolute z-[20] transition-all duration-700 hover:z-[25]"
+                      style={{ top: '0px', left: '160px', width: '240px', transform: 'rotate(0deg)' }}>
+                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 12px 36px rgba(0,0,0,0.14)' }}>
+                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent Card" className="w-full h-auto block" loading="lazy" />
+                      </div>
+                    </div>
+
+                    {/* Diamond Back — front right, peeking */}
+                    <div className="absolute z-[25] transition-all duration-700 hover:z-[30]"
+                      style={{ top: '22px', right: '0px', width: '235px', transform: 'rotate(6deg)' }}>
+                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.12)' }}>
+                        <img src="/photos/diamond-back.jpeg" alt="Diamond Back" className="w-full h-auto block" loading="lazy" />
+                      </div>
+                    </div>
+
+                    {/* Diamond Front — hero, frontmost */}
+                    <div className="absolute z-[30] transition-all duration-500 hover:z-[35] hover:-translate-y-2"
+                      style={{ top: '0px', right: '20px', width: '250px', transform: 'rotate(3deg)' }}>
+                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.03)' }}>
+                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto block" />
+                        {/* Glass reflection */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent pointer-events-none rounded-2xl" />
+                      </div>
+                    </div>
+
+                    {/* TAP • CONNECT • SHARE label */}
+                    <div className="absolute z-[40]" style={{ bottom: '8px', left: '50%', transform: 'translateX(-50%)' }}>
+                      <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase text-gray-500 bg-white/90 backdrop-blur-sm border border-gray-100"
                         style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                        Tap • Connect • Share
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-900 animate-pulse" />
+                        TAP • CONNECT • SHARE
                       </div>
                     </div>
                   </div>
 
-                  {/* Mobile: Carousel-style single card focus */}
-                  <div className="sm:hidden">
-                    <div className="relative" style={{ perspective: '1000px' }}>
-                      <div className="relative rounded-2xl overflow-hidden"
-                        style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
-                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+                  {/* ── Mobile/Tablet: Optimized card display ── */}
+                  <div className="lg:hidden relative" style={{ minHeight: '340px' }}>
+                    {/* Main hero card — Diamond Front */}
+                    <div className="relative z-[30] mx-auto" style={{ maxWidth: '320px' }}>
+                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto block" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none rounded-2xl" />
                       </div>
                     </div>
-                    {/* Mobile: Small secondary cards peek */}
-                    <div className="flex gap-2 -mt-4 px-4 relative z-10">
-                      <div className="flex-1 rounded-xl overflow-hidden opacity-70" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                        <img src="/photos/golden-lion-front.jpeg" alt="Golden Lion" className="w-full h-auto" loading="lazy" />
+
+                    {/* Secondary cards row */}
+                    <div className="flex gap-3 -mt-6 px-2 relative z-20">
+                      {/* Glass Transparent */}
+                      <div className="flex-1 rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent" className="w-full h-auto block" loading="lazy" />
                       </div>
-                      <div className="flex-1 rounded-xl overflow-hidden opacity-70" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent" className="w-full h-auto" loading="lazy" />
+                      {/* Silver */}
+                      <div className="flex-1 rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+                        <img src="/photos/silver-front.jpeg" alt="Silver Card" className="w-full h-auto block" loading="lazy" />
                       </div>
                     </div>
-                    {/* Mobile label */}
-                    <div className="flex items-center justify-center gap-2 mt-4 text-[10px] font-semibold tracking-wider uppercase text-gray-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                      Tap • Connect • Share
+
+                    {/* TAP • CONNECT • SHARE */}
+                    <div className="flex items-center justify-center mt-4">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] font-bold tracking-[0.15em] uppercase text-gray-500 bg-white/90 backdrop-blur-sm border border-gray-100"
+                        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-900 animate-pulse" />
+                        TAP • CONNECT • SHARE
+                      </div>
                     </div>
                   </div>
 
-                  {/* mysmartcard.net subtle watermark */}
-                  <div className="absolute top-1/2 -translate-y-1/2 -right-2 lg:right-0 z-40 hidden lg:block">
-                    <span className="text-[10px] font-medium tracking-widest text-gray-300/60 uppercase"
-                      style={{ writingMode: 'vertical-lr', textOrientation: 'mixed' }}>
-                      mysmartcard.net
-                    </span>
-                  </div>
                 </div>
               </ScrollReveal>
             </div>
