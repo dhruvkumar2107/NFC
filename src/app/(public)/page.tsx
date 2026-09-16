@@ -16,7 +16,7 @@ const features = [
   { title: 'QR Code Access', desc: 'Two QR codes - one for your profile, one for payments.', icon: '📱' },
   { title: 'Receive Payments', desc: 'Get paid directly via UPI when someone scans your payment QR.', icon: '💰' },
   { title: 'Always Updated', desc: 'Edit your profile online - your card always shows the latest info.', icon: '🔄' },
-  { title: 'Premium Designs', desc: 'Choose from Premium PVC Card, Premium Wood, or Premium Metal card designs.', icon: '✨' },
+  { title: 'Premium Designs', desc: 'Choose from 11 premium PVC card designs — Velvet, Golden Lion, Diamond, and more.', icon: '✨' },
   { title: 'Digital + Physical', desc: 'Get a physical NFC card plus a shareable digital profile link.', icon: '🔗' },
 ]
 
