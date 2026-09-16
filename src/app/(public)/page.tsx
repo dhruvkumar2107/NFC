@@ -45,174 +45,51 @@ export default async function HomePage() {
   return (
     <div>
       {/* ─── HERO BANNER ─── */}
-      <section className="relative w-full overflow-hidden bg-white" style={{ minHeight: 'clamp(520px, 65vw, 700px)' }}>
-        {/* Subtle background glows */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-30%] right-[-8%] w-[700px] h-[700px] rounded-full bg-gradient-to-br from-gray-100/80 to-gray-50/40 blur-[120px]" />
-          <div className="absolute bottom-[-20%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-gray-50/60 to-white/30 blur-[100px]" />
+      <section className="relative w-full overflow-hidden" style={{ minHeight: 'clamp(420px, 55vw, 600px)' }}>
+        {/* Full-width background image with overlay */}
+        <div className="absolute inset-0">
+          <img src="/photos/diamond-front.jpeg" alt="" className="w-full h-full object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-gray-900/70 to-gray-900/40" />
         </div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-6 items-center" style={{ minHeight: 'clamp(520px, 65vw, 700px)' }}>
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 flex items-center" style={{ minHeight: 'clamp(420px, 55vw, 600px)' }}>
+          <div className="py-16 sm:py-20 lg:py-0 max-w-2xl">
+            <ScrollReveal>
+              <p className="text-[11px] sm:text-xs font-bold tracking-[0.25em] uppercase text-white/50 mb-5 sm:mb-6">
+                SMARTER CONNECTIONS
+              </p>
 
-            {/* ── LEFT: Text Content ── */}
-            <div className="order-2 lg:order-1 text-center lg:text-left py-12 lg:py-0">
-              <ScrollReveal>
-                {/* Eyebrow */}
-                <p className="inline-flex items-center gap-2.5 text-[10px] sm:text-[11px] font-bold tracking-[0.25em] uppercase text-gray-400 mb-6 sm:mb-7">
-                  <span className="w-6 h-px bg-gray-300" />
-                  SMARTER CONNECTIONS
-                </p>
+              <h1 className="font-extrabold text-white leading-[1.08] tracking-tight mb-5 sm:mb-6"
+                style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}>
+                Your Digital Identity.<br />One Tap Away.
+              </h1>
 
-                {/* Main Heading */}
-                <h1 className="font-extrabold text-gray-900 leading-[1.06] tracking-[-0.02em] mb-5 sm:mb-6"
-                  style={{ fontSize: 'clamp(2.1rem, 4.5vw, 3.6rem)' }}>
-                  Your Digital Identity.<br />
-                  <span className="text-gray-900">One Tap</span>{' '}
-                  <span className="relative inline-block">
-                    <span className="relative z-10">Away.</span>
-                    <span className="absolute bottom-1 left-0 right-0 h-3 bg-amber-200/50 -z-0 rounded-sm" />
-                  </span>
-                </h1>
+              <p className="text-white/60 leading-relaxed max-w-lg mb-8 sm:mb-10"
+                style={{ fontSize: 'clamp(0.875rem, 1.6vw, 1.05rem)' }}>
+                Share your profile, social links, contact details and business information instantly with one smart card.
+              </p>
 
-                {/* Subheading */}
-                <p className="text-gray-500 leading-relaxed max-w-md mx-auto lg:mx-0 mb-8 sm:mb-9"
-                  style={{ fontSize: 'clamp(0.875rem, 1.6vw, 1.05rem)' }}>
-                  Share your profile, social links, contact details and business information instantly with one smart card.
-                </p>
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-10">
+                <Link
+                  href="/order"
+                  className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-gray-900 bg-white hover:bg-gray-100 transition-all duration-300 min-h-[50px]"
+                  style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}
+                >
+                  Get Your MySmartCard
+                  <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              </div>
 
-                {/* CTA */}
-                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-10 justify-center lg:justify-start">
-                  <Link
-                    href="/order"
-                    className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-white transition-all duration-300 min-h-[50px]"
-                    style={{
-                      background: 'linear-gradient(135deg, #1a1a1a 0%, #333 100%)',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 8px 24px -4px rgba(0,0,0,0.2)',
-                    }}
-                  >
-                    Get Your MySmartCard
-                    <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </Link>
-                </div>
-
-                {/* Feature tag */}
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-xs text-gray-400 font-medium">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100">
-                    <svg className="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" />
-                    </svg>
-                    NFC + QR Enabled
-                  </span>
-                </div>
-              </ScrollReveal>
-            </div>
-
-            {/* ── RIGHT: 6 Product Cards Showcase ── */}
-            <div className="order-1 lg:order-2 relative flex items-center justify-center lg:justify-end">
-              <ScrollReveal direction="right">
-                <div className="relative w-full" style={{ maxWidth: '560px' }}>
-
-                  {/* ── Desktop: 6-card fan arrangement ── */}
-                  <div className="hidden lg:block relative" style={{ height: '480px', perspective: '1500px' }}>
-
-                    {/* Silver Back — far back left, peeking */}
-                    <div className="absolute z-[5] transition-all duration-700 hover:z-[20]"
-                      style={{ top: '18px', left: '0px', width: '220px', transform: 'rotate(-8deg)' }}>
-                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 6px 20px rgba(0,0,0,0.1)' }}>
-                        <img src="/photos/silver-back.jpeg" alt="Silver Back" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                    </div>
-
-                    {/* Silver Front — back left */}
-                    <div className="absolute z-[10] transition-all duration-700 hover:z-[20]"
-                      style={{ top: '0px', left: '20px', width: '230px', transform: 'rotate(-5deg)' }}>
-                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 28px rgba(0,0,0,0.12)' }}>
-                        <img src="/photos/silver-front.jpeg" alt="Silver Card" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                    </div>
-
-                    {/* Glass Back — middle back, peeking from behind Glass Front */}
-                    <div className="absolute z-[15] transition-all duration-700 hover:z-[20]"
-                      style={{ top: '10px', left: '140px', width: '230px', transform: 'rotate(2deg)' }}>
-                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.11)' }}>
-                        <img src="/photos/glass-transparent-back.jpeg" alt="Glass Back" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                    </div>
-
-                    {/* Glass Transparent Front — middle layer */}
-                    <div className="absolute z-[20] transition-all duration-700 hover:z-[25]"
-                      style={{ top: '0px', left: '160px', width: '240px', transform: 'rotate(0deg)' }}>
-                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 12px 36px rgba(0,0,0,0.14)' }}>
-                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent Card" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                    </div>
-
-                    {/* Diamond Back — front right, peeking */}
-                    <div className="absolute z-[25] transition-all duration-700 hover:z-[30]"
-                      style={{ top: '22px', right: '0px', width: '235px', transform: 'rotate(6deg)' }}>
-                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.12)' }}>
-                        <img src="/photos/diamond-back.jpeg" alt="Diamond Back" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                    </div>
-
-                    {/* Diamond Front — hero, frontmost */}
-                    <div className="absolute z-[30] transition-all duration-500 hover:z-[35] hover:-translate-y-2"
-                      style={{ top: '0px', right: '20px', width: '250px', transform: 'rotate(3deg)' }}>
-                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.03)' }}>
-                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto block" />
-                        {/* Glass reflection */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent pointer-events-none rounded-2xl" />
-                      </div>
-                    </div>
-
-                    {/* TAP • CONNECT • SHARE label */}
-                    <div className="absolute z-[40]" style={{ bottom: '8px', left: '50%', transform: 'translateX(-50%)' }}>
-                      <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase text-gray-500 bg-white/90 backdrop-blur-sm border border-gray-100"
-                        style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-900 animate-pulse" />
-                        TAP • CONNECT • SHARE
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── Mobile/Tablet: Optimized card display ── */}
-                  <div className="lg:hidden relative" style={{ minHeight: '340px' }}>
-                    {/* Main hero card — Diamond Front */}
-                    <div className="relative z-[30] mx-auto" style={{ maxWidth: '320px' }}>
-                      <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
-                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto block" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none rounded-2xl" />
-                      </div>
-                    </div>
-
-                    {/* Secondary cards row */}
-                    <div className="flex gap-3 -mt-6 px-2 relative z-20">
-                      {/* Glass Transparent */}
-                      <div className="flex-1 rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
-                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                      {/* Silver */}
-                      <div className="flex-1 rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
-                        <img src="/photos/silver-front.jpeg" alt="Silver Card" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                    </div>
-
-                    {/* TAP • CONNECT • SHARE */}
-                    <div className="flex items-center justify-center mt-4">
-                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] font-bold tracking-[0.15em] uppercase text-gray-500 bg-white/90 backdrop-blur-sm border border-gray-100"
-                        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-900 animate-pulse" />
-                        TAP • CONNECT • SHARE
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </ScrollReveal>
-            </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wider uppercase text-white/70 border border-white/15">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" />
+                </svg>
+                NFC + QR Enabled
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
