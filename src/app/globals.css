@@ -148,6 +148,17 @@
     background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 30%, #f5f0ff 60%, #f0f4ff 100%);
   }
 
+  .gradient-gold {
+    background: linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%);
+  }
+
+  .text-gold {
+    background: linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   .gradient-mesh {
     background:
       radial-gradient(at 20% 20%, rgba(76, 110, 245, 0.12) 0px, transparent 50%),

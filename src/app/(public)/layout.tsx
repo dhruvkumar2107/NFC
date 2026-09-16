@@ -1,6 +1,7 @@
 "use client"
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import WhatsAppButton from '@/components/WhatsAppButton'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -17,16 +18,17 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       {/* Premium sticky navbar */}
       <nav className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.82)',
+          background: scrolled ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.85)',
           backdropFilter: 'blur(24px) saturate(200%)',
           WebkitBackdropFilter: 'blur(24px) saturate(200%)',
           borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.6)',
           boxShadow: scrolled ? '0 1px 8px rgba(0,0,0,0.06)' : '0 1px 2px rgba(0,0,0,0.02), 0 4px 16px -4px rgba(0,0,0,0.06)',
         }}
       >
-        <div className="max-w-6xl mx-auto flex justify-between items-center px-6 py-3">
-          <Link href="/" className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-primary-600 flex items-center justify-center shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-5 sm:px-8 py-3">
+          <Link href="/" className="text-base sm:text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 100%)' }}>
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
               </svg>
@@ -39,10 +41,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Link href="/order" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/60 rounded-xl transition-all duration-200">Order Now</Link>
             <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/60 rounded-xl transition-all duration-200">Login</Link>
             <Link href="/employee/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/60 rounded-xl transition-all duration-200">Employee</Link>
-            <Link href="/order" className="btn-primary text-sm ml-2">Buy Now</Link>
+            <Link href="/order" className="ml-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all duration-300 min-h-[40px] inline-flex items-center"
+              style={{
+                background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 100%)',
+                boxShadow: '0 2px 8px rgba(212, 160, 23, 0.3), inset 0 1px 0 0 rgba(255,255,255,0.2)',
+              }}>
+              Get Your Card
+            </Link>
           </div>
 
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-xl hover:bg-gray-100/60 transition-colors duration-200">
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-xl hover:bg-gray-100/60 transition-colors duration-200" aria-label="Menu">
             <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileMenuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -59,11 +67,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
           <div className="absolute top-0 right-0 w-72 h-full p-6 pt-20 animate-slide-up"
             style={{
-              background: 'rgba(255,255,255,0.92)',
+              background: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(40px) saturate(200%)',
               WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-              borderLeft: '1px solid rgba(255,255,255,0.5)',
-              boxShadow: '-8px 0 32px rgba(0,0,0,0.08)',
+              borderLeft: '1px solid rgba(0,0,0,0.06)',
+              boxShadow: '-8px 0 32px rgba(0,0,0,0.1)',
             }}
           >
             <div className="space-y-1">
@@ -73,23 +81,33 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <Link href="/register" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100/60 rounded-xl transition-all duration-200" onClick={() => setMobileMenuOpen(false)}>Register</Link>
               <Link href="/employee/login" className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100/60 rounded-xl transition-all duration-200" onClick={() => setMobileMenuOpen(false)}>Employee Login</Link>
               <div className="pt-3">
-                <Link href="/order" className="btn-primary w-full block text-center text-sm" onClick={() => setMobileMenuOpen(false)}>Buy Now</Link>
+                <Link href="/order" className="block w-full text-center px-5 py-3 rounded-xl font-semibold text-sm text-white transition-all duration-300 min-h-[48px] leading-[48px]"
+                  style={{
+                    background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 100%)',
+                    boxShadow: '0 2px 8px rgba(212, 160, 23, 0.3)',
+                  }}
+                  onClick={() => setMobileMenuOpen(false)}>
+                  Get Your Card
+                </Link>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <main className="pt-24">{children}</main>
+      <main className="pt-[72px]">{children}</main>
+
+      <WhatsAppButton />
 
       {/* Premium Footer */}
       <footer className="relative mt-20 overflow-hidden">
         <div className="absolute inset-0 bg-gray-900" />
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 0.5px, transparent 0)', backgroundSize: '32px 32px' }} />
-        <div className="relative max-w-6xl mx-auto px-6 py-16 text-center">
+        <div className="relative max-w-7xl mx-auto px-6 py-16 text-center">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-primary-600/20 border border-primary-500/20 flex items-center justify-center">
-              <svg className="w-4 h-4 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, rgba(212,160,23,0.2) 0%, rgba(240,192,64,0.2) 100%)', border: '1px solid rgba(212,160,23,0.2)' }}>
+              <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
               </svg>
             </div>

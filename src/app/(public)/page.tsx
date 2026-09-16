@@ -44,70 +44,156 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero - Premium Glass Banner */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 pt-4 pb-4">
-        {/* Ambient glow */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-primary-200/15 rounded-full blur-[120px]" />
+      {/* ─── Premium Hero Banner ─── */}
+      <section className="relative w-full overflow-hidden bg-white min-h-[600px] lg:min-h-[700px] flex items-center">
+        {/* Subtle background accents */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-amber-50/60 to-orange-50/30 blur-[100px]" />
+          <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-primary-50/40 to-blue-50/20 blur-[80px]" />
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
-          <ScrollReveal>
-            <div className="relative group">
-              {/* Glass container */}
-              <div className="relative rounded-3xl overflow-hidden shadow-hero border border-white/60 bg-white/40 backdrop-blur-sm">
-                {/* Top glass highlight */}
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent z-10" />
+        <div className="relative w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center py-24 lg:py-0 lg:min-h-[700px]">
 
-                {/* The banner image */}
-                <img
-                  src="/photos/hero-banner.jpeg"
-                  alt="MySmartCard Collections"
-                  className="w-full h-auto object-cover"
-                />
+            {/* ── LEFT: Content ── */}
+            <div className="order-2 lg:order-1 text-center lg:text-left">
+              <ScrollReveal>
+                {/* Eyebrow */}
+                <p className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-5 sm:mb-6">
+                  <span className="w-8 h-px bg-gradient-to-r from-transparent to-amber-400" />
+                  Smarter Connections. Better Impressions.
+                </p>
 
-                {/* White glass overlay on image */}
-                <div className="absolute inset-0 bg-white/[0.07]" />
+                {/* Heading */}
+                <h1 className="font-extrabold text-gray-900 leading-[1.08] tracking-tight mb-5 sm:mb-6"
+                  style={{ fontSize: 'clamp(2rem, 5vw, 3.75rem)' }}>
+                  Your Digital Identity,<br className="hidden sm:block" /> Made <span className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">Smarter</span>.
+                </h1>
 
-                {/* Frosted edges */}
-                <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-              </div>
+                {/* Subheading */}
+                <p className="text-gray-500 leading-relaxed max-w-lg mx-auto lg:mx-0 mb-8 sm:mb-10"
+                  style={{ fontSize: 'clamp(0.9rem, 1.8vw, 1.125rem)' }}>
+                  Share your profile, social links, contact details and business information instantly with one smart card.
+                </p>
 
-              {/* Outer glow ring on hover */}
-              <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-r from-primary-200/20 via-purple-200/10 to-primary-200/20 blur-sm -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-10 justify-center lg:justify-start">
+                  <Link
+                    href="/order"
+                    className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl font-semibold text-sm sm:text-base text-white transition-all duration-300 min-h-[48px]"
+                    style={{
+                      background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
+                      boxShadow: '0 2px 8px rgba(212, 160, 23, 0.3), 0 8px 24px -4px rgba(212, 160, 23, 0.25), inset 0 1px 0 0 rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    Get Your MySmartCard
+                    <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                  <Link
+                    href="/cards"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl font-semibold text-sm sm:text-base text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 min-h-[48px]"
+                    style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                  >
+                    Explore Designs
+                  </Link>
+                </div>
 
-              {/* Reflection */}
-              <div className="absolute -bottom-2 left-[10%] right-[10%] h-4 bg-primary-300/10 rounded-full blur-lg" />
+                {/* Feature pills */}
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs sm:text-sm text-gray-400">
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" /></svg>
+                    NFC Enabled
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>
+                    QR Ready
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+                    One Tap Sharing
+                  </span>
+                </div>
+              </ScrollReveal>
             </div>
-          </ScrollReveal>
 
-          {/* Buy Now + Trust Bar */}
-          <div className="mt-4 flex flex-col items-center gap-4 relative z-30">
-            <Link href="/order" className="btn-primary text-base px-10 py-3.5 shadow-lg shadow-primary-600/30 hover:shadow-xl hover:shadow-primary-600/40 inline-flex items-center gap-2 min-h-[48px]">
-              Buy Now
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
+            {/* ── RIGHT: Product Cards ── */}
+            <div className="order-1 lg:order-2 relative flex items-center justify-center">
+              <ScrollReveal direction="right">
+                <div className="relative w-full max-w-[420px] sm:max-w-[480px] mx-auto">
+                  {/* Desktop: Stacked card composition */}
+                  <div className="hidden sm:block relative" style={{ perspective: '1200px' }}>
+                    {/* Background card - Golden Lion */}
+                    <div className="absolute top-6 left-4 right-4 sm:left-8 sm:right-0 z-10">
+                      <div className="relative rounded-2xl overflow-hidden shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-700"
+                        style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                        <img src="/photos/golden-lion-front.jpeg" alt="Golden Lion Card" className="w-full h-auto" loading="lazy" />
+                      </div>
+                    </div>
 
-            {/* Trust bar */}
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-[11px] text-gray-400">
-              <div className="flex items-center gap-1">
-                <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                Free Delivery
-              </div>
-              <div className="flex items-center gap-1">
-                <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                NFC Enabled
-              </div>
-              <div className="flex items-center gap-1">
-                <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                Secure Payment
-              </div>
-              <div className="flex items-center gap-1">
-                <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                10K+ Cards Delivered
-              </div>
+                    {/* Middle card - Glass Transparent */}
+                    <div className="absolute top-3 left-0 right-8 sm:left-0 sm:right-12 z-20">
+                      <div className="relative rounded-2xl overflow-hidden shadow-xl transform rotate-2 hover:rotate-0 transition-transform duration-700"
+                        style={{ boxShadow: '0 12px 40px rgba(0,0,0,0.15)' }}>
+                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent Card" className="w-full h-auto" loading="lazy" />
+                      </div>
+                    </div>
+
+                    {/* Front card - Diamond (hero) */}
+                    <div className="relative z-30">
+                      <div className="relative rounded-2xl overflow-hidden shadow-2xl transform hover:-translate-y-2 transition-all duration-500"
+                        style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1)' }}>
+                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto" />
+                        {/* Subtle reflection overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Tap • Connect • Share label */}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-40">
+                      <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[11px] font-semibold tracking-wider uppercase text-gray-500 bg-white border border-gray-100"
+                        style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        Tap • Connect • Share
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile: Carousel-style single card focus */}
+                  <div className="sm:hidden">
+                    <div className="relative" style={{ perspective: '1000px' }}>
+                      <div className="relative rounded-2xl overflow-hidden"
+                        style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
+                        <img src="/photos/diamond-front.jpeg" alt="Diamond Premium Card" className="w-full h-auto" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+                      </div>
+                    </div>
+                    {/* Mobile: Small secondary cards peek */}
+                    <div className="flex gap-2 -mt-4 px-4 relative z-10">
+                      <div className="flex-1 rounded-xl overflow-hidden opacity-70" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                        <img src="/photos/golden-lion-front.jpeg" alt="Golden Lion" className="w-full h-auto" loading="lazy" />
+                      </div>
+                      <div className="flex-1 rounded-xl overflow-hidden opacity-70" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                        <img src="/photos/glass-transparent-front.jpeg" alt="Glass Transparent" className="w-full h-auto" loading="lazy" />
+                      </div>
+                    </div>
+                    {/* Mobile label */}
+                    <div className="flex items-center justify-center gap-2 mt-4 text-[10px] font-semibold tracking-wider uppercase text-gray-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      Tap • Connect • Share
+                    </div>
+                  </div>
+
+                  {/* mysmartcard.net subtle watermark */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -right-2 lg:right-0 z-40 hidden lg:block">
+                    <span className="text-[10px] font-medium tracking-widest text-gray-300/60 uppercase"
+                      style={{ writingMode: 'vertical-lr', textOrientation: 'mixed' }}>
+                      mysmartcard.net
+                    </span>
+                  </div>
+                </div>
+              </ScrollReveal>
             </div>
           </div>
         </div>
