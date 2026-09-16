@@ -92,6 +92,8 @@ model Employee {
   passwordHash     String
   joiningDate      DateTime @default(now())
   status           String   @default("active")
+  isDefault              Boolean  @default(false)
+  defaultCommissionAmount Float   @default(0)
   referralLinkCode String   @unique
   territory        String?
   totalPoints      Int      @default(0)

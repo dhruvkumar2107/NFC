@@ -24,14 +24,20 @@ async function main() {
     { employeeId: 'MSC-SE-001', name: 'Rahul Sharma', email: 'rahul@mysmartcard.net', referralLinkCode: 'rahul-ref' },
     { employeeId: 'MSC-SE-002', name: 'Priya Patel', email: 'priya@mysmartcard.net', referralLinkCode: 'priya-ref' },
     { employeeId: 'MSC-SE-003', name: 'Amit Singh', email: 'amit@mysmartcard.net', referralLinkCode: 'amit-ref' },
+    { employeeId: 'MSC-SE-004', name: 'Dhruv Kumar', email: 'dhruv@mysmartcard.net', referralLinkCode: 'dhruv-kumar', isDefault: true, defaultCommissionAmount: 32 },
   ];
 
   for (const emp of employees) {
     const employee = await prisma.employee.upsert({
       where: { employeeId: emp.employeeId },
-      update: {},
+      update: { isDefault: emp.isDefault || false, defaultCommissionAmount: emp.defaultCommissionAmount || 0, name: emp.name },
       create: {
-        ...emp,
+        employeeId: emp.employeeId,
+        name: emp.name,
+        email: emp.email,
+        referralLinkCode: emp.referralLinkCode,
+        isDefault: emp.isDefault || false,
+        defaultCommissionAmount: emp.defaultCommissionAmount || 0,
         passwordHash: employeePassword,
         mobile: '+91' + Math.floor(1000000000 + Math.random() * 9000000000),
         territory: 'All India',

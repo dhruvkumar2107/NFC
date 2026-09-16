@@ -68,7 +68,7 @@ export default function EmployeeDetailPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <Link href="/admin/employees" className="text-sm text-primary-600 hover:underline">← Back to Employees</Link>
-          <h1 className="text-2xl font-bold mt-1">{employee.name}</h1>
+          <h1 className="text-2xl font-bold mt-1">{employee.name}{employee.isDefault && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700">DEFAULT</span>}</h1>
           <p className="text-gray-500 text-sm">{employee.employeeId} • {employee.email}</p>
         </div>
         <div className="flex gap-2">
@@ -83,7 +83,9 @@ export default function EmployeeDetailPage() {
         <div className="card"><div className="text-sm text-gray-500">Total Sales</div><div className="text-2xl font-bold">{employee.orders?.length || 0}</div></div>
         <div className="card"><div className="text-sm text-gray-500">Customers</div><div className="text-2xl font-bold">{employee.customers?.length || 0}</div></div>
         <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white"><div className="text-sm opacity-80">Available Points</div><div className="text-2xl font-bold">{wallet?.wallet?.availablePoints || 0}</div></div>
-        <div className="card"><div className="text-sm text-gray-500">Total Earned</div><div className="text-2xl font-bold">{wallet?.wallet?.totalPoints || 0} pts</div></div>
+        <div className="card"><div className="text-sm text-gray-500">Total Earned</div><div className="text-2xl font-bold">{wallet?.wallet?.totalPoints || 0} pts</div>
+          {employee.isDefault && <div className="text-xs text-blue-600 mt-1">₹{employee.defaultCommissionAmount}/card auto</div>}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -93,6 +95,7 @@ export default function EmployeeDetailPage() {
             <div><span className="text-gray-500">Mobile:</span> {employee.mobile || '-'}</div>
             <div><span className="text-gray-500">Territory:</span> {employee.territory || '-'}</div>
             <div><span className="text-gray-500">Referral Code:</span> <span className="font-mono font-bold">{employee.referralLinkCode}</span></div>
+            {employee.isDefault && <div><span className="text-gray-500">Commission/Card:</span> <span className="font-bold text-blue-600">₹{employee.defaultCommissionAmount || 0}</span> <span className="text-xs text-gray-400">(auto-assigned on direct sales)</span></div>}
             <div><span className="text-gray-500">Joined:</span> {new Date(employee.joiningDate).toLocaleDateString()}</div>
             <div><span className="text-gray-500">Status:</span>
               <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${employee.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{employee.status}</span>

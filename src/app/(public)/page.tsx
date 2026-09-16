@@ -24,7 +24,7 @@ const faqs = [
   { q: 'How does NFC work?', a: 'Simply tap your MySmartCard on any NFC-enabled smartphone. It instantly opens your digital profile page with all your contact details, social links, and payment information.' },
   { q: 'Can I update my profile after buying?', a: 'Yes! Your physical card never changes - it just contains a URL. You can update your profile anytime from your dashboard, and the changes appear instantly.' },
   { q: 'How do I receive payments?', a: 'The QR code on the back of your card links to your UPI payment address. Anyone can scan it to send you money directly.' },
-  { q: 'What is the return policy?', a: 'We offer a full refund within 7 days of delivery if you are not satisfied with your card.' },
+  { q: 'What if I am not satisfied?', a: 'We ensure high quality. If there is a manufacturing defect, we will replace your card free of cost.' },
   { q: 'How long does delivery take?', a: 'Cards are typically delivered within 5-7 business days across India. You will receive tracking information once your card is shipped.' },
   { q: 'Is my data secure?', a: 'Your NFC chip only stores a URL, never personal data. Your profile page is publicly accessible but contains only the information you choose to share.' },
 ]
@@ -84,7 +84,7 @@ export default async function HomePage() {
           {/* Buy Now + Trust Bar */}
           <div className="mt-4 flex flex-col items-center gap-4 relative z-30">
             <Link href="/order" className="btn-primary text-base px-10 py-3.5 shadow-lg shadow-primary-600/30 hover:shadow-xl hover:shadow-primary-600/40 inline-flex items-center gap-2 min-h-[48px]">
-              Buy Now - Starting ₹699
+              Buy Now
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
@@ -102,7 +102,7 @@ export default async function HomePage() {
               </div>
               <div className="flex items-center gap-1">
                 <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                7-Day Refund
+                Secure Payment
               </div>
               <div className="flex items-center gap-1">
                 <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
@@ -323,7 +323,7 @@ export default async function HomePage() {
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">Ready to Go Digital?</h2>
             <p className="text-white/70 mb-12 text-lg leading-relaxed">Get your MySmartCard today and start sharing your profile with a tap.</p>
             <Link href="/order" className="glass-strong text-gray-900 px-12 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-all duration-300 shadow-glass-lg hover:shadow-glass-xl hover:-translate-y-0.5 inline-block">
-              Order Now - Starting ₹699
+              Order Now
             </Link>
           </ScrollReveal>
         </div>

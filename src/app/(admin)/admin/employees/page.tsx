@@ -165,6 +165,8 @@ export default function AdminEmployeesPage() {
               <th className="text-left p-3 font-medium text-gray-600">Customers</th>
               <th className="text-left p-3 font-medium text-gray-600">Orders</th>
               <th className="text-left p-3 font-medium text-gray-600">Points</th>
+              <th className="text-left p-3 font-medium text-gray-600">Avail</th>
+              <th className="text-left p-3 font-medium text-gray-600">Comm/Card</th>
               <th className="text-left p-3 font-medium text-gray-600">Status</th>
               <th className="text-left p-3 font-medium text-gray-600">Actions</th>
             </tr>
@@ -173,11 +175,13 @@ export default function AdminEmployeesPage() {
             {employees.map((e) => (
               <tr key={e.id} className="hover:bg-gray-50">
                 <td className="p-3 font-mono text-xs">{e.employeeId}</td>
-                <td className="p-3"><Link href={`/admin/employees/${e.id}`} className="font-medium text-primary-600 hover:underline">{e.name}</Link></td>
+                <td className="p-3"><Link href={`/admin/employees/${e.id}`} className="font-medium text-primary-600 hover:underline">{e.name}</Link>{e.isDefault && <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">DEFAULT</span>}</td>
                 <td className="p-3 text-gray-600">{e.email}</td>
                 <td className="p-3">{e.customers?.length || 0}</td>
                 <td className="p-3">{e.orders?.length || 0}</td>
-                <td className="p-3 text-primary-600 font-bold">{e.totalPoints || 0} <span className="text-xs text-gray-400">/ {e.availablePoints || 0} avail</span></td>
+                <td className="p-3 text-primary-600 font-bold">{e.totalPoints || 0}</td>
+                <td className="p-3 text-green-600 font-bold">{e.availablePoints || 0}</td>
+                <td className="p-3">{e.isDefault && e.defaultCommissionAmount > 0 ? <span className="text-xs font-bold text-blue-600">₹{e.defaultCommissionAmount}</span> : <span className="text-xs text-gray-400">₹100</span>}</td>
                 <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${e.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{e.status}</span></td>
                 <td className="p-3 space-x-2">
                   <Link href={`/admin/employees/${e.id}`} className="text-sm text-primary-600 hover:underline">View</Link>

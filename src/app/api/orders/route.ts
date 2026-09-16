@@ -31,6 +31,14 @@ export async function POST(request: NextRequest) {
       if (!employee) return errorResponse('Invalid or inactive referral code')
       employeeId = employee.id
       resolvedAttributionType = 'manual_code'
+    } else {
+      const defaultEmployee = await prisma.employee.findFirst({
+        where: { isDefault: true, status: 'active' },
+      })
+      if (defaultEmployee) {
+        employeeId = defaultEmployee.id
+        resolvedAttributionType = 'direct'
+      }
     }
 
     let customer = await prisma.customer.findUnique({ where: { email } })
@@ -61,16 +69,26 @@ export async function POST(request: NextRequest) {
     let commissionAmount = 0
     let commissionPoints = 0
     if (employeeId) {
-      const activeRules = await prisma.commissionRule.findMany({
-        where: { active: true },
-        orderBy: { minCards: 'asc' },
-      })
-      if (activeRules.length > 0) {
-        commissionAmount = activeRules[0].commissionPerCard
-        commissionPoints = activeRules[0].pointsPerCard || activeRules[0].commissionPerCard
+      if (resolvedAttributionType === 'direct') {
+        const defaultEmployee = await prisma.employee.findFirst({
+          where: { id: employeeId, isDefault: true },
+        })
+        if (defaultEmployee && defaultEmployee.defaultCommissionAmount > 0) {
+          commissionAmount = defaultEmployee.defaultCommissionAmount
+          commissionPoints = defaultEmployee.defaultCommissionAmount
+        }
       } else {
-        commissionAmount = 100
-        commissionPoints = 100
+        const activeRules = await prisma.commissionRule.findMany({
+          where: { active: true },
+          orderBy: { minCards: 'asc' },
+        })
+        if (activeRules.length > 0) {
+          commissionAmount = activeRules[0].commissionPerCard
+          commissionPoints = activeRules[0].pointsPerCard || activeRules[0].commissionPerCard
+        } else {
+          commissionAmount = 100
+          commissionPoints = 100
+        }
       }
     }
 
