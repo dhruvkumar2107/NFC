@@ -254,14 +254,14 @@ function OrderContent() {
 
   return (
     <div className="min-h-screen gradient-mesh">
-      <div className="py-20 px-4">
+      <div className="py-14 px-4">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 tracking-tight animate-fade-in">
+          <h1 className="text-2xl font-bold text-center mb-5 text-gray-900 tracking-tight animate-fade-in">
             Place Your Order
           </h1>
 
           {/* Step Indicator */}
-          <div className="glass-strong rounded-full px-6 py-4 max-w-lg mx-auto mb-12 animate-fade-in">
+          <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3 max-w-sm mx-auto mb-8 animate-fade-in shadow-sm">
             <div className="flex items-center justify-between relative">
               <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200/60 -translate-y-1/2 rounded-full" />
               <div
@@ -269,14 +269,14 @@ function OrderContent() {
                 style={{ width: `${((step - 1) / 3) * 100}%` }}
               />
               {[1, 2, 3, 4].map((s) => (
-                <div key={s} className="relative z-10 flex flex-col items-center gap-2">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
+                <div key={s} className="relative z-10 flex flex-col items-center gap-1.5">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-500 ${
                     s <= step
-                      ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/30'
-                      : 'glass text-gray-400'
+                      ? 'bg-primary-600 text-white shadow-md shadow-primary-600/25'
+                      : 'bg-gray-100 text-gray-400'
                   }`}>
                     {s < step ? (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     ) : s}
@@ -284,9 +284,9 @@ function OrderContent() {
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-3 px-1">
+            <div className="flex justify-between mt-2 px-0.5">
               {stepLabels.map((label, i) => (
-                <span key={label} className={`text-[11px] font-medium transition-colors duration-300 ${
+                <span key={label} className={`text-[10px] font-medium transition-colors duration-300 ${
                   step === i + 1 ? 'text-primary-600' : 'text-gray-400'
                 }`}>
                   {label}
@@ -298,135 +298,118 @@ function OrderContent() {
           {/* Step 1 - Design */}
           {step === 1 && (
             <div className="animate-slide-up">
-              <h2 className="text-2xl font-bold mb-2 text-gray-900">Select Card Design</h2>
-              <p className="text-sm text-gray-400 mb-6">Choose a design that represents your brand</p>
+              <h2 className="text-xl font-bold mb-1 text-gray-900">Select Card Design</h2>
+              <p className="text-xs text-gray-400 mb-4">Choose a design that represents your brand</p>
               {errors.designId && (
-                <div className="glass rounded-2xl p-4 mb-6 border border-red-200/50 bg-red-50/50">
-                  <p className="text-red-600 text-sm font-medium">{errors.designId}</p>
+                <div className="rounded-xl p-3 mb-4 border border-red-200/50 bg-red-50/50">
+                  <p className="text-red-600 text-xs font-medium">{errors.designId}</p>
                 </div>
               )}
-              <div className="space-y-6">
+              <div className="space-y-3">
                 {designs.map((d) => (
                   <label
                     key={d.id}
-                    className={`glass block rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden ${
+                    className={`block rounded-xl cursor-pointer transition-all duration-300 overflow-hidden border ${
                       form.designId === d.id
-                        ? 'ring-2 ring-primary-500/40 shadow-lg shadow-primary-500/10'
-                        : 'hover:shadow-md'
+                        ? 'border-primary-500/40 shadow-md shadow-primary-500/10 bg-white'
+                        : 'border-gray-100 bg-white hover:shadow-sm'
                     }`}
                   >
                     <input type="radio" name="design" value={d.id} checked={form.designId === d.id} onChange={(e) => setField('designId', e.target.value)} className="sr-only" />
 
                     {/* Card images - front and back side by side */}
-                    <div className="grid grid-cols-2 gap-4 p-5 pb-0">
+                    <div className="grid grid-cols-2 gap-2 p-3 pb-0">
                       {d.imageUrl && (
-                        <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <div className="aspect-[3/2] w-full">
+                        <div className="rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
+                          <div className="aspect-[5/3] w-full">
                             <img src={d.imageUrl} alt={`${d.name} - Front`} className="w-full h-full object-cover" />
                           </div>
-                          <div className="text-center py-2 text-xs font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Front</div>
+                          <div className="text-center py-1 text-[9px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Front</div>
                         </div>
                       )}
                       {d.backImage ? (
-                        <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <div className="aspect-[3/2] w-full">
+                        <div className="rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
+                          <div className="aspect-[5/3] w-full">
                             <img src={d.backImage} alt={`${d.name} - Back`} className="w-full h-full object-cover" />
                           </div>
-                          <div className="text-center py-2 text-xs font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
+                          <div className="text-center py-1 text-[9px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
                         </div>
                       ) : d.imageUrl ? (
-                        <div className="rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-                          <div className="aspect-[3/2] w-full">
+                        <div className="rounded-lg overflow-hidden bg-gray-50 border border-gray-100">
+                          <div className="aspect-[5/3] w-full">
                             <img src={d.imageUrl} alt={`${d.name} - Back`} className="w-full h-full object-cover" />
                           </div>
-                          <div className="text-center py-2 text-xs font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
+                          <div className="text-center py-1 text-[9px] font-medium text-gray-400 uppercase tracking-wider bg-gray-50/80 border-t border-gray-100">Back</div>
                         </div>
                       ) : null}
                     </div>
 
-                    {/* Design name + features */}
-                    <div className="p-5 pt-4">
-                      <div className="flex items-start justify-between gap-4 mb-4">
-                        <h3 className="font-semibold text-gray-900 text-lg">{d.name}</h3>
-                        <div className="flex flex-col items-end gap-1.5 shrink-0">
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                            form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-md shadow-primary-600/30' : 'border-gray-300'
-                          }`}>
-                            {form.designId === d.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                    {/* Name + Price + Radio row */}
+                    <div className="flex items-center justify-between gap-3 px-3 pt-2 pb-1">
+                      <h3 className="font-semibold text-gray-900 text-sm leading-tight">{d.name}</h3>
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <div className="text-right">
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <span className="text-xs text-gray-400 line-through">₹1999</span>
+                            <span className="inline-flex items-center bg-green-50 text-green-700 text-[9px] font-bold px-1.5 py-px rounded-full border border-green-100">65% OFF</span>
                           </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-2 justify-end">
-                              <span className="text-sm text-gray-400 line-through">₹1999</span>
-                              <span className="inline-flex items-center bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-100">65% OFF</span>
-                            </div>
-                            <div className="text-2xl font-bold text-primary-600">₹{d.price}</div>
-                            <div className="text-[10px] text-gray-400 mt-0.5">One-Time Payment &middot; Lifetime Access</div>
-                          </div>
+                          <div className="text-lg font-bold text-primary-600 leading-tight">₹{d.price}</div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                          form.designId === d.id ? 'border-primary-600 bg-primary-600 shadow-sm shadow-primary-600/30' : 'border-gray-300'
+                        }`}>
+                          {form.designId === d.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                         </div>
                       </div>
+                    </div>
 
-                      {/* What's included - detailed */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                        {[
-                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>, title: 'Lifetime Access', desc: 'Yours forever, no expiry' },
-                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3" /></svg>, title: 'iOS & Android', desc: 'Works on all phones' },
-                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3" /></svg>, title: 'No Renewals', desc: 'No yearly fees ever' },
-                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5z" /></svg>, title: 'Profile QR', desc: 'Scan to view profile' },
-                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>, title: 'Instant Activation', desc: 'Live immediately' },
-                          { icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>, title: 'Collect Leads', desc: 'Grow your network' },
-                        ].map((f) => (
-                          <div key={f.title} className="flex items-start gap-2">
-                            <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center shrink-0 text-primary-600 mt-0.5">
-                              {f.icon}
-                            </div>
-                            <div>
-                              <div className="text-xs font-semibold text-gray-900">{f.title}</div>
-                              <div className="text-[11px] text-gray-400 leading-tight">{f.desc}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    {/* One-time payment tagline */}
+                    <div className="px-3 pb-1">
+                      <span className="text-[10px] text-gray-400">One-Time Payment &middot; Lifetime Access &middot; No Renewals</span>
+                    </div>
 
-                      {/* Tap Connect Share */}
-                      <div className="flex items-center justify-center gap-3 text-[11px] text-gray-500 mb-4 py-3 bg-gray-50/80 rounded-xl">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-                            <svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0" /></svg>
-                          </div>
-                          <span className="font-semibold">Tap</span>
+                    {/* Compact 2x3 feature grid */}
+                    <div className="grid grid-cols-3 gap-x-2 gap-y-1 px-3 pb-2">
+                      {[
+                        { icon: '🔒', t: 'Lifetime Access' },
+                        { icon: '📱', t: 'iOS & Android' },
+                        { icon: '🔄', t: 'No Renewals' },
+                        { icon: '💳', t: 'One-Time Pay' },
+                        { icon: '⚡', t: 'Instant Active' },
+                        { icon: '📈', t: 'Collect Leads' },
+                      ].map((f) => (
+                        <div key={f.t} className="flex items-center gap-1">
+                          <span className="text-[10px]">{f.icon}</span>
+                          <span className="text-[10px] text-gray-500 font-medium leading-tight">{f.t}</span>
                         </div>
-                        <svg className="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-                            <svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
-                          </div>
-                          <span className="font-semibold">Connect</span>
-                        </div>
-                        <svg className="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-                            <svg className="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
-                          </div>
-                          <span className="font-semibold">Share</span>
-                        </div>
-                      </div>
+                      ))}
+                    </div>
 
-                      {/* Social links */}
-                      <div className="flex items-center gap-2 mb-3">
-                        {[
-                          { name: 'Instagram', color: 'bg-pink-50 text-pink-500', icon: <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg> },
-                          { name: 'LinkedIn', color: 'bg-blue-50 text-blue-600', icon: <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg> },
-                          { name: 'WhatsApp', color: 'bg-green-50 text-green-500', icon: <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg> },
-                          { name: 'Website', color: 'bg-gray-100 text-gray-500', icon: <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg> },
-                        ].map((s) => (
-                          <div key={s.name} className={`w-7 h-7 rounded-lg flex items-center justify-center ${s.color}`}>
-                            {s.icon}
-                          </div>
-                        ))}
-                        <span className="text-[11px] text-gray-400 ml-1">All platforms linked</span>
-                      </div>
+                    {/* Tap Connect Share strip */}
+                    <div className="flex items-center justify-center gap-2 text-[10px] text-gray-500 mx-3 mb-2 py-1.5 bg-gray-50/80 rounded-lg">
+                      <span className="font-semibold text-primary-600">Tap</span>
+                      <svg className="w-2.5 h-2.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                      <span className="font-semibold text-primary-600">Connect</span>
+                      <svg className="w-2.5 h-2.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                      <span className="font-semibold text-primary-600">Share</span>
+                    </div>
 
-                      {/* Continue Button */}
+                    {/* Social icons row */}
+                    <div className="flex items-center gap-1.5 px-3 pb-2">
+                      {[
+                        { color: 'bg-pink-50 text-pink-500', icon: <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg> },
+                        { color: 'bg-blue-50 text-blue-600', icon: <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg> },
+                        { color: 'bg-green-50 text-green-500', icon: <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg> },
+                        { color: 'bg-gray-100 text-gray-500', icon: <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg> },
+                      ].map((s, i) => (
+                        <div key={i} className={`w-5 h-5 rounded-md flex items-center justify-center ${s.color}`}>
+                          {s.icon}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Buy Now Button */}
+                    <div className="px-3 pb-3">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -434,10 +417,10 @@ function OrderContent() {
                           setField('designId', d.id)
                           handleNext()
                         }}
-                        className="w-full btn-primary py-3 text-sm mt-2"
+                        className="w-full bg-primary-600 text-white py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-primary-700 active:scale-[0.98] shadow-sm shadow-primary-600/20 flex items-center justify-center gap-1.5"
                       >
-                        Continue with {d.name}
-                        <svg className="w-4 h-4 ml-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        Buy Now
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
                       </button>
@@ -445,8 +428,8 @@ function OrderContent() {
                   </label>
                 ))}
                 {designs.length === 0 && (
-                  <div className="glass rounded-2xl text-center py-12">
-                    <p className="text-gray-500">Loading designs...</p>
+                  <div className="rounded-xl text-center py-8 bg-white border border-gray-100">
+                    <p className="text-gray-500 text-sm">Loading designs...</p>
                   </div>
                 )}
               </div>
@@ -456,17 +439,17 @@ function OrderContent() {
           {/* Step 2 - Details */}
           {step === 2 && (
             <div className="animate-slide-up">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Customer Details</h2>
-              <div className="space-y-6">
+              <h2 className="text-lg font-bold mb-4 text-gray-900">Customer Details</h2>
+              <div className="space-y-3">
                 {/* Personal Information */}
-                <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Personal Information</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-100 rounded-xl p-4">
+                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3">Personal Information</h3>
+                  <div className="grid sm:grid-cols-2 gap-3">
                     <div>
                       <label className="label">Full Name *</label>
                       <input type="text" value={form.fullName} onChange={(e) => setField('fullName', e.target.value)}
                         className={`input-field ${errors.fullName ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="John Doe" />
-                      {errors.fullName && <p className="text-red-500 text-xs mt-1.5">{errors.fullName}</p>}
+                      {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
                     </div>
                     <div>
                       <label className="label">Designation</label>
@@ -492,41 +475,41 @@ function OrderContent() {
                 </div>
 
                 {/* Contact Information */}
-                <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Contact Information</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-100 rounded-xl p-4">
+                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact Information</h3>
+                  <div className="grid sm:grid-cols-2 gap-3">
                     <div>
                       <label className="label">Mobile *</label>
                       <input type="tel" value={form.mobile} onChange={(e) => setField('mobile', e.target.value)}
                         className={`input-field ${errors.mobile ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="9876543210" />
-                      {errors.mobile && <p className="text-red-500 text-xs mt-1.5">{errors.mobile}</p>}
+                      {errors.mobile && <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>}
                     </div>
                     <div>
                       <label className="label">WhatsApp *</label>
                       <input type="tel" value={form.whatsapp} onChange={(e) => setField('whatsapp', e.target.value)}
                         className={`input-field ${errors.whatsapp ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="9876543210" />
-                      {errors.whatsapp && <p className="text-red-500 text-xs mt-1.5">{errors.whatsapp}</p>}
+                      {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
                     </div>
                     <div>
                       <label className="label">Email *</label>
                       <input type="email" value={form.email} onChange={(e) => setField('email', e.target.value)}
                         className={`input-field ${errors.email ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="john@example.com" />
-                      {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email}</p>}
+                      {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                     </div>
                   </div>
                 </div>
 
                 {/* Shipping Address */}
-                <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Shipping Address (for card delivery)</h3>
-                  <div className="space-y-4">
+                <div className="bg-white border border-gray-100 rounded-xl p-4">
+                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3">Shipping Address (for card delivery)</h3>
+                  <div className="space-y-3">
                     <div>
                       <label className="label">Address *</label>
                       <input type="text" value={form.address} onChange={(e) => setField('address', e.target.value)}
                         className={`input-field ${errors.address ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="Flat/House No., Building, Street, Area" />
-                      {errors.address && <p className="text-red-500 text-xs mt-1.5">{errors.address}</p>}
+                      {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                     </div>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       <div>
                         <label className="label">Taluk</label>
                         <input type="text" value={form.taluk} onChange={(e) => setField('taluk', e.target.value)}
@@ -536,28 +519,28 @@ function OrderContent() {
                         <label className="label">City *</label>
                         <input type="text" value={form.city} onChange={(e) => setField('city', e.target.value)}
                           className={`input-field ${errors.city ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="Mumbai" />
-                        {errors.city && <p className="text-red-500 text-xs mt-1.5">{errors.city}</p>}
+                        {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
                       </div>
                       <div>
                         <label className="label">State *</label>
                         <input type="text" value={form.state} onChange={(e) => setField('state', e.target.value)}
                           className={`input-field ${errors.state ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="Maharashtra" />
-                        {errors.state && <p className="text-red-500 text-xs mt-1.5">{errors.state}</p>}
+                        {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
                       </div>
                       <div>
                         <label className="label">PIN Code *</label>
                         <input type="text" value={form.pincode} onChange={(e) => setField('pincode', e.target.value)}
                           className={`input-field ${errors.pincode ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="400001" maxLength={6} />
-                        {errors.pincode && <p className="text-red-500 text-xs mt-1.5">{errors.pincode}</p>}
+                        {errors.pincode && <p className="text-red-500 text-xs mt-1">{errors.pincode}</p>}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Social Links */}
-                <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Social Links</h3>
-                  <div className="grid sm:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-100 rounded-xl p-4">
+                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3">Social Links</h3>
+                  <div className="grid sm:grid-cols-3 gap-3">
                     <div>
                       <label className="label">Instagram</label>
                       <input type="text" value={form.instagram} onChange={(e) => setField('instagram', e.target.value)}
@@ -577,13 +560,13 @@ function OrderContent() {
                 </div>
 
                 {/* Profile & Branding */}
-                <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Profile & Branding</h3>
-                  <div className="space-y-4">
+                <div className="bg-white border border-gray-100 rounded-xl p-4">
+                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3">Profile & Branding</h3>
+                  <div className="space-y-3">
                     <div>
                       <label className="label">Logo / Profile Picture</label>
-                      {uploadMsg && uploadMsg.startsWith('Logo') && <p className={`text-xs mb-1.5 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-                      <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
+                      {uploadMsg && uploadMsg.startsWith('Logo') && <p className={`text-xs mb-1 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+                      <label className={`flex items-center gap-3 p-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'logo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                         <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                           const file = e.target.files?.[0]
                           if (file) {
@@ -602,23 +585,23 @@ function OrderContent() {
                           }
                         }} />
                         {uploading === 'logo' ? (
-                          <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
-                            <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                          <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                            <svg className="animate-spin h-5 w-5 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                           </div>
                         ) : form.logoUrl ? (
-                          <img src={form.logoUrl} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
+                          <img src={form.logoUrl} alt="Logo" className="w-10 h-10 rounded-lg object-cover" />
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
                           </div>
                         )}
-                        <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : form.logoUrl ? 'Change logo' : "If you don't have a logo, upload a profile picture"}</span>
+                        <span className="text-xs text-gray-500">{uploading === 'logo' ? 'Uploading...' : form.logoUrl ? 'Change logo' : "If you don't have a logo, upload a profile picture"}</span>
                       </label>
                     </div>
                     <div>
                       <label className="label">Payment QR Code (UPI)</label>
-                      {uploadMsg && uploadMsg.startsWith('QR') && <p className={`text-xs mb-1.5 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-                      <label className={`flex items-center gap-3 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'qr' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
+                      {uploadMsg && uploadMsg.startsWith('QR') && <p className={`text-xs mb-1 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+                      <label className={`flex items-center gap-3 p-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === 'qr' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                         <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                           const file = e.target.files?.[0]
                           if (file) {
@@ -637,31 +620,31 @@ function OrderContent() {
                           }
                         }} />
                         {uploading === 'qr' ? (
-                          <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
-                            <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                          <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                            <svg className="animate-spin h-5 w-5 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                           </div>
                         ) : form.paymentQrUrl ? (
-                          <img src={form.paymentQrUrl} alt="Payment QR" className="w-12 h-12 rounded-lg object-contain" />
+                          <img src={form.paymentQrUrl} alt="Payment QR" className="w-10 h-10 rounded-lg object-contain" />
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>
                           </div>
                         )}
-                        <span className="text-sm text-gray-500">{uploading === 'qr' ? 'Uploading...' : form.paymentQrUrl ? 'Change payment QR' : 'Upload UPI payment QR code (optional)'}</span>
+                        <span className="text-xs text-gray-500">{uploading === 'qr' ? 'Uploading...' : form.paymentQrUrl ? 'Change payment QR' : 'Upload UPI payment QR code (optional)'}</span>
                       </label>
                     </div>
                   </div>
                 </div>
 
                 {/* Photos */}
-                <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Your Photos</h3>
-                  <p className="text-xs text-gray-400 mb-4">Upload up to 3 photos of yourself for your digital profile card</p>
-                  {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs mb-3 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-                  <div className="grid sm:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-100 rounded-xl p-4">
+                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Photos</h3>
+                  <p className="text-[10px] text-gray-400 mb-3">Upload up to 3 photos of yourself for your digital profile card</p>
+                  {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs mb-2 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+                  <div className="grid sm:grid-cols-3 gap-3">
                     {(['photo1', 'photo2', 'photo3'] as const).map((field, idx) => (
-                      <div key={field} className={`relative flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200'}`}>
-                        <label className={`w-full flex-col items-center gap-2 cursor-pointer flex ${uploading === field ? '' : 'hover:border-primary-400'}`}>
+                      <div key={field} className={`relative flex flex-col items-center gap-1.5 p-3 border-2 border-dashed rounded-xl transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200'}`}>
+                        <label className={`w-full flex-col items-center gap-1.5 cursor-pointer flex ${uploading === field ? '' : 'hover:border-primary-400'}`}>
                           <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                             const file = e.target.files?.[0]
                             if (file) {
@@ -680,24 +663,24 @@ function OrderContent() {
                             }
                           }} />
                           {uploading === field ? (
-                            <div className="w-full h-32 rounded-lg bg-primary-100 flex flex-col items-center justify-center">
-                              <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                              <span className="text-xs text-primary-600">Uploading...</span>
+                            <div className="w-full h-24 rounded-lg bg-primary-100 flex flex-col items-center justify-center">
+                              <svg className="animate-spin h-6 w-6 text-primary-600 mb-0.5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                              <span className="text-[10px] text-primary-600">Uploading...</span>
                             </div>
                           ) : form[field] ? (
-                            <img src={form[field]} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
+                            <img src={form[field]} alt={`Photo ${idx + 1}`} className="w-full h-24 rounded-lg object-cover" />
                           ) : (
-                            <div className="w-full h-32 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
-                              <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
-                              <span className="text-xs text-gray-400">Photo {idx + 1}</span>
+                            <div className="w-full h-24 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
+                              <svg className="w-6 h-6 text-gray-400 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
+                              <span className="text-[10px] text-gray-400">Photo {idx + 1}</span>
                             </div>
                           )}
-                          <span className="text-xs text-gray-500">{uploading === field ? '' : form[field] ? 'Tap to replace' : 'Tap to upload'}</span>
+                          <span className="text-[10px] text-gray-500">{uploading === field ? '' : form[field] ? 'Tap to replace' : 'Tap to upload'}</span>
                         </label>
                         {form[field] && uploading !== field && (
                           <button type="button" onClick={() => setField(field, '')} title={`Remove photo ${idx + 1}`}
-                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                           </button>
                         )}
                       </div>
@@ -706,14 +689,14 @@ function OrderContent() {
                 </div>
 
                 {/* Referral */}
-                <div className="glass rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Referral Code (Optional)</h3>
+                <div className="bg-white border border-gray-100 rounded-xl p-4">
+                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3">Referral Code (Optional)</h3>
                   <div>
                     <label className="label">Referral / Employee Code</label>
                     <input type="text" value={form.referralCode} onChange={(e) => setField('referralCode', e.target.value)}
                       className={`input-field ${errors.referralCode ? '!border-red-400 !ring-red-400/20' : form.referralCode && referralValid === true ? '!border-green-400 !ring-green-400/20' : ''}`} placeholder="Enter if you have one" />
-                    {errors.referralCode && <p className="text-red-500 text-xs mt-1.5">{errors.referralCode}</p>}
-                    {form.referralCode && referralValid === true && <p className="text-green-600 text-xs mt-1.5">Valid referral code</p>}
+                    {errors.referralCode && <p className="text-red-500 text-xs mt-1">{errors.referralCode}</p>}
+                    {form.referralCode && referralValid === true && <p className="text-green-600 text-xs mt-1">Valid referral code</p>}
                   </div>
                 </div>
               </div>
@@ -723,54 +706,54 @@ function OrderContent() {
           {/* Step 3 - Preview */}
           {step === 3 && selectedDesign && (
             <div className="animate-slide-up">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Preview Your Profile</h2>
-              <div className="glass-strong rounded-3xl overflow-hidden max-w-md mx-auto shadow-xl">
-                <div className="bg-gradient-to-br from-primary-600 to-primary-800 p-8 text-center text-white">
-                  <div className="w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden ring-4 ring-white/20 shadow-xl">
+              <h2 className="text-lg font-bold mb-4 text-gray-900">Preview Your Profile</h2>
+              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden max-w-sm mx-auto shadow-sm">
+                <div className="bg-gradient-to-br from-primary-600 to-primary-800 p-5 text-center text-white">
+                  <div className="w-18 h-18 rounded-full mx-auto mb-3 overflow-hidden ring-3 ring-white/20 shadow-lg" style={{width:'72px',height:'72px'}}>
                     {form.photo1 ? (
                       <img src={form.photo1} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-white/20">
+                      <div className="w-full h-full flex items-center justify-center text-2xl font-bold bg-white/20">
                         {form.fullName ? form.fullName.charAt(0) : '?'}
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-bold">{form.fullName || 'Your Name'}</h3>
-                  {form.designation && <p className="text-primary-100 mt-1 text-sm">{form.designation}</p>}
-                  {form.company && <p className="text-primary-200 text-sm mt-0.5">{form.company}</p>}
+                  <h3 className="text-base font-bold">{form.fullName || 'Your Name'}</h3>
+                  {form.designation && <p className="text-primary-100 mt-0.5 text-xs">{form.designation}</p>}
+                  {form.company && <p className="text-primary-200 text-xs mt-0.5">{form.company}</p>}
                 </div>
-                <div className="p-6 space-y-4">
-                  <div className="space-y-2.5 text-sm">
+                <div className="p-4 space-y-3">
+                  <div className="space-y-2 text-xs">
                     {form.mobile && (
-                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+                      <div className="flex items-center gap-2.5 text-gray-700 bg-gray-50 rounded-lg p-2.5">
+                        <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
                         <span>{form.mobile}</span>
                       </div>
                     )}
                     {form.email && (
-                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                      <div className="flex items-center gap-2.5 text-gray-700 bg-gray-50 rounded-lg p-2.5">
+                        <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
                         <span>{form.email}</span>
                       </div>
                     )}
                     {form.website && (
-                      <div className="flex items-center gap-3 text-gray-700 glass-subtle rounded-xl p-3">
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                      <div className="flex items-center gap-2.5 text-gray-700 bg-gray-50 rounded-lg p-2.5">
+                        <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
                         <span>{form.website}</span>
                       </div>
                     )}
                   </div>
                   {(form.instagram || form.facebook || form.linkedin) && (
-                    <div className="flex gap-2 pt-2">
-                      {form.instagram && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-pink-600">Instagram</span>}
-                      {form.facebook && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-600">Facebook</span>}
-                      {form.linkedin && <span className="px-3 py-1.5 glass-subtle rounded-full text-xs font-medium text-blue-700">LinkedIn</span>}
+                    <div className="flex gap-1.5 pt-1">
+                      {form.instagram && <span className="px-2 py-1 bg-gray-50 rounded-full text-[10px] font-medium text-pink-600">Instagram</span>}
+                      {form.facebook && <span className="px-2 py-1 bg-gray-50 rounded-full text-[10px] font-medium text-blue-600">Facebook</span>}
+                      {form.linkedin && <span className="px-2 py-1 bg-gray-50 rounded-full text-[10px] font-medium text-blue-700">LinkedIn</span>}
                     </div>
                   )}
                   {form.paymentQrUrl && (
-                    <div className="pt-2">
-                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment QR</div>
-                      <img src={form.paymentQrUrl} alt="Payment QR" className="w-24 h-24 rounded-lg object-contain bg-white border border-gray-100" />
+                    <div className="pt-1">
+                      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Payment QR</div>
+                      <img src={form.paymentQrUrl} alt="Payment QR" className="w-20 h-20 rounded-lg object-contain bg-white border border-gray-100" />
                     </div>
                   )}
                 </div>
@@ -781,18 +764,18 @@ function OrderContent() {
           {/* Step 4 - Payment */}
           {step === 4 && selectedDesign && (
             <div className="animate-slide-up">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Order Summary</h2>
-              <div className="glass-strong rounded-3xl p-8 max-w-md mx-auto shadow-xl">
-                <div className="flex items-center gap-5 mb-6 pb-6 border-b border-gray-100/60">
-                  <div className="w-20 h-12 rounded-xl flex items-center justify-center bg-white border border-gray-200/60 shadow-sm flex-shrink-0">
-                    <span className="text-xs font-bold text-gray-700">{selectedDesign.name}</span>
+              <h2 className="text-lg font-bold mb-4 text-gray-900">Order Summary</h2>
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 max-w-sm mx-auto shadow-sm">
+                <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-100">
+                  <div className="w-16 h-10 rounded-lg flex items-center justify-center bg-gray-50 border border-gray-100 flex-shrink-0">
+                    <span className="text-[10px] font-bold text-gray-700">{selectedDesign.name}</span>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{selectedDesign.name} Card</div>
-                    <div className="text-sm text-gray-400 mt-0.5">NFC Smart Card</div>
+                    <div className="font-semibold text-gray-900 text-sm">{selectedDesign.name} Card</div>
+                    <div className="text-xs text-gray-400 mt-0.5">NFC Smart Card</div>
                   </div>
                 </div>
-                <div className="space-y-3 text-sm mb-6">
+                <div className="space-y-2 text-xs mb-4">
                   <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="font-medium text-gray-900">{form.fullName}</span></div>
                   <div className="flex justify-between"><span className="text-gray-400">Email</span><span className="font-medium text-gray-900">{form.email}</span></div>
                   <div className="flex justify-between"><span className="text-gray-400">Mobile</span><span className="font-medium text-gray-900">{form.mobile}</span></div>
@@ -800,30 +783,30 @@ function OrderContent() {
                     <div className="flex justify-between"><span className="text-gray-400">Referral</span><span className="font-medium text-green-600">{form.referralCode}</span></div>
                   )}
                 </div>
-                <div className="border-t border-gray-100/60 pt-5 flex justify-between items-center">
-                  <span className="font-semibold text-lg text-gray-900">Total</span>
-                  <span className="font-bold text-2xl text-primary-600">₹{selectedDesign.price}</span>
+                <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
+                  <span className="font-semibold text-sm text-gray-900">Total</span>
+                  <span className="font-bold text-xl text-primary-600">₹{selectedDesign.price}</span>
                 </div>
               </div>
             </div>
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between mt-12 max-w-md mx-auto">
+          <div className="flex justify-between mt-8 max-w-sm mx-auto">
             {step > 1 ? (
-              <button onClick={handleBack} className="btn-secondary px-8">
+              <button onClick={handleBack} className="btn-secondary px-6 py-2.5 text-sm">
                 Back
               </button>
             ) : <div />}
             {step < 4 ? (
-              <button onClick={handleNext} className="btn-primary px-10">
+              <button onClick={handleNext} className="btn-primary px-8 py-2.5 text-sm">
                 Continue
               </button>
             ) : (
-              <button onClick={handleSubmit} disabled={submitting} className="btn-primary px-10">
+              <button onClick={handleSubmit} disabled={submitting} className="btn-primary px-8 py-2.5 text-sm">
                 {submitting ? (
                   <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                     Processing...
                   </span>
                 ) : `Pay ₹${selectedDesign?.price || 0}`}
@@ -840,9 +823,9 @@ export default function OrderPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen gradient-mesh flex items-center justify-center">
-        <div className="glass-strong rounded-3xl p-12 text-center">
-          <div className="animate-spin h-8 w-8 border-2 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-500">Loading...</p>
+        <div className="bg-white border border-gray-100 rounded-2xl p-8 text-center shadow-sm">
+          <div className="animate-spin h-6 w-6 border-2 border-primary-600 border-t-transparent rounded-full mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">Loading...</p>
         </div>
       </div>
     }>
