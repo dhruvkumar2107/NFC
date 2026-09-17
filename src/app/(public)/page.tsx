@@ -47,7 +47,7 @@ export default async function HomePage() {
     <div>
       {/* ─── HERO BANNER ─── */}
       <HeroBanner>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[700px] lg:min-h-[780px] flex items-center">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[500px] lg:min-h-[600px] flex items-center">
           <div className="w-full max-w-3xl">
 
             {/* ── Text Content ── */}

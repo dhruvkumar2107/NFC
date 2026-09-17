@@ -78,18 +78,19 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
   }, [])
 
   return (
-    <section className="relative w-full overflow-hidden min-h-[700px] lg:min-h-[780px] flex items-center">
+    <section className="relative w-full overflow-hidden min-h-[500px] lg:min-h-[600px] flex items-center">
       {/* Full background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/photos/hero-banner.jpeg)' }}
+      <img
+        src="/photos/hero-banner.jpeg"
+        alt="MySmartCard Designs"
+        className="absolute inset-0 w-full h-full object-contain object-center"
       />
 
       {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/30" />
 
       {/* Gradient overlay from left for text */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
       {/* Gold particle canvas */}
       <canvas
