@@ -14,19 +14,19 @@ const steps = [
 
 const features = [
   { title: 'Instant Profile Sharing', desc: 'Tap your card and share your complete profile instantly via NFC.', icon: '📡' },
-  { title: 'QR Code Access', desc: 'Two QR codes - one for your profile, one for payments.', icon: '📱' },
+  { title: 'QR Code Access', desc: 'Two QR codes — one for your profile, one for payments.', icon: '📱' },
   { title: 'Receive Payments', desc: 'Get paid directly via UPI when someone scans your payment QR.', icon: '💰' },
-  { title: 'Always Updated', desc: 'Edit your profile online - your card always shows the latest info.', icon: '🔄' },
+  { title: 'Always Updated', desc: 'Edit your profile online — your card always shows the latest info.', icon: '🔄' },
   { title: 'Premium Designs', desc: 'Choose from 11 premium PVC card designs — Velvet, Golden Lion, Diamond, and more.', icon: '✨' },
   { title: 'Digital + Physical', desc: 'Get a physical NFC card plus a shareable digital profile link.', icon: '🔗' },
 ]
 
 const faqs = [
   { q: 'How does NFC work?', a: 'Simply tap your MySmartCard on any NFC-enabled smartphone. It instantly opens your digital profile page with all your contact details, social links, and payment information.' },
-  { q: 'Can I update my profile after buying?', a: 'Yes! Your physical card never changes - it just contains a URL. You can update your profile anytime from your dashboard, and the changes appear instantly.' },
+  { q: 'Can I update my profile after buying?', a: 'Yes! Your physical card never changes — it just contains a URL. You can update your profile anytime from your dashboard, and the changes appear instantly.' },
   { q: 'How do I receive payments?', a: 'The QR code on the back of your card links to your UPI payment address. Anyone can scan it to send you money directly.' },
   { q: 'What if I am not satisfied?', a: 'We ensure high quality. If there is a manufacturing defect, we will replace your card free of cost.' },
-  { q: 'How long does delivery take?', a: 'Cards are typically delivered within 5-7 business days across India. You will receive tracking information once your card is shipped.' },
+  { q: 'How long does delivery take?', a: 'Cards are typically delivered within 5–7 business days across India. You will receive tracking information once your card is shipped.' },
   { q: 'Is my data secure?', a: 'Your NFC chip only stores a URL, never personal data. Your profile page is publicly accessible but contains only the information you choose to share.' },
 ]
 
@@ -35,6 +35,45 @@ const stats = [
   { value: '500+', label: 'Businesses Trust Us' },
   { value: '99.9%', label: 'Uptime' },
   { value: '4.9★', label: 'Customer Rating' },
+]
+
+const testimonials = [
+  {
+    name: 'Priya Sharma',
+    role: 'Freelance Graphic Designer, Mumbai',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+    text: 'MySmartCard has completely transformed how I network at design events. One tap and potential clients have my entire portfolio, Behance, and Instagram. It saves me hours of follow-up.',
+  },
+  {
+    name: 'Rahul Verma',
+    role: 'Founder, TechNova Solutions',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    text: 'As a startup founder, I meet investors and partners daily. MySmartCard makes sharing my pitch deck, LinkedIn, and calendar link effortless. It has become my most valuable networking tool.',
+  },
+  {
+    name: 'Sarah Johnson',
+    role: 'Marketing Director, Elevate Agency',
+    avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
+    text: 'We ordered MySmartCards for our entire marketing team. The premium design reflects our brand perfectly, and clients are always impressed when we tap to share contacts at conferences.',
+  },
+  {
+    name: 'Amit Patel',
+    role: 'Senior Real Estate Consultant',
+    avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
+    text: 'Best investment for my real estate business. Clients scan the QR and instantly get my property listings, contact info, and can pay via UPI. I close deals faster than ever before.',
+  },
+  {
+    name: 'James Wilson',
+    role: 'Professional Photographer, London',
+    avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
+    text: 'The dual QR system is brilliant. One code links to my portfolio gallery, the other to my payment page. Every client comment on how sleek and professional the card looks.',
+  },
+  {
+    name: 'Emily Chen',
+    role: 'Event Coordinator, Luxe Events',
+    avatar: 'https://randomuser.me/api/portraits/women/90.jpg',
+    text: 'At every industry event I attend, people ask about my card. It is an incredible conversation starter and has helped me land three major clients in just two months. Highly recommend.',
+  },
 ]
 
 export default async function HomePage() {
@@ -55,16 +94,17 @@ export default async function HomePage() {
               <ScrollReveal>
                 <Link
                   href="/order"
-                  className="group inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-gray-950 transition-all duration-300 min-h-[48px]"
+                  className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl font-bold text-[15px] sm:text-base text-gray-950 transition-all duration-300 min-h-[52px] overflow-hidden hover:scale-[1.03] active:scale-[0.98]"
                   style={{
                     background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
-                    boxShadow: '0 2px 12px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)'
+                    boxShadow: '0 4px 20px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
                   }}
                 >
-                  Get Your MySmartCard
-                  <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <span className="relative z-10">Get Your MySmartCard</span>
+                  <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </Link>
               </ScrollReveal>
             </div>
@@ -73,7 +113,23 @@ export default async function HomePage() {
         </div>
       </HeroBanner>
 
-      {/* How it Works */}
+      {/* ─── STATS ─── */}
+      <section className="py-16 sm:py-20 bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((s, i) => (
+              <ScrollReveal key={s.label} delay={i * 100} direction="up">
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-1">{s.value}</div>
+                  <div className="text-sm text-gray-500 font-medium">{s.label}</div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── HOW IT WORKS ─── */}
       <section className="py-28 sm:py-36 gradient-mesh relative">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary-100/40 rounded-full blur-3xl -translate-y-1/2" />
         <div className="relative max-w-6xl mx-auto px-6">
@@ -105,7 +161,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* How NFC Works */}
+      {/* ─── HOW NFC WORKS ─── */}
       <section className="py-28 sm:py-36 bg-white relative">
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-primary-50/60 rounded-full blur-3xl translate-y-1/2" />
         <div className="relative max-w-6xl mx-auto px-6">
@@ -154,7 +210,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* ─── FEATURES ─── */}
       <section className="py-28 sm:py-36 gradient-mesh relative">
         <div className="absolute top-20 left-0 w-72 h-72 bg-primary-100/30 rounded-full blur-3xl" />
         <div className="relative max-w-6xl mx-auto px-6">
@@ -181,7 +237,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* QR + UPI Section */}
+      {/* ─── DUAL QR CODE SYSTEM ─── */}
       <section className="py-28 sm:py-36 bg-white relative">
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-primary-50/60 rounded-full blur-3xl translate-y-1/2" />
         <div className="relative max-w-6xl mx-auto px-6">
@@ -226,7 +282,7 @@ export default async function HomePage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">QR #1 - Your Profile</h4>
+                      <h4 className="font-semibold text-gray-900 mb-1">QR #1 — Your Profile</h4>
                       <p className="text-gray-400 text-sm leading-relaxed">Opens your digital profile with all your contact details, social links, and about information.</p>
                     </div>
                   </div>
@@ -237,7 +293,7 @@ export default async function HomePage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">QR #2 - UPI Payment</h4>
+                      <h4 className="font-semibold text-gray-900 mb-1">QR #2 — UPI Payment</h4>
                       <p className="text-gray-400 text-sm leading-relaxed">Opens a UPI payment request with your UPI ID pre-filled. Anyone can scan and pay you instantly.</p>
                     </div>
                   </div>
@@ -248,8 +304,54 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* ─── TESTIMONIALS ─── */}
       <section className="py-28 sm:py-36 gradient-mesh relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-50/40 rounded-full blur-3xl" />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <ScrollReveal>
+            <div className="text-center mb-20">
+              <p className="text-sm font-semibold text-primary-600 tracking-widest uppercase mb-4">Testimonials</p>
+              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900">Trusted by Professionals</h2>
+              <div className="w-20 h-1 bg-gradient-to-r from-primary-400 to-primary-600 mx-auto mt-6 rounded-full" />
+            </div>
+          </ScrollReveal>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <ScrollReveal key={t.name} delay={i * 80} direction="up">
+                <div className="bg-white rounded-2xl p-7 border border-gray-100 shadow-[0_2px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 group h-full flex flex-col">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(5)].map((_, s) => (
+                      <svg key={s} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <div className="relative mb-5 flex-1">
+                    <svg className="absolute -top-1 -left-1 w-8 h-8 text-primary-100" fill="currentColor" viewBox="0 0 32 32">
+                      <path d="M10 8c-3.3 0-6 2.7-6 6v10h10V14H8c0-1.1.9-2 2-2V8zm18 0c-3.3 0-6 2.7-6 6v10h10V14h-6c0-1.1.9-2 2-2V8z" />
+                    </svg>
+                    <p className="text-gray-600 text-sm leading-relaxed pl-3">{t.text}</p>
+                  </div>
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
+                    <img
+                      src={t.avatar}
+                      alt={t.name}
+                      className="w-11 h-11 rounded-full object-cover ring-2 ring-primary-50 group-hover:ring-primary-200 transition-all duration-300"
+                    />
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm">{t.name}</h4>
+                      <p className="text-gray-400 text-xs">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FAQ ─── */}
+      <section className="py-28 sm:py-36 bg-white relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-50/40 rounded-full blur-3xl" />
         <div className="relative max-w-3xl mx-auto px-6">
           <ScrollReveal>
@@ -272,85 +374,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-28 sm:py-36 bg-white relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-50/40 rounded-full blur-3xl" />
-        <div className="relative max-w-6xl mx-auto px-6">
-          <ScrollReveal>
-            <div className="text-center mb-20">
-              <p className="text-sm font-semibold text-primary-600 tracking-widest uppercase mb-4">Testimonials</p>
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900">What Our Customers Say</h2>
-              <div className="w-20 h-1 bg-gradient-to-r from-primary-400 to-primary-600 mx-auto mt-6 rounded-full" />
-            </div>
-          </ScrollReveal>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                name: 'Priya Sharma',
-                role: 'Freelance Designer',
-                avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-                text: 'MySmartCard has completely changed how I network at events. One tap and clients have all my portfolio links. Absolutely love it!',
-              },
-              {
-                name: 'Rahul Verma',
-                role: 'Startup Founder',
-                avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-                text: 'As a founder, I meet investors daily. MySmartCard makes sharing my pitch deck and LinkedIn effortless. Worth every penny.',
-              },
-              {
-                name: 'Sarah Johnson',
-                role: 'Marketing Manager',
-                avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
-                text: 'I bought this for my whole team. The design is premium and clients are always impressed when I tap my card. Highly recommended!',
-              },
-              {
-                name: 'Amit Patel',
-                role: 'Real Estate Agent',
-                avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
-                text: 'Best investment for my business. Clients scan the QR and instantly get my listings and contact info. Close deals faster than ever.',
-              },
-              {
-                name: 'James Wilson',
-                role: 'Photographer',
-                avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
-                text: 'The dual QR system is genius. One for my portfolio, one for payments. Clients love the simplicity and the card looks amazing.',
-              },
-              {
-                name: 'Emily Chen',
-                role: 'Event Planner',
-                avatar: 'https://randomuser.me/api/portraits/women/90.jpg',
-                text: 'Every event I attend, people ask about my card. It is a conversation starter and a networking tool all in one. MySmartCard is the future!',
-              },
-            ].map((t, i) => (
-              <ScrollReveal key={t.name} delay={i * 80} direction="up">
-                <div className="card group hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-center gap-4 mb-5">
-                    <img
-                      src={t.avatar}
-                      alt={t.name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-primary-100 group-hover:border-primary-300 transition-all duration-300"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{t.name}</h4>
-                      <p className="text-primary-600 text-sm">{t.role}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 mb-3">
-                    {[...Array(5)].map((_, s) => (
-                      <svg key={s} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <p className="text-gray-500 text-sm leading-relaxed">{t.text}</p>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
+      {/* ─── CTA ─── */}
       <section className="relative overflow-hidden gradient-hero text-white py-28 sm:py-36">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-10 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
@@ -359,7 +383,7 @@ export default async function HomePage() {
         <div className="relative max-w-3xl mx-auto px-6 text-center">
           <ScrollReveal>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6">Ready to Go Digital?</h2>
-            <p className="text-white/70 mb-12 text-lg leading-relaxed">Get your MySmartCard today and start sharing your profile with a tap.</p>
+            <p className="text-white/70 mb-12 text-lg leading-relaxed">Join 10,000+ professionals who network smarter with MySmartCard.</p>
             <Link href="/order" className="glass-strong text-gray-900 px-12 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-all duration-300 shadow-glass-lg hover:shadow-glass-xl hover:-translate-y-0.5 inline-block">
               Order Now
             </Link>
@@ -367,7 +391,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Contact */}
+      {/* ─── CONTACT ─── */}
       <section className="py-28 sm:py-36 bg-white relative">
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-primary-100/30 rounded-full blur-3xl translate-y-1/2" />
         <div className="relative max-w-3xl mx-auto px-6 text-center">
