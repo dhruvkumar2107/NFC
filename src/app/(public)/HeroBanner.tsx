@@ -2,17 +2,6 @@
 
 import { useEffect, useRef } from 'react'
 
-const cardImages = [
-  { src: '/photos/golden-lion-front.jpeg', alt: 'Golden Lion' },
-  { src: '/photos/velvet-front.jpeg', alt: 'Velvet Red' },
-  { src: '/photos/silver-front.jpeg', alt: 'Silver' },
-  { src: '/photos/fire-lion-front.jpeg', alt: 'Fire Lion' },
-  { src: '/photos/diamond-front.jpeg', alt: 'Diamond' },
-  { src: '/photos/wooden-front.jpeg', alt: 'Wooden' },
-  { src: '/photos/glass-transparent-front.jpeg', alt: 'Glass' },
-  { src: '/photos/fish-aquarium-front.jpeg', alt: 'Aquarium' },
-]
-
 export default function HeroBanner({ children }: { children: React.ReactNode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -33,14 +22,14 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
     resize()
     window.addEventListener('resize', resize)
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 40; i++) {
       particles.push({
         x: Math.random() * canvas.offsetWidth,
         y: Math.random() * canvas.offsetHeight,
         vx: (Math.random() - 0.5) * 0.3,
         vy: (Math.random() - 0.5) * 0.3,
         size: Math.random() * 2 + 0.5,
-        opacity: Math.random() * 0.5 + 0.1,
+        opacity: Math.random() * 0.4 + 0.1,
       })
     }
 
@@ -58,7 +47,7 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
 
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`
+        ctx.fillStyle = `rgba(255, 215, 0, ${p.opacity})`
         ctx.fill()
       })
 
@@ -67,11 +56,11 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
           const dx = particles[i].x - particles[j].x
           const dy = particles[i].y - particles[j].y
           const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 120) {
+          if (dist < 100) {
             ctx.beginPath()
             ctx.moveTo(particles[i].x, particles[i].y)
             ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.strokeStyle = `rgba(212, 175, 55, ${0.08 * (1 - dist / 120)})`
+            ctx.strokeStyle = `rgba(255, 215, 0, ${0.06 * (1 - dist / 100)})`
             ctx.lineWidth = 0.5
             ctx.stroke()
           }
@@ -89,84 +78,27 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
   }, [])
 
   return (
-    <section className="hero-banner-section relative w-full overflow-hidden min-h-[700px] lg:min-h-[780px] flex items-center">
-      {/* Dark premium background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950" />
+    <section className="relative w-full overflow-hidden min-h-[700px] lg:min-h-[780px] flex items-center">
+      {/* Full background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/photos/hero-banner.jpeg)' }}
+      />
 
-      {/* Animated mesh gradient */}
-      <div className="absolute inset-0 opacity-40">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[120px] animate-hero-glow" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-amber-600/10 rounded-full blur-[100px] animate-hero-glow" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-amber-500/8 via-transparent to-amber-500/8 rounded-full blur-[80px]" />
-      </div>
+      {/* Dark overlay for text readability */}
+      <div className="absolute inset-0 bg-black/40" />
+
+      {/* Gradient overlay from left for text */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
 
       {/* Gold particle canvas */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+        className="absolute inset-0 w-full h-full pointer-events-none z-[3]"
       />
 
-      {/* Card collage background */}
-      <div className="absolute inset-0 z-[2] overflow-hidden">
-        {/* Top row - scattered cards */}
-        <div className="hero-collage-row absolute top-[5%] left-0 w-full flex justify-around opacity-[0.07] pointer-events-none">
-          {cardImages.slice(0, 4).map((img, i) => (
-            <div
-              key={img.src}
-              className="hero-collage-card"
-              style={{
-                animationDelay: `${i * 0.5}s`,
-                transform: `rotate(${-8 + i * 5}deg) translateY(${i % 2 === 0 ? -10 : 10}px)`,
-              }}
-            >
-              <img src={img.src} alt={img.alt} className="w-[180px] lg:w-[220px] rounded-xl" />
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom row - scattered cards */}
-        <div className="hero-collage-row absolute bottom-[5%] left-0 w-full flex justify-around opacity-[0.06] pointer-events-none">
-          {cardImages.slice(4, 8).map((img, i) => (
-            <div
-              key={img.src}
-              className="hero-collage-card"
-              style={{
-                animationDelay: `${i * 0.7 + 1}s`,
-                transform: `rotate(${5 - i * 4}deg) translateY(${i % 2 === 0 ? 8 : -8}px)`,
-              }}
-            >
-              <img src={img.src} alt={img.alt} className="w-[160px] lg:w-[200px] rounded-xl" />
-            </div>
-          ))}
-        </div>
-
-        {/* Side cards */}
-        <div className="hidden lg:block absolute left-[-40px] top-1/2 -translate-y-1/2 opacity-[0.05] pointer-events-none">
-          <div className="hero-collage-card" style={{ transform: 'rotate(-12deg)' }}>
-            <img src="/photos/golden-lion-front.jpeg" alt="" className="w-[200px] rounded-xl" />
-          </div>
-        </div>
-        <div className="hidden lg:block absolute right-[-40px] top-1/2 -translate-y-1/2 opacity-[0.05] pointer-events-none">
-          <div className="hero-collage-card" style={{ transform: 'rotate(12deg)' }}>
-            <img src="/photos/fire-lion-front.jpeg" alt="" className="w-[200px] rounded-xl" />
-          </div>
-        </div>
-      </div>
-
-      {/* Noise texture overlay */}
-      <div className="absolute inset-0 z-[3] noise" />
-
-      {/* Gold shimmer lines */}
-      <div className="absolute inset-0 z-[3] overflow-hidden pointer-events-none">
-        <div className="hero-shimmer-line absolute top-[20%] left-[-100%] w-[200%] h-[1px] bg-gradient-to-r from-transparent via-amber-400/20 to-transparent" />
-        <div className="hero-shimmer-line absolute top-[50%] left-[-100%] w-[200%] h-[1px] bg-gradient-to-r from-transparent via-amber-500/15 to-transparent" style={{ animationDelay: '3s' }} />
-        <div className="hero-shimmer-line absolute top-[80%] left-[-100%] w-[200%] h-[1px] bg-gradient-to-r from-transparent via-amber-400/10 to-transparent" style={{ animationDelay: '6s' }} />
-      </div>
-
-      {/* Vignette */}
-      <div className="absolute inset-0 z-[4] pointer-events-none" style={{
-        background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)'
-      }} />
+      {/* Bottom gradient fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent z-[3]" />
 
       {/* Content */}
       <div className="relative z-[5] w-full">
