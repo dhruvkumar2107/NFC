@@ -51,7 +51,7 @@ export default async function HomePage() {
           <div className="w-full max-w-3xl">
 
             {/* ── CTA Button ── */}
-            <div className="flex justify-center lg:justify-start mt-32 sm:mt-40">
+            <div className="flex justify-center lg:justify-start mt-52 sm:mt-40">
               <ScrollReveal>
                 <Link
                   href="/order"
