@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import ScrollReveal from './ScrollReveal'
-import HeroCards from './HeroCards'
 import HeroBanner from './HeroBanner'
 
 export const dynamic = 'force-dynamic'
@@ -49,10 +48,10 @@ export default async function HomePage() {
       {/* ─── HERO BANNER ─── */}
       <HeroBanner>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[700px] lg:min-h-[780px] flex items-center">
-          <div className="grid lg:grid-cols-[38fr_62fr] gap-10 lg:gap-12 items-center w-full">
+          <div className="w-full max-w-3xl">
 
-            {/* ── Left: Text Content ── */}
-            <div className="text-center lg:text-left order-2 lg:order-1">
+            {/* ── Text Content ── */}
+            <div className="text-center lg:text-left">
               <ScrollReveal>
                 <p className="text-[11px] sm:text-xs font-bold tracking-[0.25em] uppercase text-amber-400/80 mb-4 sm:mb-5">
                   SMARTER CONNECTIONS
@@ -90,14 +89,6 @@ export default async function HomePage() {
                   </svg>
                   NFC + QR Enabled
                 </div>
-              </ScrollReveal>
-            </div>
-
-            {/* ── Right: 3×2 Card Grid ── */}
-            <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
-              <ScrollReveal direction="right">
-                <HeroCards desktop={true} />
-                <HeroCards desktop={false} />
               </ScrollReveal>
             </div>
 
