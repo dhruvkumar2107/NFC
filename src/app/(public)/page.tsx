@@ -47,11 +47,11 @@ export default async function HomePage() {
     <div>
       {/* ─── HERO BANNER ─── */}
       <HeroBanner>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[900px] lg:min-h-[600px] flex items-center">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[900px] lg:min-h-[800px] flex items-center">
           <div className="w-full max-w-3xl">
 
             {/* ── CTA Button ── */}
-            <div className="flex justify-center lg:justify-start mt-[38rem] sm:mt-40">
+            <div className="flex justify-center lg:justify-start mt-[38rem] sm:mt-[28rem]">
               <ScrollReveal>
                 <Link
                   href="/order"
@@ -265,6 +265,84 @@ export default async function HomePage() {
                 <div className="card">
                   <h3 className="font-semibold text-gray-900 mb-3">{f.q}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed">{f.a}</p>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-28 sm:py-36 bg-white relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-50/40 rounded-full blur-3xl" />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <ScrollReveal>
+            <div className="text-center mb-20">
+              <p className="text-sm font-semibold text-primary-600 tracking-widest uppercase mb-4">Testimonials</p>
+              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900">What Our Customers Say</h2>
+              <div className="w-20 h-1 bg-gradient-to-r from-primary-400 to-primary-600 mx-auto mt-6 rounded-full" />
+            </div>
+          </ScrollReveal>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                name: 'Priya Sharma',
+                role: 'Freelance Designer',
+                avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+                text: 'MySmartCard has completely changed how I network at events. One tap and clients have all my portfolio links. Absolutely love it!',
+              },
+              {
+                name: 'Rahul Verma',
+                role: 'Startup Founder',
+                avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+                text: 'As a founder, I meet investors daily. MySmartCard makes sharing my pitch deck and LinkedIn effortless. Worth every penny.',
+              },
+              {
+                name: 'Sarah Johnson',
+                role: 'Marketing Manager',
+                avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
+                text: 'I bought this for my whole team. The design is premium and clients are always impressed when I tap my card. Highly recommended!',
+              },
+              {
+                name: 'Amit Patel',
+                role: 'Real Estate Agent',
+                avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
+                text: 'Best investment for my business. Clients scan the QR and instantly get my listings and contact info. Close deals faster than ever.',
+              },
+              {
+                name: 'James Wilson',
+                role: 'Photographer',
+                avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
+                text: 'The dual QR system is genius. One for my portfolio, one for payments. Clients love the simplicity and the card looks amazing.',
+              },
+              {
+                name: 'Emily Chen',
+                role: 'Event Planner',
+                avatar: 'https://randomuser.me/api/portraits/women/90.jpg',
+                text: 'Every event I attend, people ask about my card. It is a conversation starter and a networking tool all in one. MySmartCard is the future!',
+              },
+            ].map((t, i) => (
+              <ScrollReveal key={t.name} delay={i * 80} direction="up">
+                <div className="card group hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-center gap-4 mb-5">
+                    <img
+                      src={t.avatar}
+                      alt={t.name}
+                      className="w-14 h-14 rounded-full object-cover border-2 border-primary-100 group-hover:border-primary-300 transition-all duration-300"
+                    />
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{t.name}</h4>
+                      <p className="text-primary-600 text-sm">{t.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 mb-3">
+                    {[...Array(5)].map((_, s) => (
+                      <svg key={s} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-gray-500 text-sm leading-relaxed">{t.text}</p>
                 </div>
               </ScrollReveal>
             ))}

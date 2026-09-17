@@ -78,7 +78,7 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
   }, [])
 
   return (
-    <section className="relative w-full overflow-hidden min-h-[500px] lg:min-h-[600px] flex items-center">
+    <section className="relative w-full overflow-hidden min-h-[500px] lg:min-h-[800px] flex items-center">
       {/* Full background image */}
       <img
         src="/photos/hero-banner.jpeg"
@@ -87,10 +87,10 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
       />
 
       {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/15" />
 
       {/* Gradient overlay from left for text */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
 
       {/* Gold particle canvas */}
       <canvas
