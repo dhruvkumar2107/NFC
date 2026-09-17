@@ -58,6 +58,11 @@ const config: Config = {
         'rotate-slow': 'rotate-slow 20s linear infinite',
         'gradient-x': 'gradient-x 6s ease infinite',
         'spin-slow': 'spin 12s linear infinite',
+        'float-hero-col-1': 'float-hero-col 5.5s ease-in-out infinite',
+        'float-hero-col-2': 'float-hero-col 6.5s ease-in-out infinite 0.4s',
+        'float-hero-col-3': 'float-hero-col 7.5s ease-in-out infinite 0.8s',
+        'hero-glow': 'hero-glow 4s ease-in-out infinite',
+        'hero-label-in': 'hero-label-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       },
       keyframes: {
         float: {
@@ -115,6 +120,18 @@ const config: Config = {
         'gradient-x': {
           '0%, 100%': { backgroundPosition: '0% 50%' },
           '50%': { backgroundPosition: '100% 50%' },
+        },
+        'float-hero-col': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-14px)' },
+        },
+        'hero-glow': {
+          '0%, 100%': { opacity: '0.3', transform: 'scale(1)' },
+          '50%': { opacity: '0.6', transform: 'scale(1.08)' },
+        },
+        'hero-label-in': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },

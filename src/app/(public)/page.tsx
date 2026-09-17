@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import ScrollReveal from './ScrollReveal'
+import HeroCards from './HeroCards'
+import HeroBanner from './HeroBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,32 +47,35 @@ export default async function HomePage() {
   return (
     <div>
       {/* ─── HERO BANNER ─── */}
-      <section className="relative w-full bg-white">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <HeroBanner>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[700px] lg:min-h-[780px] flex items-center">
+          <div className="grid lg:grid-cols-[38fr_62fr] gap-10 lg:gap-12 items-center w-full">
 
             {/* ── Left: Text Content ── */}
             <div className="text-center lg:text-left order-2 lg:order-1">
               <ScrollReveal>
-                <p className="text-[11px] sm:text-xs font-bold tracking-[0.25em] uppercase text-gray-400 mb-5 sm:mb-6">
+                <p className="text-[11px] sm:text-xs font-bold tracking-[0.25em] uppercase text-amber-400/80 mb-4 sm:mb-5">
                   SMARTER CONNECTIONS
                 </p>
 
-                <h1 className="font-extrabold text-gray-900 leading-[1.08] tracking-tight mb-5 sm:mb-6"
-                  style={{ fontSize: 'clamp(2rem, 4.5vw, 3.4rem)' }}>
+                <h1 className="font-extrabold text-white leading-[1.08] tracking-tight mb-5 sm:mb-6"
+                  style={{ fontSize: 'clamp(2rem, 4vw, 3.2rem)' }}>
                   Your Digital Identity.<br />One Tap Away.
                 </h1>
 
-                <p className="text-gray-500 leading-relaxed max-w-lg mx-auto lg:mx-0 mb-8 sm:mb-10"
-                  style={{ fontSize: 'clamp(0.875rem, 1.6vw, 1.05rem)' }}>
+                <p className="text-gray-300 leading-relaxed max-w-md mx-auto lg:mx-0 mb-7 sm:mb-9"
+                  style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1rem)' }}>
                   Share your profile, social links, contact details and business information instantly with one smart card.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-10 justify-center lg:justify-start">
                   <Link
                     href="/order"
-                    className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-white bg-gray-900 hover:bg-gray-800 transition-all duration-300 min-h-[50px]"
-                    style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                    className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-gray-950 transition-all duration-300 min-h-[48px]"
+                    style={{
+                      background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
+                      boxShadow: '0 2px 12px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)'
+                    }}
                   >
                     Get Your MySmartCard
                     <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -79,8 +84,8 @@ export default async function HomePage() {
                   </Link>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wider uppercase text-gray-500 bg-gray-50 border border-gray-100">
-                  <svg className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-amber-300/70 bg-white/5 border border-white/10 backdrop-blur-sm">
+                  <svg className="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" />
                   </svg>
                   NFC + QR Enabled
@@ -91,81 +96,14 @@ export default async function HomePage() {
             {/* ── Right: 3×2 Card Grid ── */}
             <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
               <ScrollReveal direction="right">
-                {/* Desktop: 3 columns × 2 rows */}
-                <div className="hidden sm:grid grid-cols-3 gap-5 sm:gap-6 lg:gap-7">
-
-                  {/* ── Column 1: Diamond ── */}
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-[140px] lg:w-[160px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/diamond-front.jpeg" alt="Diamond Front" className="w-full h-auto block" />
-                    </div>
-                    <div className="w-[140px] lg:w-[160px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/diamond-back.jpeg" alt="Diamond Back" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] uppercase text-gray-400 mt-1">LUXURY DIAMOND</span>
-                  </div>
-
-                  {/* ── Column 2: Glass ── */}
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-[140px] lg:w-[160px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/glass-transparent-front.jpeg" alt="Glass Front" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <div className="w-[140px] lg:w-[160px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/glass-transparent-back.jpeg" alt="Glass Back" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] uppercase text-gray-400 mt-1">MODERN GLASS</span>
-                  </div>
-
-                  {/* ── Column 3: Silver ── */}
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-[140px] lg:w-[160px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/silver-front.jpeg" alt="Silver Front" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <div className="w-[140px] lg:w-[160px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/silver-back.jpeg" alt="Silver Back" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] uppercase text-gray-400 mt-1">PROFESSIONAL SILVER</span>
-                  </div>
-                </div>
-
-                {/* Mobile: 2 columns, 3 rows (all 6 cards visible) */}
-                <div className="sm:hidden grid grid-cols-2 gap-4">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-full max-w-[150px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 14px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/diamond-front.jpeg" alt="Diamond Front" className="w-full h-auto block" />
-                    </div>
-                    <div className="w-full max-w-[150px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 14px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/diamond-back.jpeg" alt="Diamond Back" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <span className="text-[9px] font-semibold tracking-[0.12em] uppercase text-gray-400 mt-0.5">LUXURY DIAMOND</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-full max-w-[150px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 14px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/glass-transparent-front.jpeg" alt="Glass Front" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <div className="w-full max-w-[150px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 14px rgba(0,0,0,0.08)' }}>
-                      <img src="/photos/glass-transparent-back.jpeg" alt="Glass Back" className="w-full h-auto block" loading="lazy" />
-                    </div>
-                    <span className="text-[9px] font-semibold tracking-[0.12em] uppercase text-gray-400 mt-0.5">MODERN GLASS</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-2 col-span-2">
-                    <div className="flex gap-4 justify-center">
-                      <div className="w-[140px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 14px rgba(0,0,0,0.08)' }}>
-                        <img src="/photos/silver-front.jpeg" alt="Silver Front" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                      <div className="w-[140px] rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 14px rgba(0,0,0,0.08)' }}>
-                        <img src="/photos/silver-back.jpeg" alt="Silver Back" className="w-full h-auto block" loading="lazy" />
-                      </div>
-                    </div>
-                    <span className="text-[9px] font-semibold tracking-[0.12em] uppercase text-gray-400 mt-0.5">PROFESSIONAL SILVER</span>
-                  </div>
-                </div>
+                <HeroCards desktop={true} />
+                <HeroCards desktop={false} />
               </ScrollReveal>
             </div>
 
           </div>
         </div>
-      </section>
+      </HeroBanner>
 
       {/* How it Works */}
       <section className="py-28 sm:py-36 gradient-mesh relative">
