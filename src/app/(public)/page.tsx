@@ -50,45 +50,22 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[500px] lg:min-h-[600px] flex items-center">
           <div className="w-full max-w-3xl">
 
-            {/* ── Text Content ── */}
-            <div className="text-center lg:text-left">
+            {/* ── CTA Button ── */}
+            <div className="flex justify-center lg:justify-start mt-32 sm:mt-40">
               <ScrollReveal>
-                <p className="text-[11px] sm:text-xs font-bold tracking-[0.25em] uppercase text-amber-400/80 mb-4 sm:mb-5">
-                  SMARTER CONNECTIONS
-                </p>
-
-                <h1 className="font-extrabold text-white leading-[1.08] tracking-tight mb-5 sm:mb-6"
-                  style={{ fontSize: 'clamp(2rem, 4vw, 3.2rem)' }}>
-                  Your Digital Identity.<br />One Tap Away.
-                </h1>
-
-                <p className="text-gray-300 leading-relaxed max-w-md mx-auto lg:mx-0 mb-7 sm:mb-9"
-                  style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1rem)' }}>
-                  Share your profile, social links, contact details and business information instantly with one smart card.
-                </p>
-
-                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-8 sm:mb-10 justify-center lg:justify-start">
-                  <Link
-                    href="/order"
-                    className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-gray-950 transition-all duration-300 min-h-[48px]"
-                    style={{
-                      background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
-                      boxShadow: '0 2px 12px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)'
-                    }}
-                  >
-                    Get Your MySmartCard
-                    <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </Link>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-amber-300/70 bg-white/5 border border-white/10 backdrop-blur-sm">
-                  <svg className="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0" />
+                <Link
+                  href="/order"
+                  className="group inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-semibold text-sm sm:text-[15px] text-gray-950 transition-all duration-300 min-h-[48px]"
+                  style={{
+                    background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
+                    boxShadow: '0 2px 12px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)'
+                  }}
+                >
+                  Get Your MySmartCard
+                  <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
-                  NFC + QR Enabled
-                </div>
+                </Link>
               </ScrollReveal>
             </div>
 
