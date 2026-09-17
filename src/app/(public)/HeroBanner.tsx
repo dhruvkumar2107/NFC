@@ -99,7 +99,7 @@ export default function HeroBanner({ children }: { children: React.ReactNode }) 
       />
 
       {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent z-[3]" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/25 to-transparent z-[3]" />
 
       {/* Content */}
       <div className="relative z-[5] w-full">
