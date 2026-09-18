@@ -87,7 +87,7 @@ export default async function HomePage() {
       {/* ─── MOBILE BANNER (visible only on mobile/tablet) ─── */}
       <section className="md:hidden w-full">
         <img
-          src="/photos/mobile-banner.jpeg"
+          src="/photos/mobile-banner.png"
           alt="MySmartCard Designs"
           className="w-full h-auto block"
         />
