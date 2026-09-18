@@ -91,6 +91,22 @@ export default async function HomePage() {
           alt="MySmartCard Designs"
           className="w-full h-auto block"
         />
+        <div className="flex justify-center -mt-4 pb-6 px-6">
+          <Link
+            href="/order"
+            className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl font-bold text-[15px] text-gray-950 transition-all duration-300 min-h-[52px] overflow-hidden hover:scale-[1.03] active:scale-[0.98] w-full max-w-sm"
+            style={{
+              background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
+              boxShadow: '0 4px 20px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
+            }}
+          >
+            <span className="relative z-10">Buy Now</span>
+            <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+          </Link>
+        </div>
       </section>
 
       {/* ─── HERO BANNER (visible only on desktop) ─── */}
