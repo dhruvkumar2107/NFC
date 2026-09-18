@@ -74,7 +74,7 @@ export default function AdminSettingsPage() {
         <h2 className="font-semibold text-lg mb-4">Account Info</h2>
         <div className="space-y-2 text-sm">
           <div><span className="text-gray-500">Name:</span> <span className="font-medium">{admin?.name || 'System Admin'}</span></div>
-          <div><span className="text-gray-500">Email:</span> <span className="font-medium">{admin?.email || 'admin@mysmartcard.net'}</span></div>
+          <div><span className="text-gray-500">Email:</span> <span className="font-medium">{admin?.email || 'contact@mysmartcard.net'}</span></div>
           <div><span className="text-gray-500">Role:</span> <span className="font-medium">Super Admin</span></div>
         </div>
       </div>
