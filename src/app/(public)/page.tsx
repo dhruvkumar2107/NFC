@@ -84,34 +84,45 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* ─── HERO BANNER ─── */}
-      <HeroBanner>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[900px] lg:min-h-[800px] flex items-center">
-          <div className="w-full max-w-3xl">
+      {/* ─── MOBILE BANNER (visible only on mobile/tablet) ─── */}
+      <section className="md:hidden w-full">
+        <img
+          src="/photos/mobile-banner.jpeg"
+          alt="MySmartCard Designs"
+          className="w-full h-auto block"
+        />
+      </section>
 
-            {/* ── CTA Button ── */}
-            <div className="flex justify-center lg:justify-start mt-[38rem] sm:mt-[28rem]">
-              <ScrollReveal>
-                <Link
-                  href="/order"
-                  className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl font-bold text-[15px] sm:text-base text-gray-950 transition-all duration-300 min-h-[52px] overflow-hidden hover:scale-[1.03] active:scale-[0.98]"
-                  style={{
-                    background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
-                    boxShadow: '0 4px 20px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
-                  }}
-                >
-                  <span className="relative z-10">Get Your MySmartCard</span>
-                  <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                </Link>
-              </ScrollReveal>
+      {/* ─── HERO BANNER (visible only on desktop) ─── */}
+      <div className="hidden md:block">
+        <HeroBanner>
+          <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 sm:py-16 lg:py-20 min-h-[900px] lg:min-h-[800px] flex items-center">
+            <div className="w-full max-w-3xl">
+
+              {/* ── CTA Button ── */}
+              <div className="flex justify-center lg:justify-start mt-[38rem] sm:mt-[28rem]">
+                <ScrollReveal>
+                  <Link
+                    href="/order"
+                    className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl font-bold text-[15px] sm:text-base text-gray-950 transition-all duration-300 min-h-[52px] overflow-hidden hover:scale-[1.03] active:scale-[0.98]"
+                    style={{
+                      background: 'linear-gradient(135deg, #d4a017 0%, #f0c040 40%, #d4a017 100%)',
+                      boxShadow: '0 4px 20px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
+                    }}
+                  >
+                    <span className="relative z-10">Get Your MySmartCard</span>
+                    <svg className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                  </Link>
+                </ScrollReveal>
+              </div>
+
             </div>
-
           </div>
-        </div>
-      </HeroBanner>
+        </HeroBanner>
+      </div>
 
       {/* ─── STATS ─── */}
       <section className="py-16 sm:py-20 bg-white border-b border-gray-100">
@@ -403,8 +414,8 @@ export default async function HomePage() {
           <div className="grid sm:grid-cols-3 gap-6">
             {[
               { icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>, label: 'Email', value: 'support@mysmartcard.net' },
-              { icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>, label: 'Phone', value: '+91 98765 43210' },
-              { icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>, label: 'WhatsApp', value: '+91 98765 43210' },
+              { icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>, label: 'Phone', value: '+91 90193 34845' },
+              { icon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>, label: 'WhatsApp', value: '+91 90193 34845' },
             ].map((c, i) => (
               <ScrollReveal key={c.label} delay={i * 100} direction="up">
                 <div className="card text-center group py-8">
