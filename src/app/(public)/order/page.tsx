@@ -28,6 +28,9 @@ interface OrderForm {
   photo1: string
   photo2: string
   photo3: string
+  photo4: string
+  photo5: string
+  photo6: string
 }
 
 const initialForm: OrderForm = {
@@ -35,7 +38,7 @@ const initialForm: OrderForm = {
   email: '', website: '', instagram: '', facebook: '', linkedin: '',
   address: '', taluk: '', city: '', state: '', pincode: '',
   logoUrl: '', paymentQrUrl: '', referralCode: '',
-  photo1: '', photo2: '', photo3: '',
+  photo1: '', photo2: '', photo3: '', photo4: '', photo5: '', photo6: '',
 }
 
 import { compressImage } from '@/lib/compress-image'
@@ -142,7 +145,7 @@ function OrderContent() {
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
-      const photos = [form.photo1, form.photo2, form.photo3].filter(p => p.trim())
+      const photos = [form.photo1, form.photo2, form.photo3, form.photo4, form.photo5, form.photo6].filter(p => p.trim())
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -639,10 +642,10 @@ function OrderContent() {
                 {/* Photos */}
                 <div className="bg-white border border-gray-100 rounded-xl p-4">
                   <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Photos</h3>
-                  <p className="text-[10px] text-gray-400 mb-3">Upload up to 3 photos of yourself for your digital profile card</p>
+                  <p className="text-[10px] text-gray-400 mb-3">Upload up to 6 photos of yourself for your digital profile card</p>
                   {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs mb-2 ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-                  <div className="grid sm:grid-cols-3 gap-3">
-                    {(['photo1', 'photo2', 'photo3'] as const).map((field, idx) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {(['photo1', 'photo2', 'photo3', 'photo4', 'photo5', 'photo6'] as const).map((field, idx) => (
                       <div key={field} className={`relative flex flex-col items-center gap-1.5 p-3 border-2 border-dashed rounded-xl transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200'}`}>
                         <label className={`w-full flex-col items-center gap-1.5 cursor-pointer flex ${uploading === field ? '' : 'hover:border-primary-400'}`}>
                           <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {

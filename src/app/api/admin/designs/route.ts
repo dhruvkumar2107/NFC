@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
         name: body.name,
         price: body.price,
         imageUrl: body.imageUrl || null,
+        backImage: body.backImage || null,
         active: body.active ?? true,
       },
     })

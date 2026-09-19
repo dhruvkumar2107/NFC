@@ -237,7 +237,7 @@ export default function EditProfilePage() {
                 <button onClick={() => removePhoto(idx)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
               </div>
             ))}
-            {(profile.photos || []).length < 3 && (
+            {(profile.photos || []).length < 6 && (
               <label className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploading === 'photo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                 <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                   const file = e.target.files?.[0]

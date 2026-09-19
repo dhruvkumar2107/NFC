@@ -28,7 +28,7 @@ export default function EmployeeNewOrderPage() {
     whatsapp: '', website: '', address: '', taluk: '', city: '', state: '', pincode: '',
     instagram: '', facebook: '', linkedin: '',
     logoUrl: '', paymentQrUrl: '', description: '',
-    photo1: '', photo2: '', photo3: '',
+    photo1: '', photo2: '', photo3: '', photo4: '', photo5: '', photo6: '',
     designId: '',
   })
 
@@ -64,7 +64,7 @@ export default function EmployeeNewOrderPage() {
       const meData = await meRes.json()
       const referralCode = meData.data?.referralLinkCode
 
-      const photos = [form.photo1, form.photo2, form.photo3].filter(p => p.trim())
+      const photos = [form.photo1, form.photo2, form.photo3, form.photo4, form.photo5, form.photo6].filter(p => p.trim())
 
       const res = await fetch('/api/orders', {
         method: 'POST',
@@ -224,10 +224,10 @@ export default function EmployeeNewOrderPage() {
 
         <div className="card space-y-4">
           <h2 className="font-semibold">Photos</h2>
-          <p className="text-xs text-gray-400">Upload up to 3 photos for the digital profile card</p>
+          <p className="text-xs text-gray-400">Upload up to 6 photos for the digital profile card</p>
           {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-          <div className="grid grid-cols-3 gap-4">
-            {(['photo1', 'photo2', 'photo3'] as const).map((field, idx) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {(['photo1', 'photo2', 'photo3', 'photo4', 'photo5', 'photo6'] as const).map((field, idx) => (
               <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                 <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                   const file = e.target.files?.[0]

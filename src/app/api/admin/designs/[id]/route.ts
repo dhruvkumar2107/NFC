@@ -7,7 +7,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const { user, error } = await requireAuth(request, 'admin')
   if (error) return error
   const body = await request.json()
-  const allowed = ['name','price','imageUrl','active']
+  const allowed = ['name','price','imageUrl','backImage','active']
   const safeData: Record<string, any> = {}
   for (const k of allowed) { if (body[k] !== undefined) safeData[k] = body[k] }
   const updated = await prisma.cardDesign.update({ where: { id: params.id }, data: safeData })

@@ -4,6 +4,7 @@ import { generateCardId, generateNfcCardNumber } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import crypto from 'crypto'
 import razorpay from '@/lib/razorpay'
+import { sendOrderConfirmationSMS } from '@/lib/sms'
 
 export async function POST(request: NextRequest) {
   try {
@@ -113,6 +114,7 @@ export async function POST(request: NextRequest) {
       }
 
       const customer = await tx.customer.findUnique({ where: { id: order.customerId! } })
+      const design = await tx.cardDesign.findUnique({ where: { id: order.designId } })
 
       return {
         alreadyProcessed: false,
@@ -120,7 +122,10 @@ export async function POST(request: NextRequest) {
         cardId: card.cardId,
         amount: order.amount,
         design: order.designId,
+        designName: design?.name || '',
         customerEmail: customer?.email,
+        customerName: customer?.name || '',
+        customerMobile: customer?.mobile || '',
         status: 'Payment Received',
       }
     })
@@ -133,6 +138,20 @@ export async function POST(request: NextRequest) {
         status: result.status,
         message: 'Order already processed',
       })
+    }
+
+    if (result.customerMobile && result.customerName) {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      sendOrderConfirmationSMS({
+        orderId: result.orderId,
+        cardId: result.cardId,
+        design: result.designName || '',
+        amount: result.amount,
+        customerName: result.customerName,
+        customerEmail: result.customerEmail || '',
+        customerMobile: result.customerMobile,
+        baseUrl,
+      }).catch(err => console.error('SMS send error:', err))
     }
 
     return successResponse({

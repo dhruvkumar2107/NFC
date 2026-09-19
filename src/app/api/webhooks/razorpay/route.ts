@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { generateCardId, generateNfcCardNumber } from '@/lib/auth'
 import crypto from 'crypto'
+import { sendOrderConfirmationSMS } from '@/lib/sms'
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,6 +90,21 @@ export async function POST(request: NextRequest) {
             },
           })
         }
+
+        const customer = await tx.customer.findUnique({ where: { id: order.customerId! } })
+        const design = await tx.cardDesign.findUnique({ where: { id: order.designId } })
+
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+        sendOrderConfirmationSMS({
+          orderId: order.orderId,
+          cardId: card.cardId,
+          design: design?.name || '',
+          amount: order.amount,
+          customerName: customer?.name || '',
+          customerEmail: customer?.email || '',
+          customerMobile: customer?.mobile || '',
+          baseUrl,
+        }).catch(err => console.error('SMS send error (webhook):', err))
       })
     }
 
