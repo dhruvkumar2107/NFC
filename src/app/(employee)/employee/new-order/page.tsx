@@ -52,8 +52,8 @@ export default function EmployeeNewOrderPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name || !form.email || !form.designId) {
-      setError('Name, email, and design are required')
+    if (!form.name || !form.mobile || !form.designId) {
+      setError('Name, mobile number, and design are required')
       return
     }
     setLoading(true)
@@ -124,8 +124,8 @@ export default function EmployeeNewOrderPage() {
           <h2 className="font-semibold">Customer Details</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div><label className="label">Full Name *</label><input className="input-field" value={form.name} onChange={e => update('name', e.target.value)} required /></div>
-            <div><label className="label">Email *</label><input className="input-field" type="email" value={form.email} onChange={e => update('email', e.target.value)} required /></div>
-            <div><label className="label">Mobile</label><input className="input-field" value={form.mobile} onChange={e => update('mobile', e.target.value)} /></div>
+            <div><label className="label">Mobile *</label><input className="input-field" value={form.mobile} onChange={e => update('mobile', e.target.value)} required /></div>
+            <div><label className="label">Email</label><input className="input-field" type="email" value={form.email} onChange={e => update('email', e.target.value)} /></div>
             <div><label className="label">WhatsApp</label><input className="input-field" value={form.whatsapp} onChange={e => update('whatsapp', e.target.value)} /></div>
             <div><label className="label">Designation</label><input className="input-field" value={form.designation} onChange={e => update('designation', e.target.value)} /></div>
             <div><label className="label">Company</label><input className="input-field" value={form.company} onChange={e => update('company', e.target.value)} /></div>

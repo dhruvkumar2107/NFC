@@ -74,7 +74,7 @@ export default function CustomerDetailPage() {
   }
 
   function addPhoto(url: string) {
-    setEditPhotos(p => (p.length >= 3 ? p : [...p, url]))
+    setEditPhotos(p => (p.length >= 6 ? p : [...p, url]))
   }
 
   function removePhoto(index: number) {
@@ -233,7 +233,7 @@ export default function CustomerDetailPage() {
               {photoUploadBox('Payment QR', 'qr', form.paymentQrUrl, form.paymentQrUrl, url => setForm((f: any) => ({ ...f, paymentQrUrl: url })))}
             </div>
             <div className="card space-y-3">
-              <h2 className="font-semibold">Photos (max 3)</h2>
+              <h2 className="font-semibold">Photos (max 6)</h2>
               {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
               <div className="grid grid-cols-3 gap-3">
                 {editPhotos.map((photo, i) => (
@@ -243,7 +243,7 @@ export default function CustomerDetailPage() {
                   </div>
                 ))}
               </div>
-              {editPhotos.length < 3 && (
+              {editPhotos.length < 6 && (
                 <label className="flex flex-col items-center justify-center gap-1 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
                   <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                     const file = e.target.files?.[0]

@@ -54,40 +54,39 @@ export default function CustomerRegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="label">Full Name</label>
+          <label className="label">Full Name *</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="input-field"
-            placeholder="Your full name"
+            placeholder="Your full name (used for login)"
             required
           />
         </div>
         <div>
-          <label className="label">Email</label>
+          <label className="label">Phone Number *</label>
+          <input
+            type="tel"
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value)}
+            className="input-field"
+            placeholder="Your phone number (used for login)"
+            required
+          />
+        </div>
+        <div>
+          <label className="label">Email (optional)</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="input-field"
             placeholder="you@example.com"
-            required
           />
         </div>
         <div>
-          <label className="label">Mobile</label>
-          <input
-            type="tel"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-            className="input-field"
-            placeholder="+91 00000 00000"
-            required
-          />
-        </div>
-        <div>
-          <label className="label">Password</label>
+          <label className="label">Password *</label>
           <input
             type="password"
             value={password}
@@ -107,7 +106,7 @@ export default function CustomerRegisterPage() {
         <p className="text-center text-sm text-gray-500">
           Already have an account?{' '}
           <Link href="/login" className="font-medium text-primary-600 hover:text-primary-700 transition-colors">
-            Sign in
+            Sign in with Name + Phone
           </Link>
         </p>
       </div>

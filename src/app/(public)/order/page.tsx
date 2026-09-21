@@ -108,8 +108,7 @@ function OrderContent() {
     if (!form.fullName.trim()) newErrors.fullName = 'Full name is required'
     if (!form.mobile.trim()) newErrors.mobile = 'Mobile number is required'
     else if (!/^[6-9]\d{9}$/.test(form.mobile.trim())) newErrors.mobile = 'Enter a valid 10-digit Indian mobile number'
-    if (!form.email.trim()) newErrors.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) newErrors.email = 'Enter a valid email address'
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) newErrors.email = 'Enter a valid email address'
     if (form.whatsapp && !/^[6-9]\d{9}$/.test(form.whatsapp.trim())) newErrors.whatsapp = 'Enter a valid 10-digit number'
     if (!form.address.trim()) newErrors.address = 'Address is required for card delivery'
     if (!form.city.trim()) newErrors.city = 'City is required'
@@ -494,7 +493,7 @@ function OrderContent() {
                       {errors.whatsapp && <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>}
                     </div>
                     <div>
-                      <label className="label">Email *</label>
+                      <label className="label">Email</label>
                       <input type="email" value={form.email} onChange={(e) => setField('email', e.target.value)}
                         className={`input-field ${errors.email ? '!border-red-400 !ring-red-400/20' : ''}`} placeholder="john@example.com" />
                       {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}

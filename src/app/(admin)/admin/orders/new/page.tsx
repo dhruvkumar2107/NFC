@@ -29,7 +29,7 @@ function AdminNewOrderContent() {
     whatsapp: '', website: '', address: '', taluk: '', city: '', state: '', pincode: '',
     instagram: '', facebook: '', linkedin: '',
     logoUrl: '', paymentQrUrl: '', description: '',
-    photo1: '', photo2: '', photo3: '',
+    photo1: '', photo2: '', photo3: '', photo4: '', photo5: '', photo6: '',
     designId: '', employeeId: '', amount: '',
   })
 
@@ -54,15 +54,15 @@ function AdminNewOrderContent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name || !form.email || !form.designId) {
-      setError('Name, email, and design are required')
+    if (!form.name || !form.mobile || !form.designId) {
+      setError('Name, mobile number, and design are required')
       return
     }
     setLoading(true)
     setError('')
     try {
       const token = localStorage.getItem('token')
-      const photos = [form.photo1, form.photo2, form.photo3].filter(p => p.trim())
+      const photos = [form.photo1, form.photo2, form.photo3, form.photo4, form.photo5, form.photo6].filter(p => p.trim())
 
       const res = await fetch('/api/admin/orders/create', {
         method: 'POST',
@@ -111,8 +111,8 @@ function AdminNewOrderContent() {
           <h2 className="font-semibold">Customer Details</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div><label className="label">Full Name *</label><input className="input-field" value={form.name} onChange={e => update('name', e.target.value)} required /></div>
-            <div><label className="label">Email *</label><input className="input-field" type="email" value={form.email} onChange={e => update('email', e.target.value)} required /></div>
-            <div><label className="label">Mobile</label><input className="input-field" value={form.mobile} onChange={e => update('mobile', e.target.value)} /></div>
+            <div><label className="label">Mobile *</label><input className="input-field" value={form.mobile} onChange={e => update('mobile', e.target.value)} required /></div>
+            <div><label className="label">Email</label><input className="input-field" type="email" value={form.email} onChange={e => update('email', e.target.value)} /></div>
             <div><label className="label">WhatsApp</label><input className="input-field" value={form.whatsapp} onChange={e => update('whatsapp', e.target.value)} /></div>
             <div><label className="label">Designation</label><input className="input-field" value={form.designation} onChange={e => update('designation', e.target.value)} /></div>
             <div><label className="label">Company</label><input className="input-field" value={form.company} onChange={e => update('company', e.target.value)} /></div>
@@ -211,10 +211,10 @@ function AdminNewOrderContent() {
 
         <div className="card space-y-4">
           <h2 className="font-semibold">Photos</h2>
-          <p className="text-xs text-gray-400">Upload up to 3 photos for the digital profile card</p>
+          <p className="text-xs text-gray-400">Upload up to 6 photos for the digital profile card</p>
           {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           <div className="grid grid-cols-3 gap-4">
-            {(['photo1', 'photo2', 'photo3'] as const).map((field, idx) => (
+            {(['photo1', 'photo2', 'photo3', 'photo4', 'photo5', 'photo6'] as const).map((field, idx) => (
               <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
                 <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                   const file = e.target.files?.[0]

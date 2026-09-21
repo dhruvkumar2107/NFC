@@ -8,7 +8,6 @@ interface OrderSMSData {
   design: string
   amount: number
   customerName: string
-  customerEmail: string
   customerMobile: string
   baseUrl: string
 }
@@ -35,8 +34,9 @@ export async function sendOrderConfirmationSMS(data: OrderSMSData): Promise<bool
     `Status: Payment Received\n\n` +
     `Profile: ${profileUrl}\n\n` +
     `Login Credentials:\n` +
-    `Email: ${data.customerEmail}\n` +
-    `Password: ${data.customerEmail}_mysmartcard_temp\n\n` +
+    `Name: ${data.customerName}\n` +
+    `Phone: ${data.customerMobile}\n\n` +
+    `Login at: ${data.baseUrl}/login\n\n` +
     `Thank you for your order!`
 
   try {

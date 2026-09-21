@@ -101,7 +101,6 @@ export async function POST(request: NextRequest) {
           design: design?.name || '',
           amount: order.amount,
           customerName: customer?.name || '',
-          customerEmail: customer?.email || '',
           customerMobile: customer?.mobile || '',
           baseUrl,
         }).catch(err => console.error('SMS send error (webhook):', err))

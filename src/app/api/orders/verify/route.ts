@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
         amount: order.amount,
         design: order.designId,
         designName: design?.name || '',
-        customerEmail: customer?.email,
         customerName: customer?.name || '',
         customerMobile: customer?.mobile || '',
         status: 'Payment Received',
@@ -148,7 +147,6 @@ export async function POST(request: NextRequest) {
         design: result.designName || '',
         amount: result.amount,
         customerName: result.customerName,
-        customerEmail: result.customerEmail || '',
         customerMobile: result.customerMobile,
         baseUrl,
       }).catch(err => console.error('SMS send error:', err))
@@ -159,7 +157,6 @@ export async function POST(request: NextRequest) {
       cardId: result.cardId,
       amount: result.amount,
       design: result.design,
-      customerEmail: result.customerEmail,
       status: result.status,
       message: 'Payment verified and order confirmed!',
     })

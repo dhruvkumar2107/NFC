@@ -93,9 +93,9 @@ function SuccessContent() {
       `Amount: ₹${data.amount}\n` +
       `Status: ${data.status}\n` +
       `Customer: ${data.customerName || '-'}\n` +
-      `Email: ${data.customerEmail || '-'}\n` +
       `Mobile: ${data.customerMobile || '-'}\n\n` +
-      `Thank you for your order!\n` +
+      `Login at: ${window.location.origin}/login\n` +
+      `Use your name and phone number to sign in.\n\n` +
       `Profile: ${profileUrl}`
     if (cleanedPhone) {
       window.open(`https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`, '_blank')
@@ -162,10 +162,10 @@ function SuccessContent() {
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8 text-left">
           <h2 className="font-semibold text-blue-800 mb-2">Your Login Credentials</h2>
-          <p className="text-sm text-blue-700 mb-2">Use these to log in to your customer dashboard:</p>
+          <p className="text-sm text-blue-700 mb-2">Use your name and phone number to log in:</p>
           <div className="bg-white rounded-lg p-3 text-sm">
-            <div><span className="text-gray-500">Email:</span> <span className="font-mono">{data.customerEmail}</span></div>
-            <div><span className="text-gray-500">Password:</span> <span className="font-mono">{data.customerEmail}_mysmartcard_temp</span></div>
+            <div><span className="text-gray-500">Name:</span> <span className="font-mono">{data.customerName}</span></div>
+            <div><span className="text-gray-500">Phone:</span> <span className="font-mono">{data.customerMobile}</span></div>
           </div>
         </div>
 

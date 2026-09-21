@@ -5,8 +5,8 @@ import Link from 'next/link'
 
 export default function CustomerLoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -18,7 +18,7 @@ export default function CustomerLoginPage() {
       const res = await fetch('/api/auth/customer/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, phone }),
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
@@ -53,24 +53,24 @@ export default function CustomerLoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="label">Email</label>
+          <label className="label">Your Name</label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className="input-field"
-            placeholder="you@example.com"
+            placeholder="Enter your full name"
             required
           />
         </div>
         <div>
-          <label className="label">Password</label>
+          <label className="label">Phone Number</label>
           <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             className="input-field"
-            placeholder="Enter your password"
+            placeholder="Enter your registered phone number"
             required
           />
         </div>

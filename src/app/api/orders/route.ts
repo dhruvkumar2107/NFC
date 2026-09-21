@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
 
     const name = rawName || fullName
 
-    if (!name || !email || !designId) {
-      return errorResponse('Name, email, and design are required')
+    if (!name || !mobile || !designId) {
+      return errorResponse('Name, mobile number, and design are required')
     }
 
     const design = await prisma.cardDesign.findUnique({ where: { id: designId } })
@@ -41,19 +41,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let customer = await prisma.customer.findUnique({ where: { email } })
+    let customer = await prisma.customer.findFirst({ where: { mobile } })
     if (customer) {
       customer = await prisma.customer.update({
         where: { id: customer.id },
         data: {
-          name, designation, company, college, mobile, whatsapp, website,
+          name, designation, company, college, mobile, whatsapp, email, website,
           socialLinks: JSON.stringify(socialLinks || {}),
           address, taluk, city, state, pincode, logoUrl, paymentQrUrl, description,
           photos: JSON.stringify(photos || []),
         },
       })
     } else {
-      const tempPassword = await hashPassword(email + '_mysmartcard_temp')
+      const tempPassword = await hashPassword(mobile + '_mysmartcard_temp')
       customer = await prisma.customer.create({
         data: {
           name, designation, company, college, mobile, whatsapp, email, website,
@@ -132,7 +132,8 @@ export async function POST(request: NextRequest) {
       razorpayKey,
       amount: design.price,
       design: design.name,
-      customerEmail: email,
+      customerName: name,
+      customerMobile: mobile,
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Order creation failed', 500)
