@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       const order = await tx.order.findFirst({ where: { orderId } })
       if (!order) throw new Error('Order not found')
 
-      if (order.status !== 'Pending') {
+      if (order.status === 'Payment Received' || order.status === 'Delivered') {
         const existingCard = await tx.card.findFirst({ where: { orderId: order.id } })
         return {
           alreadyProcessed: true,

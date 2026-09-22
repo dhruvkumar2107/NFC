@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
           where: { razorpayPaymentLinkId: razorpayOrderId },
         })
 
-        if (!order || order.status !== 'Pending') return
+        if (!order || order.cardId || order.status === 'Payment Received' || order.status === 'Delivered' || order.status === 'Cancelled') return
 
         const cardIdNum = generateCardId()
         const nfcCardNumber = await generateNfcCardNumber()
