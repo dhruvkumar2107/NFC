@@ -65,14 +65,13 @@ export default function CustomerRegisterPage() {
           />
         </div>
         <div>
-          <label className="label">Phone Number *</label>
+          <label className="label">Phone Number</label>
           <input
             type="tel"
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
             className="input-field"
             placeholder="Your phone number (used for login)"
-            required
           />
         </div>
         <div>
@@ -86,14 +85,13 @@ export default function CustomerRegisterPage() {
           />
         </div>
         <div>
-          <label className="label">Password *</label>
+          <label className="label">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="input-field"
             placeholder="Min. 6 characters"
-            required
             minLength={6}
           />
         </div>

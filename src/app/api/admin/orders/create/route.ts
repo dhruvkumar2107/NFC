@@ -17,31 +17,40 @@ export async function POST(request: NextRequest) {
       designId, employeeId, amount,
     } = body
 
-    if (!name || !mobile || !designId) {
-      return errorResponse('Name, mobile number, and design are required')
+    if (!name || !designId) {
+      return errorResponse('Name and design are required')
     }
+
+    const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
+    const cleanedMobile = clean(mobile)
+    const cleanedEmail = clean(email)
 
     const design = await prisma.cardDesign.findUnique({ where: { id: designId } })
     if (!design) return errorResponse('Invalid card design')
 
-    let customer = await prisma.customer.findFirst({ where: { mobile } })
+    let customer = cleanedMobile ? await prisma.customer.findFirst({ where: { mobile: cleanedMobile } }) : null
+    if (!customer && cleanedEmail) customer = await prisma.customer.findFirst({ where: { email: cleanedEmail } })
     if (customer) {
       customer = await prisma.customer.update({
         where: { id: customer.id },
         data: {
-          name, designation, company, college, mobile, whatsapp, email, website,
+          name, designation: clean(designation), company: clean(company), college: clean(college),
+          mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
           socialLinks: JSON.stringify(socialLinks || {}),
-          address, taluk, city, state, pincode, logoUrl, paymentQrUrl, description,
+          address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
+          logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
           photos: JSON.stringify(photos || []),
         },
       })
     } else {
-      const tempPassword = await hashPassword(mobile + '_mysmartcard_temp')
+      const tempPassword = await hashPassword((cleanedMobile || name) + '_mysmartcard_temp')
       customer = await prisma.customer.create({
         data: {
-          name, designation, company, college, mobile, whatsapp, email, website,
+          name, designation: clean(designation), company: clean(company), college: clean(college),
+          mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
           socialLinks: JSON.stringify(socialLinks || {}),
-          address, taluk, city, state, pincode, logoUrl, paymentQrUrl, description,
+          address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
+          logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
           photos: JSON.stringify(photos || []),
           soldByEmployeeId: employeeId || null,
           passwordHash: tempPassword,

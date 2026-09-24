@@ -6,19 +6,24 @@ import { successResponse, errorResponse } from '@/lib/api-response'
 export async function POST(request: NextRequest) {
   try {
     const { name, email, mobile, password } = await request.json()
-    if (!name || !mobile || !password) return errorResponse('Name, mobile number, and password are required')
+    if (!name) return errorResponse('Name is required')
 
-    const existingMobile = await prisma.customer.findFirst({ where: { mobile } })
-    if (existingMobile) return errorResponse('Phone number already registered')
+    const mobileClean = typeof mobile === 'string' && mobile.trim() ? mobile.trim() : null
+    const emailClean = typeof email === 'string' && email.trim() ? email.trim() : null
 
-    if (email) {
-      const existingEmail = await prisma.customer.findUnique({ where: { email } })
+    if (mobileClean) {
+      const existingMobile = await prisma.customer.findFirst({ where: { mobile: mobileClean } })
+      if (existingMobile) return errorResponse('Phone number already registered')
+    }
+
+    if (emailClean) {
+      const existingEmail = await prisma.customer.findUnique({ where: { email: emailClean } })
       if (existingEmail) return errorResponse('Email already registered')
     }
 
-    const passwordHash = await hashPassword(password)
+    const passwordHash = await hashPassword(password || name + '_mysmartcard_member')
     const customer = await prisma.customer.create({
-      data: { name, email: email || null, mobile, passwordHash },
+      data: { name, email: emailClean, mobile: mobileClean, passwordHash },
     })
 
     const token = await signToken({ id: customer.id, role: 'customer' })

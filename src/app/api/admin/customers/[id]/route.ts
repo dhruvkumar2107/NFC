@@ -28,6 +28,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     for (const k of allowed) { if (body[k] !== undefined) safeData[k] = body[k] }
     if (safeData.socialLinks && typeof safeData.socialLinks === 'object') safeData.socialLinks = JSON.stringify(safeData.socialLinks)
     if (safeData.photos && Array.isArray(safeData.photos)) safeData.photos = JSON.stringify(safeData.photos)
+    const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
+    if (safeData.email !== undefined) safeData.email = clean(safeData.email)
+    if (safeData.email) {
+      const existing = await prisma.customer.findFirst({ where: { email: safeData.email, NOT: { id: params.id } } })
+      if (existing) return errorResponse('Email already registered')
+    }
     const updated = await prisma.customer.update({ where: { id: params.id }, data: safeData })
     return successResponse(updated)
   } catch (err: any) {
