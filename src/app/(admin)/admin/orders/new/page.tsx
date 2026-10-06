@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 
 import { compressImage } from '@/lib/compress-image'
+import { apiFetch } from '@/lib/api-client'
 
 async function uploadFile(file: File): Promise<string> {
   const compressed = await compressImage(file)
@@ -37,14 +38,12 @@ function AdminNewOrderContent() {
   const [employees, setEmployees] = useState<any[]>([])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
     fetch('/api/designs')
       .then(r => r.json())
       .then(d => { if (d.success) setDesigns(d.data) })
       .catch(() => {})
-    fetch('/api/admin/employees', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { if (d.success) setEmployees(d.data.filter((e: any) => e.status === 'active')) })
+    apiFetch('/api/admin/employees')
+      .then((d: any) => { if (d.success) setEmployees(d.data.filter((e: any) => e.status === 'active')) })
       .catch(() => {})
   }, [])
 

@@ -1,42 +1,20 @@
 import { NextRequest } from 'next/server'
+import JSZip from 'jszip'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
-import { join } from 'path'
-import { readFile } from 'fs/promises'
+import { errorResponse } from '@/lib/api-response'
+import { resolveFileBuffer, mimeToExt, sanitizeDownloadName } from '@/lib/file-store'
+import { AdminPhotoEntry, parseJsonArray } from '@/lib/profile-media'
 
-function decodeDataUri(dataUri: string): { buffer: Buffer; mime: string } | null {
-  const match = dataUri.match(/^data:([^;]+);base64,(.+)$/)
-  if (!match) return null
-  return { buffer: Buffer.from(match[2], 'base64'), mime: match[1] }
-}
-
-function mimeToExt(mime: string): string {
-  if (mime === 'image/png') return 'png'
-  if (mime === 'image/gif') return 'gif'
-  if (mime === 'image/webp') return 'webp'
-  if (mime === 'image/svg+xml') return 'svg'
-  return 'jpg'
-}
-
-async function fetchPhotoBuffer(url: string): Promise<{ buffer: Buffer; mime: string } | null> {
-  try {
-    if (url.startsWith('data:')) {
-      const decoded = decodeDataUri(url)
-      if (!decoded) return null
-      return { buffer: decoded.buffer, mime: decoded.mime }
-    }
-    if (url.startsWith('/uploads/')) {
-      const filePath = join(process.cwd(), 'public', url)
-      const buffer = await readFile(filePath)
-      return { buffer, mime: 'image/jpeg' }
-    }
-    const res = await fetch(url)
-    if (!res.ok) return null
-    const arrayBuffer = await res.arrayBuffer()
-    return { buffer: Buffer.from(arrayBuffer), mime: res.headers.get('content-type') || 'image/jpeg' }
-  } catch {
-    return null
+function uniqueName(taken: Set<string>, base: string, ext: string): string {
+  let candidate = `${base}.${ext}`
+  let counter = 2
+  while (taken.has(candidate.toLowerCase())) {
+    candidate = `${base}-${counter}.${ext}`
+    counter++
   }
+  taken.add(candidate.toLowerCase())
+  return candidate
 }
 
 export async function GET(
@@ -44,7 +22,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { user, error } = await requireAuth(request, 'admin')
+    const { error } = await requireAuth(request, 'admin')
     if (error) return error
 
     const customer = await prisma.customer.findUnique({ where: { id: params.id } })
@@ -52,17 +30,50 @@ export async function GET(
       return Response.json({ success: false, error: 'Customer not found' }, { status: 404 })
     }
 
-    let photos: string[] = []
-    try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
+    const userPhotos = parseJsonArray<string>(customer.photos).filter((p) => typeof p === 'string' && p)
+    const adminPhotos = parseJsonArray<AdminPhotoEntry>(customer.adminPhotos)
+      .filter((p) => p && typeof p.url === 'string' && p.url)
+      .map((p) => p.url)
 
     const url = new URL(request.url)
     const indexParam = url.searchParams.get('index')
     const downloadAll = url.searchParams.get('all') === 'true'
+    const source = url.searchParams.get('source') || 'user'
+    const wantsZip = url.searchParams.get('zip') === '1' || url.searchParams.get('zip') === 'true'
+
+    const photos =
+      source === 'admin' ? adminPhotos : source === 'all' ? [...userPhotos, ...adminPhotos] : userPhotos
+
+    if (downloadAll && wantsZip) {
+      if (photos.length === 0) return errorResponse('No photos to download', 404)
+      const zip = new JSZip()
+      const folder = zip.folder('photos')
+      const taken = new Set<string>()
+      let added = 0
+      for (let i = 0; i < photos.length; i++) {
+        const photoData = await resolveFileBuffer(photos[i])
+        if (!photoData) continue
+        const name = uniqueName(taken, `photo-${String(i + 1).padStart(2, '0')}`, mimeToExt(photoData.mime))
+        folder?.file(name, photoData.buffer)
+        added++
+      }
+      if (added === 0) return errorResponse('Photos could not be read', 404)
+      const content = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' })
+      const base = sanitizeDownloadName(customer.name || 'customer', 'zip').replace(/\.[^.]+$/, '')
+      return new Response(new Uint8Array(content), {
+        headers: {
+          'Content-Type': 'application/zip',
+          'Content-Disposition': `attachment; filename="${base}-photos.zip"`,
+          'Content-Length': content.byteLength.toString(),
+          'X-Content-Type-Options': 'nosniff',
+        },
+      })
+    }
 
     if (downloadAll) {
       const results: { index: number; filename: string; success: boolean }[] = []
       for (let i = 0; i < photos.length; i++) {
-        const photoData = await fetchPhotoBuffer(photos[i])
+        const photoData = await resolveFileBuffer(photos[i])
         if (photoData) {
           results.push({ index: i, filename: `photo-${i + 1}.${mimeToExt(photoData.mime)}`, success: true })
         } else {
@@ -86,7 +97,7 @@ export async function GET(
       if (!customer.logoUrl) {
         return Response.json({ success: false, error: 'No logo found' }, { status: 404 })
       }
-      const logoData = await fetchPhotoBuffer(customer.logoUrl)
+      const logoData = await resolveFileBuffer(customer.logoUrl)
       if (!logoData) {
         return Response.json({ success: false, error: 'Could not fetch logo' }, { status: 404 })
       }
@@ -104,7 +115,7 @@ export async function GET(
       return Response.json({ success: false, error: 'Invalid photo index' }, { status: 400 })
     }
 
-    const photoData = await fetchPhotoBuffer(photos[index])
+    const photoData = await resolveFileBuffer(photos[index])
     if (!photoData) {
       return Response.json({ success: false, error: 'Could not fetch photo' }, { status: 404 })
     }

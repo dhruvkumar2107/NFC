@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { apiFetch, ApiError } from '@/lib/api-client'
 
 interface CreatedEmployee {
   employeeId: string
@@ -21,12 +22,11 @@ export default function AdminEmployeesPage() {
   const [copied, setCopied] = useState(false)
 
   const fetchEmployees = (q?: string) => {
-    const token = localStorage.getItem('token')
     const params = q ? `?search=${encodeURIComponent(q)}` : ''
-    fetch(`/api/admin/employees${params}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { if (d.success) setEmployees(d.data); setLoading(false) })
-      .catch(() => setLoading(false))
+    apiFetch(`/api/admin/employees${params}`)
+      .then((d: any) => { if (d.success) setEmployees(d.data) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => { fetchEmployees() }, [])
@@ -39,27 +39,30 @@ export default function AdminEmployeesPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    const token = localStorage.getItem('token')
-    const res = await fetch('/api/admin/employees', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(form),
-    })
-    const data = await res.json()
-    if (data.success) {
-      setCreatedEmployee({
-        employeeId: data.data.employeeId,
-        name: data.data.name,
-        email: data.data.email,
-        plainPassword: data.data.plainPassword,
-        referralLinkCode: data.data.referralLinkCode,
+    try {
+      const data: any = await apiFetch('/api/admin/employees', {
+        method: 'POST',
+        body: JSON.stringify(form),
       })
-      setShowForm(false)
-      setForm({ name: '', email: '', mobile: '', territory: '' })
-      fetchEmployees()
-    } else {
-      alert(data.error)
+      if (data.success) {
+        setCreatedEmployee({
+          employeeId: data.data.employeeId,
+          name: data.data.name,
+          email: data.data.email,
+          plainPassword: data.data.plainPassword,
+          referralLinkCode: data.data.referralLinkCode,
+        })
+        setShowForm(false)
+        setForm({ name: '', email: '', mobile: '', territory: '' })
+        fetchEmployees()
+      }
+    } catch (err) {
+      if (!(err instanceof ApiError) || err.status !== 401) {
+        alert(err instanceof Error ? err.message : 'Failed to create employee')
+      }
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   function copyCredentials() {
@@ -72,14 +75,12 @@ export default function AdminEmployeesPage() {
 
   async function deactivate(id: string) {
     if (!confirm('Deactivate this employee?')) return
-    const token = localStorage.getItem('token')
-    await fetch(`/api/admin/employees/${id}/deactivate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+    await apiFetch(`/api/admin/employees/${id}/deactivate`, { method: 'POST' }).catch(() => {})
     fetchEmployees(search)
   }
 
   async function activate(id: string) {
-    const token = localStorage.getItem('token')
-    await fetch(`/api/admin/employees/${id}/activate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+    await apiFetch(`/api/admin/employees/${id}/activate`, { method: 'POST' }).catch(() => {})
     fetchEmployees(search)
   }
 

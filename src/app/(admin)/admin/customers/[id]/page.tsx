@@ -2,22 +2,17 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { uploadFile } from '@/lib/upload-client'
+import {
+  MAX_USER_PHOTOS,
+  MAX_ADMIN_PHOTOS,
+  MAX_DOCUMENTS,
+  formatFileSize,
+} from '@/lib/profile-media'
 
-async function uploadFile(file: File): Promise<string> {
-  if (file.size > 20 * 1024 * 1024) {
-    throw new Error('File too large. Max size is 20MB.')
-  }
-  const formData = new FormData()
-  formData.append('file', file)
-  const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const data = await res.json()
-  if (!data.success) throw new Error(data.error || 'Upload failed')
-  return data.url
-}
-
-async function downloadPhoto(customerId: string, index: number) {
+async function downloadPhoto(customerId: string, index: number, source: 'user' | 'admin' | 'all' = 'user') {
   const token = localStorage.getItem('token')
-  const res = await fetch(`/api/admin/customers/${customerId}/photos?index=${index}`, {
+  const res = await fetch(`/api/admin/customers/${customerId}/photos?index=${index}&source=${source}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) throw new Error('Download failed')
@@ -35,6 +30,24 @@ async function downloadPhoto(customerId: string, index: number) {
   URL.revokeObjectURL(url)
 }
 
+async function triggerBlobDownload(url: string, fallbackName: string, auth = true) {
+  const token = auth ? localStorage.getItem('token') : null
+  const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : undefined })
+  if (!res.ok) throw new Error('Download failed')
+  const blob = await res.blob()
+  const disposition = res.headers.get('Content-Disposition') || ''
+  const filenameMatch = disposition.match(/filename="(.+)"/)
+  const filename = filenameMatch ? filenameMatch[1] : fallbackName
+  const objectUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = objectUrl
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(objectUrl)
+}
+
 export default function CustomerDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -44,6 +57,8 @@ export default function CustomerDetailPage() {
   const [form, setForm] = useState<any>({})
   const [editSocial, setEditSocial] = useState<Record<string, string>>({})
   const [editPhotos, setEditPhotos] = useState<string[]>([])
+  const [editAdminPhotos, setEditAdminPhotos] = useState<any[]>([])
+  const [editDocs, setEditDocs] = useState<any[]>([])
   const [uploading, setUploading] = useState<string | null>(null)
   const [uploadMsg, setUploadMsg] = useState('')
   const [msg, setMsg] = useState('')
@@ -68,17 +83,47 @@ export default function CustomerDetailPage() {
   function startEdit() {
     setEditSocial(parseSocial(customer.socialLinks))
     setEditPhotos(parsePhotos(customer.photos))
+    setEditAdminPhotos(parsePhotos(customer.adminPhotos).map((p: any) => typeof p === 'string' ? { url: p, visibility: 'public' } : p))
+    setEditDocs(parsePhotos(customer.documents))
     setForm(customer)
     setEditing(true)
     setMsg('')
   }
 
   function addPhoto(url: string) {
-    setEditPhotos(p => (p.length >= 6 ? p : [...p, url]))
+    setEditPhotos(p => (p.length >= MAX_USER_PHOTOS ? p : [...p, url]))
   }
 
   function removePhoto(index: number) {
     setEditPhotos(p => p.filter((_, i) => i !== index))
+  }
+
+  function replacePhoto(index: number, url: string) {
+    setEditPhotos(p => p.map((item, i) => (i === index ? url : item)))
+  }
+
+  function addAdminPhoto(url: string) {
+    setEditAdminPhotos(p => (p.length >= MAX_ADMIN_PHOTOS ? p : [...p, { url, visibility: 'public', createdAt: new Date().toISOString() }]))
+  }
+
+  function updateAdminPhoto(index: number, patch: any) {
+    setEditAdminPhotos(p => p.map((item, i) => (i === index ? { ...item, ...patch } : item)))
+  }
+
+  function removeAdminPhoto(index: number) {
+    setEditAdminPhotos(p => p.filter((_, i) => i !== index))
+  }
+
+  function addDocument(entry: any) {
+    setEditDocs(p => (p.length >= MAX_DOCUMENTS ? p : [...p, entry]))
+  }
+
+  function updateDocument(index: number, patch: any) {
+    setEditDocs(p => p.map((item, i) => (i === index ? { ...item, ...patch } : item)))
+  }
+
+  function removeDocument(index: number) {
+    setEditDocs(p => p.filter((_, i) => i !== index))
   }
 
   async function saveEdit() {
@@ -87,6 +132,8 @@ export default function CustomerDetailPage() {
       ...form,
       socialLinks: editSocial,
       photos: editPhotos,
+      adminPhotos: editAdminPhotos,
+      documents: editDocs,
     }
     const res = await fetch(`/api/admin/customers/${params.id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -95,6 +142,23 @@ export default function CustomerDetailPage() {
     const d = await res.json()
     if (d.success) { setCustomer(d.data); setEditing(false); setMsg('Saved!') }
     else setMsg(d.error)
+  }
+
+  async function runUpload(key: string, file: File | undefined, label: string, kind: 'image' | 'document', onOk: (url: string) => void) {
+    if (!file) return
+    setUploading(key)
+    setUploadMsg('')
+    try {
+      const url = await uploadFile(file, { kind })
+      onOk(url)
+      setUploadMsg(`${label} uploaded successfully!`)
+      setTimeout(() => setUploadMsg(''), 3000)
+    } catch (err: any) {
+      setUploadMsg(`${label} upload failed: ` + (err.message || 'Please try again.'))
+      setTimeout(() => setUploadMsg(''), 5000)
+    } finally {
+      setUploading(null)
+    }
   }
 
   async function deleteCustomer() {
@@ -128,6 +192,8 @@ export default function CustomerDetailPage() {
 
   const socialLinks = parseSocial(customer.socialLinks)
   const photos = parsePhotos(customer.photos)
+  const adminPhotos: any[] = parsePhotos(customer.adminPhotos).map((p: any) => (typeof p === 'string' ? { url: p, visibility: 'public' } : p))
+  const documents: any[] = parsePhotos(customer.documents)
 
   const socialFields = [
     { id: 'instagram', label: 'Instagram' },
@@ -233,41 +299,135 @@ export default function CustomerDetailPage() {
               {photoUploadBox('Payment QR', 'qr', form.paymentQrUrl, form.paymentQrUrl, url => setForm((f: any) => ({ ...f, paymentQrUrl: url })))}
             </div>
             <div className="card space-y-3">
-              <h2 className="font-semibold">Photos (max 6)</h2>
-              {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-semibold">Customer Photos</h2>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${editPhotos.length >= MAX_USER_PHOTOS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>{editPhotos.length} / {MAX_USER_PHOTOS}</span>
+              </div>
+              {uploadMsg && uploadMsg.startsWith('Customer Photo') && <p className={`text-xs ${uploadMsg.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
               <div className="grid grid-cols-3 gap-3">
                 {editPhotos.map((photo, i) => (
                   <div key={i} className="relative group">
-                    <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-24 rounded-lg object-cover" />
-                    <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
+                    <label className="block cursor-pointer">
+                      <input type="file" accept="image/*" className="sr-only" onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) runUpload(`photo-${i}`, f, `Customer Photo ${i + 1}`, 'image', (url) => replacePhoto(i, url))
+                        e.target.value = ''
+                      }} />
+                      <img src={photo} alt={`Photo ${i + 1}`} className={`w-full h-24 rounded-lg object-cover bg-gray-100 transition-opacity ${uploading === `photo-${i}` ? 'opacity-40' : ''}`} />
+                    </label>
+                    <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{i + 1}</span>
+                    <button onClick={() => removePhoto(i)} title="Remove" className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
                   </div>
                 ))}
+                {editPhotos.length < MAX_USER_PHOTOS && (
+                  <label className="flex flex-col items-center justify-center gap-1 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
+                    <input type="file" accept="image/*" className="sr-only" onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) runUpload('photo-add', f, 'Customer Photo', 'image', (url) => addPhoto(url))
+                      e.target.value = ''
+                    }} />
+                    {uploading === 'photo-add' ? (
+                      <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    ) : (
+                      <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    )}
+                    <span className="text-xs text-gray-400">{uploading === 'photo-add' ? 'Uploading...' : 'Add Photo'}</span>
+                  </label>
+                )}
               </div>
-              {editPhotos.length < 6 && (
-                <label className="flex flex-col items-center justify-center gap-1 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
-                  <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      setUploading('photo')
-                      setUploadMsg('')
-                      try {
-                        const url = await uploadFile(file)
-                        addPhoto(url)
-                        setUploadMsg(`Photo ${editPhotos.length + 1} uploaded successfully!`)
-                        setTimeout(() => setUploadMsg(''), 3000)
-                      } catch (err: any) {
-                        setUploadMsg('Photo upload failed: ' + (err.message || 'Please try again.'))
-                        setTimeout(() => setUploadMsg(''), 5000)
-                      }
-                      setUploading(null)
-                    }
+            </div>
+
+            <div className="card space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-semibold">Gallery Photos (Admin)</h2>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${editAdminPhotos.length >= MAX_ADMIN_PHOTOS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>{editAdminPhotos.length} / {MAX_ADMIN_PHOTOS}</span>
+              </div>
+              <p className="text-xs text-gray-400 -mt-1">Photos you add here are shown on the customer's public profile together with their own photos. Click a photo to replace it.</p>
+              {uploadMsg && uploadMsg.startsWith('Gallery Photo') && <p className={`text-xs ${uploadMsg.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+              <div className="grid grid-cols-3 gap-3">
+                {editAdminPhotos.map((entry: any, i: number) => (
+                  <div key={i} className="relative group">
+                    <label className="block cursor-pointer">
+                      <input type="file" accept="image/*" className="sr-only" onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) runUpload(`adminPhoto-${i}`, f, `Gallery Photo ${i + 1}`, 'image', (url) => updateAdminPhoto(i, { url, createdAt: new Date().toISOString() }))
+                        e.target.value = ''
+                      }} />
+                      <img src={entry.url} alt={`Gallery ${i + 1}`} className={`w-full h-24 rounded-lg object-cover bg-gray-100 transition-opacity ${uploading === `adminPhoto-${i}` ? 'opacity-40' : ''}`} />
+                    </label>
+                    <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{i + 1}</span>
+                    <button
+                      onClick={() => updateAdminPhoto(i, { visibility: entry.visibility === 'private' ? 'public' : 'private' })}
+                      title="Toggle visibility"
+                      className={`absolute bottom-1 left-1 text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity ${entry.visibility === 'private' ? 'bg-gray-700 text-white' : 'bg-green-600 text-white'}`}
+                    >{entry.visibility === 'private' ? 'Private' : 'Public'}</button>
+                    <button onClick={() => removeAdminPhoto(i)} title="Remove" className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
+                  </div>
+                ))}
+                {editAdminPhotos.length < MAX_ADMIN_PHOTOS && (
+                  <label className="flex flex-col items-center justify-center gap-1 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
+                    <input type="file" accept="image/*" className="sr-only" onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) runUpload('adminPhoto-add', f, 'Gallery Photo', 'image', (url) => addAdminPhoto(url))
+                      e.target.value = ''
+                    }} />
+                    {uploading === 'adminPhoto-add' ? (
+                      <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    ) : (
+                      <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    )}
+                    <span className="text-xs text-gray-400">{uploading === 'adminPhoto-add' ? 'Uploading...' : 'Add Photo'}</span>
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="card space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-semibold">Documents (PDF)</h2>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${editDocs.length >= MAX_DOCUMENTS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>{editDocs.length} / {MAX_DOCUMENTS}</span>
+              </div>
+              <p className="text-xs text-gray-400 -mt-1">Catalogs, price lists, brochures and certificates (PDF, max 10MB each). Public documents appear on the profile with a download button.</p>
+              {uploadMsg && uploadMsg.startsWith('Document') && <p className={`text-xs ${uploadMsg.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+              {editDocs.length > 0 && (
+                <div className="space-y-2">
+                  {editDocs.map((doc: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg bg-gray-50/50">
+                      <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">PDF</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-700 truncate" title={doc.name}>{doc.name}</p>
+                        <p className="text-xs text-gray-400">{formatFileSize(doc.size)} · {doc.visibility === 'private' ? 'Hidden from profile' : 'Public'}</p>
+                      </div>
+                      <label className={`text-xs px-2.5 py-1 rounded-lg cursor-pointer transition-colors ${uploading === `doc-${i}` ? 'bg-primary-100 text-primary-700' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-400'}`}>
+                        <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (f) runUpload(`doc-${i}`, f, `Document ${i + 1}`, 'document', (url) => updateDocument(i, { url, name: f.name, size: f.size, createdAt: new Date().toISOString() }))
+                          e.target.value = ''
+                        }} />
+                        {uploading === `doc-${i}` ? '...' : 'Replace'}
+                      </label>
+                      <button
+                        onClick={() => updateDocument(i, { visibility: doc.visibility === 'private' ? 'public' : 'private' })}
+                        className={`text-xs px-2.5 py-1 rounded-lg ${doc.visibility === 'private' ? 'bg-gray-700 text-white' : 'bg-green-100 text-green-700'}`}
+                      >{doc.visibility === 'private' ? 'Private' : 'Public'}</button>
+                      <button onClick={() => removeDocument(i)} title="Remove" className="w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">&times;</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {editDocs.length < MAX_DOCUMENTS && (
+                <label className="flex items-center justify-center gap-2 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
+                  <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) runUpload('doc-add', f, 'Document', 'document', (url) => addDocument({ url, name: f.name, size: f.size, mime: 'application/pdf', visibility: 'public', createdAt: new Date().toISOString() }))
+                    e.target.value = ''
                   }} />
-                  {uploading === 'photo' ? (
+                  {uploading === 'doc-add' ? (
                     <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                   ) : (
-                    <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-4.5A1.125 1.125 0 0113.5 7.125v-4.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
                   )}
-                  <span className="text-xs text-gray-400">{uploading === 'photo' ? 'Uploading...' : `Add Photo ${editPhotos.length + 1}`}</span>
+                  <span className="text-xs text-gray-400">{uploading === 'doc-add' ? 'Uploading...' : 'Upload PDF'}</span>
                 </label>
               )}
             </div>
@@ -377,34 +537,53 @@ export default function CustomerDetailPage() {
               </div>
             )}
             <div className="card">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold">Photos ({photos.length})</h2>
-                {photos.length > 0 && (
+              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold">Gallery Photos ({photos.length + adminPhotos.length})</h2>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{photos.length} customer · {adminPhotos.length} admin</span>
+                </div>
+                {photos.length + adminPhotos.length > 0 && (
                   <button
                     onClick={async () => {
                       setDownloading('all')
                       try {
-                        for (let i = 0; i < photos.length; i++) {
-                          await downloadPhoto(customer.id, i)
-                          await new Promise(r => setTimeout(r, 300))
-                        }
-                      } catch { alert('Some photos failed to download') }
+                        await triggerBlobDownload(`/api/admin/customers/${customer.id}/photos?all=true&zip=1&source=all`, `${customer.name || 'profile'}-photos.zip`)
+                      } catch { alert('Download failed. Please try again.') }
                       setDownloading(null)
                     }}
                     disabled={downloading === 'all'}
                     className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                   >
-                    {downloading === 'all' ? 'Downloading...' : 'Download All'}
+                    {downloading === 'all' ? 'Preparing ZIP...' : 'Download All (ZIP)'}
                   </button>
                 )}
               </div>
-              {photos.length > 0 ? (
+              {photos.length + adminPhotos.length > 0 ? (
                 <div className="grid grid-cols-3 gap-2">
                   {photos.map((photo, i) => (
-                    <div key={i} className="relative group rounded-lg overflow-hidden aspect-square">
+                    <div key={`u-${i}`} className="relative group rounded-lg overflow-hidden aspect-square">
                       <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                      <span className="absolute top-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">User {i + 1}</span>
                       <button
-                        onClick={() => downloadPhoto(customer.id, i)}
+                        onClick={() => downloadPhoto(customer.id, i, 'user')}
+                        className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all hover:bg-black/90 flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        Save
+                      </button>
+                    </div>
+                  ))}
+                  {adminPhotos.map((entry: any, i: number) => (
+                    <div key={`a-${i}`} className="relative group rounded-lg overflow-hidden aspect-square">
+                      <img src={entry.url} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
+                      <span className="absolute top-1 left-1 bg-primary-600 text-white text-[9px] px-1.5 py-0.5 rounded">Admin {i + 1}</span>
+                      {entry.visibility === 'private' && (
+                        <span className="absolute top-1 right-1 bg-gray-700 text-white text-[9px] px-1.5 py-0.5 rounded">Private</span>
+                      )}
+                      <button
+                        onClick={() => downloadPhoto(customer.id, i, 'admin')}
                         className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all hover:bg-black/90 flex items-center gap-1"
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -416,6 +595,59 @@ export default function CustomerDetailPage() {
                   ))}
                 </div>
               ) : <p className="text-gray-500 text-sm">No photos uploaded</p>}
+            </div>
+
+            <div className="card">
+              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                <h2 className="font-semibold">Documents ({documents.length})</h2>
+                {documents.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      setDownloading('docs')
+                      try {
+                        await triggerBlobDownload(`/api/admin/customers/${customer.id}/documents?zip=1`, `${customer.name || 'profile'}-documents.zip`)
+                      } catch { alert('Download failed. Please try again.') }
+                      setDownloading(null)
+                    }}
+                    disabled={downloading === 'docs'}
+                    className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  >
+                    {downloading === 'docs' ? 'Preparing ZIP...' : 'Download All (ZIP)'}
+                  </button>
+                )}
+              </div>
+              {documents.length > 0 ? (
+                <div className="space-y-2">
+                  {documents.map((doc: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg bg-gray-50/50">
+                      <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">PDF</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-700 truncate" title={doc.name}>{doc.name}</p>
+                        <p className="text-xs text-gray-400">{formatFileSize(doc.size)} · {doc.visibility === 'private' ? 'Hidden from profile' : 'Public'}</p>
+                      </div>
+                      <a
+                        href={`/api/admin/customers/${customer.id}/documents?index=${i}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs bg-white border border-gray-200 text-gray-600 px-2.5 py-1 rounded-lg hover:border-primary-400 transition-colors"
+                      >View</a>
+                      <button
+                        onClick={async () => {
+                          setDownloading(`doc-${i}`)
+                          try {
+                            await triggerBlobDownload(`/api/admin/customers/${customer.id}/documents?index=${i}&download=1`, doc.name || 'document.pdf')
+                          } catch { alert('Download failed') }
+                          setDownloading(null)
+                        }}
+                        disabled={downloading === `doc-${i}`}
+                        className="text-xs bg-primary-600 text-white px-2.5 py-1 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                      >
+                        {downloading === `doc-${i}` ? '...' : 'Download'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-gray-500 text-sm">No documents uploaded. Use Edit to add PDFs.</p>}
             </div>
             <div className="card">
               <h2 className="font-semibold mb-3">Referred By</h2>

@@ -1,17 +1,17 @@
 "use client"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { apiFetch } from '@/lib/api-client'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    fetch('/api/admin/dashboard/stats', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { if (d.success) setStats(d.data); setLoading(false) })
-      .catch(() => setLoading(false))
+    apiFetch('/api/admin/dashboard/stats')
+      .then((d: any) => { if (d.success) setStats(d.data) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48"></div><div className="grid md:grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-28 bg-gray-200 rounded-xl"></div>)}</div></div>

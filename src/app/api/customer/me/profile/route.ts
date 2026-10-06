@@ -2,6 +2,11 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import {
+  MAX_USER_PHOTOS,
+  validatePhotoList,
+  isImageValue,
+} from '@/lib/profile-media'
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -16,6 +21,17 @@ export async function PATCH(request: NextRequest) {
 
     const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
     const cleanedEmail = clean(email)
+
+    if (photos !== undefined) {
+      const photosCheck = validatePhotoList(photos, MAX_USER_PHOTOS, 'Photos')
+      if (!photosCheck.ok) return errorResponse(photosCheck.error, 400)
+    }
+    if (logoUrl !== undefined && clean(logoUrl) && !isImageValue(clean(logoUrl))) {
+      return errorResponse('Profile picture must be a JPG, JPEG, PNG or WebP image', 400)
+    }
+    if (paymentQrUrl !== undefined && clean(paymentQrUrl) && !isImageValue(clean(paymentQrUrl))) {
+      return errorResponse('Payment QR must be a JPG, JPEG, PNG or WebP image', 400)
+    }
 
     const existing = await prisma.customer.findFirst({ where: { email: cleanedEmail || '___none___' , NOT: { id: user!.id } } })
     if (cleanedEmail && existing) return errorResponse('Email already registered')

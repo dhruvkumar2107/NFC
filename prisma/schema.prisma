@@ -27,6 +27,8 @@ model Customer {
   country          String?  @default("India")
   upiId            String?
   photos           String   @default("[]")
+  adminPhotos      String   @default("[]")
+  documents        String   @default("[]")
   paymentQrUrl     String?
   logoUrl          String?
   description      String?

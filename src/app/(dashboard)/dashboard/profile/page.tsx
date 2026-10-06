@@ -1,17 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
-
-async function uploadFile(file: File): Promise<string> {
-  if (file.size > 20 * 1024 * 1024) {
-    throw new Error('File too large. Max size is 20MB.')
-  }
-  const formData = new FormData()
-  formData.append('file', file)
-  const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const data = await res.json()
-  if (!data.success) throw new Error(data.error || 'Upload failed')
-  return data.url
-}
+import { uploadFile } from '@/lib/upload-client'
+import { MAX_USER_PHOTOS } from '@/lib/profile-media'
 
 export default function EditProfilePage() {
   const [profile, setProfile] = useState<any>(null)
@@ -21,6 +11,7 @@ export default function EditProfilePage() {
   const [msg, setMsg] = useState('')
   const [uploading, setUploading] = useState<string | null>(null)
   const [uploadMsg, setUploadMsg] = useState('')
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -57,12 +48,8 @@ export default function EditProfilePage() {
     setProfile((p: any) => ({ ...p, socialLinks: { ...p.socialLinks, [platform]: value } }))
   }
 
-  function updatePhoto(index: number, value: string) {
-    setProfile((p: any) => {
-      const photos = [...(p.photos || [])]
-      photos[index] = value
-      return { ...p, photos }
-    })
+  function addPhoto(url: string) {
+    setProfile((p: any) => ({ ...p, photos: [...(p.photos || []), url] }))
   }
 
   function removePhoto(index: number) {
@@ -71,6 +58,50 @@ export default function EditProfilePage() {
       photos.splice(index, 1)
       return { ...p, photos }
     })
+  }
+
+  function movePhoto(index: number, direction: -1 | 1) {
+    setProfile((p: any) => {
+      const photos = [...(p.photos || [])]
+      const target = index + direction
+      if (target < 0 || target >= photos.length) return p
+      const tmp = photos[index]
+      photos[index] = photos[target]
+      photos[target] = tmp
+      return { ...p, photos }
+    })
+  }
+
+  async function handlePhotoFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return
+    const current: string[] = profile?.photos || []
+    const remaining = MAX_USER_PHOTOS - current.length
+    if (remaining <= 0) {
+      setUploadMsg(`Photo upload failed: Maximum ${MAX_USER_PHOTOS} photos allowed. Remove one to add another.`)
+      setTimeout(() => setUploadMsg(''), 5000)
+      return
+    }
+    const files = Array.from(fileList).slice(0, remaining)
+    if (fileList.length > remaining) {
+      setUploadMsg(`Only ${remaining} more photo${remaining === 1 ? '' : 's'} allowed (max ${MAX_USER_PHOTOS}).`)
+      setTimeout(() => setUploadMsg(''), 5000)
+    }
+    for (let i = 0; i < files.length; i++) {
+      setUploading('photo')
+      setUploadPercent(0)
+      try {
+        const url = await uploadFile(files[i], { onProgress: setUploadPercent })
+        addPhoto(url)
+        setUploadMsg(`Photo uploaded (${(profile?.photos?.length || 0) + i + 1}/${MAX_USER_PHOTOS})`)
+        setTimeout(() => setUploadMsg(''), 3000)
+      } catch (err: any) {
+        setUploadMsg('Photo upload failed: ' + (err.message || 'Please try again.'))
+        setTimeout(() => setUploadMsg(''), 5000)
+        break
+      }
+    }
+    setUploadPercent(null)
+    setUploading(null)
   }
 
   async function handleSave() {
@@ -228,43 +259,84 @@ export default function EditProfilePage() {
         </div>
 
         <div className="card space-y-4">
-          <h2 className="font-semibold text-lg">Photos</h2>
-          {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {(profile.photos || []).map((photo: string, idx: number) => (
-              <div key={idx} className="relative group">
-                <img src={photo} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
-                <button onClick={() => removePhoto(idx)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
-              </div>
-            ))}
-            {(profile.photos || []).length < 6 && (
-              <label className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploading === 'photo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
-                <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    setUploading('photo')
-                    setUploadMsg('')
-                    try {
-                      const url = await uploadFile(file)
-                      updatePhoto(profile.photos?.length || 0, url)
-                      setUploadMsg(`Photo ${(profile.photos?.length || 0) + 1} uploaded successfully!`)
-                      setTimeout(() => setUploadMsg(''), 3000)
-                    } catch (err: any) {
-                      setUploadMsg('Photo upload failed: ' + (err.message || 'Please try again.'))
-                      setTimeout(() => setUploadMsg(''), 5000)
-                    }
-                    setUploading(null)
-                  }
-                }} />
-                {uploading === 'photo' ? (
-                  <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                ) : (
-                  <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                )}
-                <span className="text-xs text-gray-400">{uploading === 'photo' ? 'Uploading...' : 'Add Photo'}</span>
-              </label>
-            )}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <h2 className="font-semibold text-lg">Photos</h2>
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${(profile.photos || []).length >= MAX_USER_PHOTOS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>
+              {(profile.photos || []).length} / {MAX_USER_PHOTOS}
+            </span>
           </div>
+          <p className="text-xs text-gray-400 -mt-1">Up to {MAX_USER_PHOTOS} photos (JPG, JPEG, PNG or WebP, max 20MB each). Photos appear on your public NFC profile in this order.</p>
+          {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('failed') || uploadMsg.includes('Maximum') || uploadMsg.includes('allowed') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+
+          {uploading === 'photo' && (
+            <div className="space-y-1.5">
+              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary-500 transition-all duration-200"
+                  style={{ width: `${uploadPercent ?? 0}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-primary-600">Uploading photo... {uploadPercent ?? 0}%</p>
+            </div>
+          )}
+
+          {(profile.photos || []).length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {(profile.photos || []).map((photo: string, idx: number) => (
+                <div key={idx} className="relative group">
+                  <img src={photo} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover bg-gray-100" />
+                  <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{idx + 1}</span>
+                  <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => movePhoto(idx, -1)}
+                      disabled={idx === 0}
+                      title="Move earlier"
+                      className="w-6 h-6 bg-black/60 text-white rounded-full text-xs flex items-center justify-center disabled:opacity-30 hover:bg-black/80"
+                    >&#8593;</button>
+                    <button
+                      type="button"
+                      onClick={() => movePhoto(idx, 1)}
+                      disabled={idx === (profile.photos || []).length - 1}
+                      title="Move later"
+                      className="w-6 h-6 bg-black/60 text-white rounded-full text-xs flex items-center justify-center disabled:opacity-30 hover:bg-black/80"
+                    >&#8595;</button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(idx)}
+                    title="Remove photo"
+                    className="absolute bottom-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
+                  >&times;</button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">No photos yet. Your profile picture and any photos you add will show here.</p>
+          )}
+
+          {(profile.photos || []).length < MAX_USER_PHOTOS && (
+            <label className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploading === 'photo' ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                multiple
+                className="sr-only"
+                onChange={(e) => {
+                  handlePhotoFiles(e.target.files)
+                  e.target.value = ''
+                }}
+              />
+              {uploading === 'photo' ? (
+                <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              ) : (
+                <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              )}
+              <span className="text-xs text-gray-400">
+                {uploading === 'photo' ? 'Uploading...' : `Add Photo${(profile.photos || []).length < MAX_USER_PHOTOS - 1 ? 's' : ''}`}
+              </span>
+            </label>
+          )}
         </div>
 
         <button onClick={handleSave} disabled={saving} className="btn-primary">

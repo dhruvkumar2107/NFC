@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import { buildPublicGallery, buildPublicDocuments, publicFileUrl, publicDownloadUrl } from '@/lib/public-profile'
 
 export async function GET(_request: NextRequest, { params }: { params: { nfcCardNumber: string } }) {
   try {
     const card = await prisma.card.findUnique({
       where: { nfcCardNumber: params.nfcCardNumber },
-      include: { design: true },
     })
     if (!card) return errorResponse('Card not found', 404)
 
@@ -18,6 +18,9 @@ export async function GET(_request: NextRequest, { params }: { params: { nfcCard
     const socialLinks = JSON.parse(customer.socialLinks || '{}')
     let photos: string[] = []
     try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
+
+    const gallery = buildPublicGallery(customer)
+    const documents = buildPublicDocuments(customer)
 
     return successResponse({
       nfcCardNumber: card.nfcCardNumber,
@@ -32,6 +35,19 @@ export async function GET(_request: NextRequest, { params }: { params: { nfcCard
       website: customer.website,
       socialLinks,
       photos,
+      gallery: gallery.map((photo, index) => ({
+        url: publicFileUrl(card.cardId, 'photo', index),
+        source: photo.source,
+      })),
+      documents: documents.map((doc, index) => ({
+        name: doc.name,
+        size: doc.size,
+        mime: doc.mime,
+        viewUrl: publicFileUrl(card.cardId, 'document', index),
+        downloadUrl: `${publicFileUrl(card.cardId, 'document', index)}&download=1`,
+      })),
+      downloadAllUrl: publicDownloadUrl(card.cardId, 'all'),
+      downloadPhotosUrl: publicDownloadUrl(card.cardId, 'photos'),
       logoUrl: customer.logoUrl,
       description: customer.description,
       address: customer.address,
@@ -40,7 +56,6 @@ export async function GET(_request: NextRequest, { params }: { params: { nfcCard
       state: customer.state,
       pincode: customer.pincode,
       country: customer.country,
-      design: { name: card.design.name },
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to fetch profile', 500)
