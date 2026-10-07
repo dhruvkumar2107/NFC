@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { uploadFile } from '@/lib/upload-client'
 import { MAX_USER_PHOTOS } from '@/lib/profile-media'
+import ImageCropper from '@/components/ImageCropper'
 
 export default function EditProfilePage() {
   const [profile, setProfile] = useState<any>(null)
@@ -12,6 +13,9 @@ export default function EditProfilePage() {
   const [uploading, setUploading] = useState<string | null>(null)
   const [uploadMsg, setUploadMsg] = useState('')
   const [uploadPercent, setUploadPercent] = useState<number | null>(null)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const [cropTarget, setCropTarget] = useState<'logo' | 'photo' | null>(null)
+  const [cropPhotoIndex, setCropPhotoIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -72,6 +76,14 @@ export default function EditProfilePage() {
     })
   }
 
+  function replacePhoto(index: number, url: string) {
+    setProfile((p: any) => {
+      const photos = [...(p.photos || [])]
+      photos[index] = url
+      return { ...p, photos }
+    })
+  }
+
   async function handlePhotoFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return
     const current: string[] = profile?.photos || []
@@ -86,22 +98,61 @@ export default function EditProfilePage() {
       setUploadMsg(`Only ${remaining} more photo${remaining === 1 ? '' : 's'} allowed (max ${MAX_USER_PHOTOS}).`)
       setTimeout(() => setUploadMsg(''), 5000)
     }
-    for (let i = 0; i < files.length; i++) {
-      setUploading('photo')
-      setUploadPercent(0)
-      try {
-        const url = await uploadFile(files[i], { onProgress: setUploadPercent })
-        addPhoto(url)
-        setUploadMsg(`Photo uploaded (${(profile?.photos?.length || 0) + i + 1}/${MAX_USER_PHOTOS})`)
-        setTimeout(() => setUploadMsg(''), 3000)
-      } catch (err: any) {
-        setUploadMsg('Photo upload failed: ' + (err.message || 'Please try again.'))
-        setTimeout(() => setUploadMsg(''), 5000)
-        break
+    // Open cropper for the first file, then queue the rest
+    if (files.length > 0) {
+      setCropFile(files[0])
+      setCropTarget('photo')
+      setCropPhotoIndex(null) // null means add new
+      // Store remaining files for sequential processing
+      ;(window as any).__pendingPhotoFiles = files.slice(1)
+    }
+  }
+
+  function handleCropComplete(croppedFile: File) {
+    if (cropTarget === 'logo') {
+      uploadCroppedFile(croppedFile, 'logo', () => {})
+    } else if (cropTarget === 'photo') {
+      if (cropPhotoIndex !== null) {
+        uploadCroppedFile(croppedFile, `photo-${cropPhotoIndex}`, (url) => replacePhoto(cropPhotoIndex!, url))
+      } else {
+        uploadCroppedFile(croppedFile, 'photo-add', (url) => addPhoto(url))
       }
     }
-    setUploadPercent(null)
-    setUploading(null)
+    setCropFile(null)
+    setCropTarget(null)
+    setCropPhotoIndex(null)
+    // Process next pending file
+    const pending = (window as any).__pendingPhotoFiles || []
+    if (pending.length > 0) {
+      ;(window as any).__pendingPhotoFiles = pending.slice(1)
+      setCropFile(pending[0])
+      setCropTarget('photo')
+      setCropPhotoIndex(null)
+    }
+  }
+
+  function handleCropCancel() {
+    setCropFile(null)
+    setCropTarget(null)
+    setCropPhotoIndex(null)
+    ;(window as any).__pendingPhotoFiles = []
+  }
+
+  async function uploadCroppedFile(file: File, key: string, onSuccess: (url: string) => void) {
+    setUploading(key)
+    setUploadPercent(0)
+    try {
+      const url = await uploadFile(file, { onProgress: setUploadPercent })
+      onSuccess(url)
+      setUploadMsg(`Photo uploaded (${(profile?.photos?.length || 0) + 1}/${MAX_USER_PHOTOS})`)
+      setTimeout(() => setUploadMsg(''), 3000)
+    } catch (err: any) {
+      setUploadMsg('Photo upload failed: ' + (err.message || 'Please try again.'))
+      setTimeout(() => setUploadMsg(''), 5000)
+    } finally {
+      setUploadPercent(null)
+      setUploading(null)
+    }
   }
 
   async function handleSave() {
@@ -193,18 +244,8 @@ export default function EditProfilePage() {
             <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
               const file = e.target.files?.[0]
               if (file) {
-                setUploading('logo')
-                setUploadMsg('')
-                try {
-                  const url = await uploadFile(file)
-                  updateField('logoUrl', url)
-                  setUploadMsg('Logo uploaded successfully!')
-                  setTimeout(() => setUploadMsg(''), 3000)
-                } catch (err: any) {
-                  setUploadMsg('Logo upload failed: ' + (err.message || 'Please try again.'))
-                  setTimeout(() => setUploadMsg(''), 5000)
-                }
-                setUploading(null)
+                setCropFile(file)
+                setCropTarget('logo')
               }
             }} />
             {uploading === 'logo' ? (
@@ -212,13 +253,13 @@ export default function EditProfilePage() {
                 <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
               </div>
             ) : profile.logoUrl ? (
-              <img src={profile.logoUrl} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />
+              <img src={profile.logoUrl} alt="Logo" className="w-12 h-12 rounded-full object-cover ring-2 ring-primary-200" />
             ) : (
-              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                 <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
               </div>
             )}
-            <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : profile.logoUrl ? 'Change logo' : "If you don't have a logo, upload a profile picture"}</span>
+            <span className="text-sm text-gray-500">{uploading === 'logo' ? 'Uploading...' : profile.logoUrl ? 'Change photo' : "Upload your profile picture"}</span>
           </label>
         </div>
 
@@ -280,7 +321,7 @@ export default function EditProfilePage() {
             </div>
           )}
 
-          {(profile.photos || []).length > 0 ? (
+{(profile.photos || []).length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {(profile.photos || []).map((photo: string, idx: number) => (
                 <div key={idx} className="relative group">
@@ -301,6 +342,16 @@ export default function EditProfilePage() {
                       title="Move later"
                       className="w-6 h-6 bg-black/60 text-white rounded-full text-xs flex items-center justify-center disabled:opacity-30 hover:bg-black/80"
                     >&#8595;</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCropFile(new File([photo], `photo-${idx}.jpg`))
+                        setCropTarget('photo')
+                        setCropPhotoIndex(idx)
+                      }}
+                      title="Replace & crop"
+                      className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs flex items-center justify-center hover:bg-blue-700"
+                    >&#9998;</button>
                   </div>
                   <button
                     type="button"
@@ -343,6 +394,15 @@ export default function EditProfilePage() {
           {saving ? 'Saving...' : 'Save Profile'}
         </button>
       </div>
+
+      {cropFile && cropTarget && (
+        <ImageCropper
+          file={cropFile}
+          onComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={1}
+        />
+      )}
     </div>
   )
 }

@@ -255,6 +255,21 @@
   }
 }
 
+@layer utilities {
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
 @keyframes hero-collage-float {
   0%, 100% { transform: translateY(0px) rotate(var(--rotate, 0deg)); }
   50% { transform: translateY(-12px) rotate(var(--rotate, 0deg)); }

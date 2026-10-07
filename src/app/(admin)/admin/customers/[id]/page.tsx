@@ -9,6 +9,7 @@ import {
   MAX_DOCUMENTS,
   formatFileSize,
 } from '@/lib/profile-media'
+import DragDropSortable from '@/components/DragDropSortable'
 
 async function downloadPhoto(customerId: string, index: number, source: 'user' | 'admin' | 'all' = 'user') {
   const token = localStorage.getItem('token')
@@ -342,11 +343,13 @@ export default function CustomerDetailPage() {
                 <h2 className="font-semibold">Gallery Photos (Admin)</h2>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${editAdminPhotos.length >= MAX_ADMIN_PHOTOS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>{editAdminPhotos.length} / {MAX_ADMIN_PHOTOS}</span>
               </div>
-              <p className="text-xs text-gray-400 -mt-1">Photos you add here are shown on the customer's public profile together with their own photos. Click a photo to replace it.</p>
+              <p className="text-xs text-gray-400 -mt-1">Photos you add here are shown on the customer's public profile together with their own photos. Drag to reorder, click to replace.</p>
               {uploadMsg && uploadMsg.startsWith('Gallery Photo') && <p className={`text-xs ${uploadMsg.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-              <div className="grid grid-cols-3 gap-3">
-                {editAdminPhotos.map((entry: any, i: number) => (
-                  <div key={i} className="relative group">
+              <DragDropSortable
+                items={editAdminPhotos}
+                onReorder={setEditAdminPhotos}
+                renderItem={(entry, i, isDragging) => (
+                  <div className={`relative group ${isDragging ? 'opacity-50' : ''}`}>
                     <label className="block cursor-pointer">
                       <input type="file" accept="image/*" className="sr-only" onChange={(e) => {
                         const f = e.target.files?.[0]
@@ -363,23 +366,25 @@ export default function CustomerDetailPage() {
                     >{entry.visibility === 'private' ? 'Private' : 'Public'}</button>
                     <button onClick={() => removeAdminPhoto(i)} title="Remove" className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
                   </div>
-                ))}
-                {editAdminPhotos.length < MAX_ADMIN_PHOTOS && (
-                  <label className="flex flex-col items-center justify-center gap-1 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
-                    <input type="file" accept="image/*" className="sr-only" onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) runUpload('adminPhoto-add', f, 'Gallery Photo', 'image', (url) => addAdminPhoto(url))
-                      e.target.value = ''
-                    }} />
-                    {uploading === 'adminPhoto-add' ? (
-                      <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                    ) : (
-                      <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    )}
-                    <span className="text-xs text-gray-400">{uploading === 'adminPhoto-add' ? 'Uploading...' : 'Add Photo'}</span>
-                  </label>
                 )}
-              </div>
+                renderAddNew={() => (
+                  editAdminPhotos.length < MAX_ADMIN_PHOTOS && (
+                    <label className="flex flex-col items-center justify-center gap-1 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
+                      <input type="file" accept="image/*" className="sr-only" onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) runUpload('adminPhoto-add', f, 'Gallery Photo', 'image', (url) => addAdminPhoto(url))
+                        e.target.value = ''
+                      }} />
+                      {uploading === 'adminPhoto-add' ? (
+                        <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                      ) : (
+                        <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                      )}
+                      <span className="text-xs text-gray-400">{uploading === 'adminPhoto-add' ? 'Uploading...' : 'Add Photo'}</span>
+                    </label>
+                  )
+                )}
+              />
             </div>
 
             <div className="card space-y-3">

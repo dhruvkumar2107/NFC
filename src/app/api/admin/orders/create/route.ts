@@ -3,6 +3,26 @@ import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import { generateCardId, generateOrderId, generateNfcCardNumber, hashPassword } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import {
+  MAX_ADMIN_PHOTOS,
+  MAX_DOCUMENTS,
+  validateAdminPhotoList,
+  validateDocumentList,
+  isImageValue,
+  isPdfValue,
+} from '@/lib/profile-media'
+
+function coerceList(value: unknown): unknown {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : value
+    } catch {
+      return value
+    }
+  }
+  return value
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,12 +33,22 @@ export async function POST(request: NextRequest) {
     const {
       name, email, mobile, whatsapp, designation, company, college,
       website, address, taluk, city, state, pincode,
-      socialLinks, logoUrl, paymentQrUrl, description, photos,
+      socialLinks, logoUrl, paymentQrUrl, description,
+      adminPhotos, documents,
       designId, employeeId, amount,
     } = body
 
     if (!name || !designId) {
       return errorResponse('Name and design are required')
+    }
+
+    if (adminPhotos !== undefined) {
+      const check = validateAdminPhotoList(coerceList(adminPhotos))
+      if (!check.ok) return errorResponse(check.error, 400)
+    }
+    if (documents !== undefined) {
+      const check = validateDocumentList(coerceList(documents))
+      if (!check.ok) return errorResponse(check.error, 400)
     }
 
     const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
@@ -39,7 +69,8 @@ export async function POST(request: NextRequest) {
           socialLinks: JSON.stringify(socialLinks || {}),
           address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
           logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
-          photos: JSON.stringify(photos || []),
+          adminPhotos: adminPhotos !== undefined ? JSON.stringify(adminPhotos) : undefined,
+          documents: documents !== undefined ? JSON.stringify(documents) : undefined,
         },
       })
     } else {
@@ -51,7 +82,8 @@ export async function POST(request: NextRequest) {
           socialLinks: JSON.stringify(socialLinks || {}),
           address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
           logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
-          photos: JSON.stringify(photos || []),
+          adminPhotos: JSON.stringify(adminPhotos || []),
+          documents: JSON.stringify(documents || []),
           soldByEmployeeId: employeeId || null,
           passwordHash: tempPassword,
         },

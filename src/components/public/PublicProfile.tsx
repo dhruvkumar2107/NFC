@@ -31,7 +31,7 @@ export default function PublicProfile({ card, customer, profilePath, photos, doc
 
   const origin = requestOrigin()
   const profileUrl = `${origin}${profilePath}`
-  const contactMessage = `Hello, I found your profile on MySmartCard and would like to connect.\n\n${profileUrl}`
+  const contactMessage = `Hello MySmartCard user, I got your details by tapping your MySmartCard. I would like to connect with you.`
 
   const addressParts = [customer.address, customer.taluk, customer.city, customer.state, customer.pincode].filter(Boolean)
   const fullAddress = addressParts.join(', ')
@@ -44,21 +44,25 @@ export default function PublicProfile({ card, customer, profilePath, photos, doc
           <div className="bg-gradient-to-br from-primary-600 to-primary-800 p-8 text-center text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             <div className="relative z-10">
-              <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full mx-auto mb-5 ring-4 ring-white/20 shadow-xl overflow-hidden bg-white/15">
+              <div className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 rounded-full mx-auto mb-6 ring-4 ring-white/20 shadow-xl overflow-hidden bg-white/15">
                 {customer.logoUrl ? (
-                  <img src={customer.logoUrl} alt={customer.name} className="w-full h-full object-cover object-[50%_30%]" />
+                  <img src={customer.logoUrl} alt={customer.name} className="w-full h-full object-cover object-center top" />
                 ) : photos[0] ? (
-                  <img src={photos[0].url} alt={customer.name} className="w-full h-full object-cover object-[50%_30%]" />
+                  <img src={photos[0].url} alt={customer.name} className="w-full h-full object-cover object-center top" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-5xl font-bold bg-white/20">
+                  <div className="w-full h-full flex items-center justify-center text-7xl font-bold bg-white/20">
                     {customer.name?.charAt(0) || '?'}
                   </div>
                 )}
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold break-words">{customer.name}</h1>
-              {customer.designation && <p className="text-primary-100 mt-1 text-sm">{customer.designation}</p>}
-              {customer.company && <p className="text-primary-200 text-sm mt-0.5">{customer.company}</p>}
-              {customer.college && <p className="text-primary-200 text-sm mt-0.5">{customer.college}</p>}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold break-words leading-tight clamp-2">{customer.name}</h1>
+              {(customer.designation || customer.company) && (
+                <div className="mt-2 space-y-1 text-primary-100 text-sm">
+                  {customer.designation && <p>{customer.designation}</p>}
+                  {customer.company && <p>{customer.company}</p>}
+                  {customer.college && !customer.company && <p>{customer.college}</p>}
+                </div>
+              )}
             </div>
           </div>
 
@@ -101,7 +105,7 @@ export default function PublicProfile({ card, customer, profilePath, photos, doc
           {/* Contact Details */}
           <div className="px-5 pb-5 space-y-2">
             {customer.email && (
-              <a href={`mailto:${customer.email}?subject=${encodeURIComponent(`Contact from MySmartCard Profile`)}&body=${encodeURIComponent(`Hi ${customer.name},\n\nI found your profile on MySmartCard and would like to connect.\n\nBest regards`)}`} className="flex items-center gap-3 p-3.5 glass-subtle rounded-2xl hover:shadow-sm transition-all duration-300 group">
+              <a href={`mailto:${customer.email}?subject=${encodeURIComponent(`Contact from MySmartCard Profile`)}&body=${encodeURIComponent(`Hello MySmartCard user,\n\nI got your details by tapping your MySmartCard. I would like to connect with you.\n\nBest regards`)}`} className="flex items-center gap-3 p-3.5 glass-subtle rounded-2xl hover:shadow-sm transition-all duration-300 group">
                 <svg className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
                 <span className="text-sm text-gray-700">{customer.email}</span>
               </a>

@@ -6,17 +6,30 @@ import { Suspense } from 'react'
 
 import { compressImage } from '@/lib/compress-image'
 import { apiFetch } from '@/lib/api-client'
+import { MAX_ADMIN_PHOTOS, MAX_DOCUMENTS } from '@/lib/profile-media'
 
-async function uploadFile(file: File): Promise<string> {
-  const compressed = await compressImage(file)
-  const formData = new FormData()
-  formData.append('file', compressed)
-  const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const text = await res.text()
-  let data: any
-  try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
-  if (!data.success) throw new Error(data.error || 'Upload failed')
-  return data.url
+async function uploadFile(file: File, kind: 'image' | 'document' = 'image'): Promise<string> {
+  if (kind === 'image') {
+    const compressed = await compressImage(file)
+    const formData = new FormData()
+    formData.append('file', compressed)
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    const text = await res.text()
+    let data: any
+    try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
+    if (!data.success) throw new Error(data.error || 'Upload failed')
+    return data.url
+  } else {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('kind', 'document')
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    const text = await res.text()
+    let data: any
+    try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
+    if (!data.success) throw new Error(data.error || 'Upload failed')
+    return data.url
+  }
 }
 
 function AdminNewOrderContent() {
@@ -30,7 +43,8 @@ function AdminNewOrderContent() {
     whatsapp: '', website: '', address: '', taluk: '', city: '', state: '', pincode: '',
     instagram: '', facebook: '', linkedin: '',
     logoUrl: '', paymentQrUrl: '', description: '',
-    photo1: '', photo2: '', photo3: '', photo4: '', photo5: '', photo6: '',
+    adminPhotos: [] as string[],
+    documents: [] as { url: string; name: string; size: number }[],
     designId: '', employeeId: '', amount: '',
   })
 
@@ -61,7 +75,6 @@ function AdminNewOrderContent() {
     setError('')
     try {
       const token = localStorage.getItem('token')
-      const photos = [form.photo1, form.photo2, form.photo3, form.photo4, form.photo5, form.photo6].filter(p => p.trim())
 
       const res = await fetch('/api/admin/orders/create', {
         method: 'POST',
@@ -72,7 +85,9 @@ function AdminNewOrderContent() {
           whatsapp: form.whatsapp || form.mobile, website: form.website,
           address: form.address, taluk: form.taluk, city: form.city, state: form.state, pincode: form.pincode,
           socialLinks: { instagram: form.instagram, facebook: form.facebook, linkedin: form.linkedin },
-          logoUrl: form.logoUrl, paymentQrUrl: form.paymentQrUrl, description: form.description, photos,
+          logoUrl: form.logoUrl, paymentQrUrl: form.paymentQrUrl, description: form.description,
+          adminPhotos: form.adminPhotos,
+          documents: form.documents,
           designId: form.designId,
           employeeId: form.employeeId || null,
           amount: form.amount ? parseFloat(form.amount) : undefined,
@@ -208,46 +223,147 @@ function AdminNewOrderContent() {
           <div><label className="label">Description / Bio</label><textarea className="input-field resize-none" rows={3} value={form.description} onChange={e => update('description', e.target.value)} placeholder="Tell people about yourself or your business..." /></div>
         </div>
 
-        <div className="card space-y-4">
-          <h2 className="font-semibold">Photos</h2>
-          <p className="text-xs text-gray-400">Upload up to 6 photos for the digital profile card</p>
-          {uploadMsg && uploadMsg.startsWith('Photo') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
-          <div className="grid grid-cols-3 gap-4">
-            {(['photo1', 'photo2', 'photo3', 'photo4', 'photo5', 'photo6'] as const).map((field, idx) => (
-              <label key={field} className={`flex flex-col items-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading === field ? 'border-primary-400 bg-primary-50' : 'border-gray-200 hover:border-primary-400'}`}>
+<div className="card space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold">Gallery Photos (Admin)</h2>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${form.adminPhotos.length >= MAX_ADMIN_PHOTOS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>
+              {form.adminPhotos.length} / {MAX_ADMIN_PHOTOS}
+            </span>
+          </div>
+          <p className="text-xs text-gray-400 -mt-1">Upload up to {MAX_ADMIN_PHOTOS} photos for the customer's public profile gallery. Click a photo to replace it.</p>
+          {uploadMsg && uploadMsg.startsWith('Gallery Photo') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+          <div className="grid grid-cols-3 gap-3">
+            {form.adminPhotos.map((photo, i) => (
+              <label key={i} className="relative group flex flex-col items-center gap-2 p-2 border-2 border-dashed rounded-xl cursor-pointer transition-colors hover:border-primary-400">
                 <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
                   const file = e.target.files?.[0]
                   if (file) {
-                    setUploading(field)
+                    setUploading(`adminPhoto-${i}`)
                     setUploadMsg('')
                     try {
-                      const url = await uploadFile(file)
-                      update(field, url)
-                      setUploadMsg(`Photo ${idx + 1} uploaded successfully!`)
+                      const url = await uploadFile(file, 'image')
+                      setForm(f => ({ ...f, adminPhotos: f.adminPhotos.map((p, idx) => idx === i ? url : p) }))
+                      setUploadMsg(`Gallery Photo ${i + 1} uploaded successfully!`)
                       setTimeout(() => setUploadMsg(''), 3000)
                     } catch (err: any) {
-                      setUploadMsg(`Photo ${idx + 1} upload failed: ` + (err.message || 'Please try again.'))
+                      setUploadMsg(`Gallery Photo ${i + 1} upload failed: ` + (err.message || 'Please try again.'))
                       setTimeout(() => setUploadMsg(''), 5000)
                     }
                     setUploading(null)
                   }
                 }} />
-                {uploading === field ? (
-                  <div className="w-full h-32 rounded-lg bg-primary-100 flex flex-col items-center justify-center">
-                    <svg className="animate-spin h-8 w-8 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                {uploading === `adminPhoto-${i}` ? (
+                  <div className="w-full h-24 rounded-lg bg-primary-100 flex flex-col items-center justify-center">
+                    <svg className="animate-spin h-6 w-6 text-primary-600 mb-1" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                     <span className="text-xs text-primary-600">Uploading...</span>
                   </div>
-                ) : (form as any)[field] ? (
-                  <img src={(form as any)[field]} alt={`Photo ${idx + 1}`} className="w-full h-32 rounded-lg object-cover" />
                 ) : (
-                  <div className="w-full h-32 rounded-lg bg-gray-100 flex flex-col items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>
-                    <span className="text-xs text-gray-400">Photo {idx + 1}</span>
-                  </div>
+                  <img src={photo} alt={`Gallery ${i + 1}`} className="w-full h-24 rounded-lg object-cover" />
                 )}
+                <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{i + 1}</span>
+                <button type="button" onClick={() => setForm(f => ({ ...f, adminPhotos: f.adminPhotos.filter((_, idx) => idx !== i) }))} title="Remove" className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center">&times;</button>
               </label>
             ))}
+            {form.adminPhotos.length < MAX_ADMIN_PHOTOS && (
+              <label className="flex flex-col items-center justify-center gap-1 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
+                <input type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setUploading('adminPhoto-add')
+                    setUploadMsg('')
+                    try {
+                      const url = await uploadFile(file, 'image')
+                      setForm(f => ({ ...f, adminPhotos: [...f.adminPhotos, url] }))
+                      setUploadMsg('Gallery Photo uploaded successfully!')
+                      setTimeout(() => setUploadMsg(''), 3000)
+                    } catch (err: any) {
+                      setUploadMsg('Gallery Photo upload failed: ' + (err.message || 'Please try again.'))
+                      setTimeout(() => setUploadMsg(''), 5000)
+                    }
+                    setUploading(null)
+                  }
+                }} />
+                {uploading === 'adminPhoto-add' ? (
+                  <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                ) : (
+                  <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                )}
+                <span className="text-xs text-gray-400">{uploading === 'adminPhoto-add' ? 'Uploading...' : 'Add Photo'}</span>
+              </label>
+            )}
           </div>
+        </div>
+
+        <div className="card space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold">Documents (PDF)</h2>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${form.documents.length >= MAX_DOCUMENTS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>
+              {form.documents.length} / {MAX_DOCUMENTS}
+            </span>
+          </div>
+          <p className="text-xs text-gray-400 -mt-1">Upload catalogues, price lists, brochures, certificates (PDF, max 10MB each).</p>
+          {uploadMsg && uploadMsg.startsWith('Document') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
+          {form.documents.length > 0 && (
+            <div className="space-y-2">
+              {form.documents.map((doc, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg bg-gray-50/50">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">PDF</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-700 truncate" title={doc.name}>{doc.name}</p>
+                    <p className="text-xs text-gray-400">{(doc.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <label className={`text-xs px-2.5 py-1 rounded-lg cursor-pointer transition-colors ${uploading === `doc-${i}` ? 'bg-primary-100 text-primary-700' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-400'}`}>
+                    <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setUploading(`doc-${i}`)
+                        setUploadMsg('')
+                        try {
+                          const url = await uploadFile(file, 'document')
+                          setForm(f => ({ ...f, documents: f.documents.map((d, idx) => idx === i ? { ...d, url, name: file.name, size: file.size } : d) }))
+                          setUploadMsg(`Document ${i + 1} uploaded successfully!`)
+                          setTimeout(() => setUploadMsg(''), 3000)
+                        } catch (err: any) {
+                          setUploadMsg(`Document ${i + 1} upload failed: ` + (err.message || 'Please try again.'))
+                          setTimeout(() => setUploadMsg(''), 5000)
+                        }
+                        setUploading(null)
+                      }
+                    }} />
+                    {uploading === `doc-${i}` ? '...' : 'Replace'}
+                  </label>
+                  <button type="button" onClick={() => setForm(f => ({ ...f, documents: f.documents.filter((_, idx) => idx !== i) }))} title="Remove" className="w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">&times;</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {form.documents.length < MAX_DOCUMENTS && (
+            <label className="flex items-center justify-center gap-2 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
+              <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  setUploading('doc-add')
+                  setUploadMsg('')
+                  try {
+                    const url = await uploadFile(file, 'document')
+                    setForm(f => ({ ...f, documents: [...f.documents, { url, name: file.name, size: file.size }] }))
+                    setUploadMsg('Document uploaded successfully!')
+                    setTimeout(() => setUploadMsg(''), 3000)
+                  } catch (err: any) {
+                    setUploadMsg('Document upload failed: ' + (err.message || 'Please try again.'))
+                    setTimeout(() => setUploadMsg(''), 5000)
+                  }
+                  setUploading(null)
+                }
+              }} />
+              {uploading === 'doc-add' ? (
+                <svg className="animate-spin h-6 w-6 text-primary-600" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              ) : (
+                <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-4.5A1.125 1.125 0 0113.5 7.125v-4.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+              )}
+              <span className="text-xs text-gray-400">{uploading === 'doc-add' ? 'Uploading...' : 'Upload PDF'}</span>
+            </label>
+          )}
         </div>
 
         <div className="card space-y-4">

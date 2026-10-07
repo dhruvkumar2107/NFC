@@ -22,8 +22,39 @@ interface ProfileMediaProps {
   documents: ProfileDocumentItem[]
 }
 
+async function triggerDownload(url: string, filename: string, useAuth = false) {
+  try {
+    const token = useAuth ? (typeof window !== 'undefined' ? localStorage.getItem('token') : null) : null
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    
+    const res = await fetch(url, { headers })
+    if (!res.ok) throw new Error('Download failed')
+    
+    const blob = await res.blob()
+    const disposition = res.headers.get('Content-Disposition') || ''
+    const filenameMatch = disposition.match(/filename="(.+)"/)
+    const finalFilename = filenameMatch ? filenameMatch[1] : filename
+    
+    const objectUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = objectUrl
+    a.download = finalFilename
+    a.rel = 'noopener noreferrer'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(objectUrl)
+  } catch (err) {
+    console.error('Download failed:', err)
+    // Fallback: open in new tab
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
+
 export default function ProfileMedia({ cardId, name, photos, documents }: ProfileMediaProps) {
   const [active, setActive] = useState<number | null>(null)
+  const [downloading, setDownloading] = useState<string | null>(null)
 
   useEffect(() => {
     if (active === null) return
@@ -33,6 +64,17 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [active])
+
+  function getPhotoFilename(photo: ProfilePhotoItem, index: number): string {
+    try {
+      const url = new URL(photo.url, window.location.origin)
+      const pathname = url.pathname
+      const ext = pathname.split('.').pop() || 'jpg'
+      return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.${ext}`
+    } catch {
+      return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.jpg`
+    }
+  }
 
   if (photos.length === 0 && documents.length === 0) return null
 
@@ -69,17 +111,22 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
                     className="w-full h-full object-cover object-center"
                   />
                 </button>
-                <a
-                  href={`${photo.url}&download=1`}
-                  download
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDownloading(`photo-${i}`)
+                    triggerDownload(photo.url, getPhotoFilename(photo, i))
+                    setTimeout(() => setDownloading(null), 1000)
+                  }}
+                  disabled={downloading === `photo-${i}`}
                   title="Download this photo"
-                  className="absolute bottom-1.5 right-1.5 bg-black/60 hover:bg-black/85 text-white text-[10px] px-2 py-1 rounded-md flex items-center gap-1 transition-colors"
+                  className="absolute bottom-1.5 right-1.5 bg-black/60 hover:bg-black/85 text-white text-[10px] px-2 py-1 rounded-md flex items-center gap-1 transition-colors disabled:opacity-50"
                 >
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                   </svg>
-                  Save
-                </a>
+                  {downloading === `photo-${i}` ? 'Saving...' : 'Save'}
+                </button>
               </div>
             ))}
           </div>
@@ -112,13 +159,18 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
                   >
                     View
                   </a>
-                  <a
-                    href={doc.downloadUrl}
-                    download
-                    className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDownloading(`doc-${i}`)
+                      triggerDownload(doc.downloadUrl, doc.name, true)
+                      setTimeout(() => setDownloading(null), 1000)
+                    }}
+                    disabled={downloading === `doc-${i}`}
+                    className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:opacity-50"
                   >
-                    Download
-                  </a>
+                    {downloading === `doc-${i}` ? 'Saving...' : 'Download'}
+                  </button>
                 </div>
               </div>
             ))}
@@ -152,13 +204,15 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
               className="max-w-full max-h-[70vh] object-contain rounded-xl"
             />
             <div className="flex items-center gap-2">
-              <a
-                href={`${photos[active].url}&download=1`}
-                download
+              <button
+                type="button"
+                onClick={() => {
+                  triggerDownload(photos[active].url, getPhotoFilename(photos[active], active))
+                }}
                 className="bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
               >
                 Download
-              </a>
+              </button>
               <button
                 type="button"
                 onClick={() => setActive(null)}
