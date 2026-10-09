@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 
 import { compressImage } from '@/lib/compress-image'
 import { apiFetch } from '@/lib/api-client'
-import { MAX_ADMIN_PHOTOS, MAX_DOCUMENTS } from '@/lib/profile-media'
+import { MAX_ADMIN_PHOTOS, MAX_DOCUMENTS, MAX_ORDER_DOCUMENTS } from '@/lib/profile-media'
 
 async function uploadFile(file: File, kind: 'image' | 'document' = 'image'): Promise<string> {
   if (kind === 'image') {
@@ -297,8 +297,8 @@ function AdminNewOrderContent() {
         <div className="card space-y-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-semibold">Documents (PDF)</h2>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${form.documents.length >= MAX_DOCUMENTS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>
-              {form.documents.length} / {MAX_DOCUMENTS}
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${form.documents.length >= MAX_ORDER_DOCUMENTS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>
+              {form.documents.length} / {MAX_ORDER_DOCUMENTS}
             </span>
           </div>
           <p className="text-xs text-gray-400 -mt-1">Upload catalogues, price lists, brochures, certificates (PDF, max 10MB each).</p>
@@ -337,7 +337,7 @@ function AdminNewOrderContent() {
               ))}
             </div>
           )}
-          {form.documents.length < MAX_DOCUMENTS && (
+          {form.documents.length < MAX_ORDER_DOCUMENTS && (
             <label className="flex items-center justify-center gap-2 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
               <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={async (e) => {
                 const file = e.target.files?.[0]

@@ -1,6 +1,7 @@
 export const MAX_USER_PHOTOS = 10
 export const MAX_ADMIN_PHOTOS = 30
 export const MAX_DOCUMENTS = 20
+export const MAX_ORDER_DOCUMENTS = 10
 export const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 

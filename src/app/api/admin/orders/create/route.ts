@@ -6,6 +6,7 @@ import { successResponse, errorResponse } from '@/lib/api-response'
 import {
   MAX_ADMIN_PHOTOS,
   MAX_DOCUMENTS,
+  MAX_ORDER_DOCUMENTS,
   validateAdminPhotoList,
   validateDocumentList,
   isImageValue,
@@ -47,7 +48,11 @@ export async function POST(request: NextRequest) {
       if (!check.ok) return errorResponse(check.error, 400)
     }
     if (documents !== undefined) {
-      const check = validateDocumentList(coerceList(documents))
+      const docs = coerceList(documents)
+      if (Array.isArray(docs) && docs.length > MAX_ORDER_DOCUMENTS) {
+        return errorResponse(`Maximum ${MAX_ORDER_DOCUMENTS} documents allowed for order (received ${docs.length})`, 400)
+      }
+      const check = validateDocumentList(docs)
       if (!check.ok) return errorResponse(check.error, 400)
     }
 
