@@ -27,6 +27,8 @@ export default function EditProfilePage() {
           setReadableCardId(c.card?.cardId || '')
           let photos: string[] = []
           try { photos = JSON.parse(c.photos || '[]') } catch { photos = [] }
+          let socialLinks: any = {}
+          try { socialLinks = JSON.parse(c.socialLinks || '{}') } catch { socialLinks = {} }
           setProfile({
             name: c.name || '', designation: c.designation || '', company: c.company || '',
             college: c.college || '',
@@ -36,7 +38,7 @@ export default function EditProfilePage() {
             taluk: c.taluk || '',
             city: c.city || '', state: c.state || '', pincode: c.pincode || '',
             photos,
-            socialLinks: JSON.parse(c.socialLinks || '{}'),
+            socialLinks,
           })
         }
         setLoading(false)

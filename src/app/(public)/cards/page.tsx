@@ -167,14 +167,14 @@ export default function CardsPage() {
               {/* Price Block */}
               <div className="flex flex-col items-center gap-3 mb-8">
                 <div className="flex items-center gap-3">
-                  <span className="text-gray-400 text-xl line-through decoration-2">₹1999</span>
+                  <span className="text-gray-400 text-xl line-through decoration-2">₹7999</span>
                   <span className="inline-flex items-center bg-green-50 text-green-700 text-xs font-bold px-3 py-1 rounded-full border border-green-100">
-                    SAVE 65%
+                    SAVE 50%
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className="text-gray-500 text-2xl font-semibold">₹</span>
-                  <span className="text-6xl sm:text-7xl font-extrabold text-gray-900 tracking-tight">699</span>
+                  <span className="text-6xl sm:text-7xl font-extrabold text-gray-900 tracking-tight">3999</span>
                 </div>
               </div>
 
@@ -328,7 +328,7 @@ export default function CardsPage() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
               Get Lifetime Access
               <br />
-              <span className="text-primary-400">for Just ₹699</span>
+              <span className="text-primary-400">for Just ₹3999</span>
             </h2>
             <p className="text-gray-400 text-lg mb-8 max-w-md mx-auto leading-relaxed">
               One-time payment. No renewals. Ever. Your premium NFC smart card with a digital profile that lasts forever.
@@ -336,9 +336,9 @@ export default function CardsPage() {
 
             {/* Price recap */}
             <div className="flex items-center justify-center gap-3 mb-10">
-              <span className="text-gray-500 text-lg line-through">₹1999</span>
-              <span className="text-white text-4xl sm:text-5xl font-extrabold">₹699</span>
-              <span className="bg-green-500/20 text-green-400 text-xs font-bold px-2.5 py-1 rounded-full border border-green-500/20">SAVE 65%</span>
+              <span className="text-gray-500 text-lg line-through">₹7999</span>
+              <span className="text-white text-4xl sm:text-5xl font-extrabold">₹3999</span>
+              <span className="bg-green-500/20 text-green-400 text-xs font-bold px-2.5 py-1 rounded-full border border-green-500/20">SAVE 50%</span>
             </div>
 
             <Link

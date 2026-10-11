@@ -1,70 +1,134 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
-import { signToken } from '@/lib/auth'
+import { signToken, comparePassword } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 
 const normalizePhone = (v?: string | null) => (v || '').replace(/\D/g, '')
 const normalizeName = (v?: string | null) => (v || '').trim().replace(/\s+/g, ' ').toLowerCase()
+const normalizeEmail = (v?: string | null) => (v || '').trim().toLowerCase()
 
 export async function POST(request: NextRequest) {
   try {
     const ip = clientIp(request.headers)
-    if (!rateLimit(`customer-login:${ip}`, 15, 60_000)) {
+    if (!rateLimit(`customer-login:${ip}`, 30, 60_000)) {
       return errorResponse('Too many login attempts. Please try again in a minute.', 429)
     }
 
-    const { name, phone } = await request.json()
+    const body = await request.json()
+    const rawId = (body.identifier || body.phone || body.mobile || body.email || '').trim()
+    const rawCred = (body.credential || body.password || body.name || body.fullName || '').trim()
 
-    const nameNorm = normalizeName(name)
-    const phoneDigits = normalizePhone(phone)
-    if (!nameNorm || !phoneDigits) return errorResponse('Name and phone number are required')
-
-    const last10 = phoneDigits.slice(-10)
-
-    const matchesPhone = (c: { mobile: string | null; whatsapp: string | null }) => {
-      const m = normalizePhone(c.mobile)
-      const w = normalizePhone(c.whatsapp)
-      return (
-        m === phoneDigits || w === phoneDigits ||
-        (last10.length === 10 && (m.slice(-10) === last10 || w.slice(-10) === last10))
-      )
+    if (!rawId && !rawCred) {
+      return errorResponse('Please enter your phone number or email')
     }
 
-    // Fast path: match on the trailing digits directly in the DB.
-    let candidates =
-      last10.length === 10
-        ? await prisma.customer.findMany({
-            where: { OR: [{ mobile: { endsWith: last10 } }, { whatsapp: { endsWith: last10 } }] },
-          })
-        : []
+    const isEmail = rawId.includes('@')
+    const emailToSearch = isEmail ? normalizeEmail(rawId) : null
 
-    // Fallback for stored numbers with spaces/punctuation or a shorter input.
-    if (candidates.length === 0) {
+    let phoneDigits = normalizePhone(rawId)
+    // If the user swapped the name/phone fields:
+    if (phoneDigits.length < 10 && normalizePhone(rawCred).length >= 10) {
+      phoneDigits = normalizePhone(rawCred)
+    }
+
+    let candidates: any[] = []
+
+    if (emailToSearch) {
       candidates = await prisma.customer.findMany({
-        where: { OR: [{ mobile: { not: null } }, { whatsapp: { not: null } }] },
+        where: {
+          email: { equals: emailToSearch, mode: 'insensitive' },
+        },
       })
     }
 
-    const phoneMatches = candidates.filter(matchesPhone)
-    if (phoneMatches.length === 0) {
-      return errorResponse('No account found with this phone number')
+    if (candidates.length === 0 && phoneDigits.length >= 10) {
+      const last10 = phoneDigits.slice(-10)
+      candidates = await prisma.customer.findMany({
+        where: {
+          OR: [
+            { mobile: { contains: last10 } },
+            { whatsapp: { contains: last10 } },
+          ],
+        },
+      })
+
+      if (candidates.length === 0) {
+        const all = await prisma.customer.findMany({
+          where: {
+            OR: [{ mobile: { not: null } }, { whatsapp: { not: null } }],
+          },
+        })
+        candidates = all.filter((c) => {
+          const m = normalizePhone(c.mobile)
+          const w = normalizePhone(c.whatsapp)
+          return m.includes(last10) || w.includes(last10)
+        })
+      }
     }
 
-    const customer =
-      phoneMatches.find((c) => normalizeName(c.name) === nameNorm) ||
-      (phoneMatches.length === 1 ? phoneMatches[0] : null)
-
-    if (!customer) {
-      return errorResponse('No account found with this name and phone number')
+    if (candidates.length === 0) {
+      return errorResponse('No account found with this phone number or email')
     }
 
-    const token = await signToken({ id: customer.id, role: 'customer' })
+    let authenticatedCustomer: any = null
+
+    // 1. Check password verification if provided or if credential matches passwordHash
+    if (rawCred) {
+      for (const c of candidates) {
+        if (c.passwordHash) {
+          try {
+            const match = await comparePassword(rawCred, c.passwordHash)
+            if (match) {
+              authenticatedCustomer = c
+              break
+            }
+          } catch {}
+        }
+      }
+    }
+
+    // 2. Check name verification
+    if (!authenticatedCustomer) {
+      const nameInput = normalizeName(rawCred || rawId)
+      if (nameInput) {
+        const exactMatch = candidates.find((c) => normalizeName(c.name) === nameInput)
+        if (exactMatch) {
+          authenticatedCustomer = exactMatch
+        } else {
+          const partialMatch = candidates.find((c) => {
+            const cNorm = normalizeName(c.name)
+            return cNorm.includes(nameInput) || nameInput.includes(cNorm)
+          })
+          if (partialMatch) {
+            authenticatedCustomer = partialMatch
+          }
+        }
+      }
+    }
+
+    // 3. Fallback: unique account match for this phone / email
+    if (!authenticatedCustomer && candidates.length === 1) {
+      authenticatedCustomer = candidates[0]
+    }
+
+    if (!authenticatedCustomer) {
+      return errorResponse('Could not verify account. Please enter your full name as used during order or your password.')
+    }
+
+    const token = await signToken({ id: authenticatedCustomer.id, role: 'customer' })
     return successResponse({
       token,
-      customer: { id: customer.id, name: customer.name, email: customer.email, cardId: customer.cardId },
+      customer: {
+        id: authenticatedCustomer.id,
+        name: authenticatedCustomer.name,
+        email: authenticatedCustomer.email,
+        mobile: authenticatedCustomer.mobile,
+        cardId: authenticatedCustomer.cardId,
+      },
     })
   } catch (err: any) {
+    console.error('Customer login error:', err)
     return errorResponse(err.message || 'Login failed', 500)
   }
 }

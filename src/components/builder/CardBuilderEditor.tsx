@@ -77,8 +77,13 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
         defaultTenure: c.emiConfig.defaultTenure,
         processingFee: c.emiConfig.processingFee,
       })
-      const tpl = await jfetch('/api/admin/templates')
-      setTemplates(tpl.templates || [])
+      // Templates are admin-only; silently ignore 403 for customer logins
+      try {
+        const tpl = await jfetch('/api/admin/templates')
+        setTemplates(tpl.templates || [])
+      } catch {
+        setTemplates([])
+      }
     } catch (e: any) {
       setError(e.message)
     } finally {

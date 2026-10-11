@@ -1,12 +1,10 @@
 "use client"
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function CustomerLoginPage() {
-  const router = useRouter()
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [identifier, setIdentifier] = useState('')
+  const [credential, setCredential] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -18,13 +16,18 @@ export default function CustomerLoginPage() {
       const res = await fetch('/api/auth/customer/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone }),
+        body: JSON.stringify({
+          identifier: identifier.trim(),
+          phone: identifier.trim(),
+          credential: credential.trim(),
+          name: credential.trim(),
+        }),
       })
       const data = await res.json()
-      if (!data.success) throw new Error(data.error)
+      if (!data.success) throw new Error(data.error || 'Login failed')
       localStorage.setItem('token', data.data.token)
       localStorage.setItem('role', 'customer')
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } catch (err: any) {
       setError(err.message || 'Login failed')
     } finally {
@@ -42,7 +45,7 @@ export default function CustomerLoginPage() {
           </svg>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">MySmartCard</h1>
-        <p className="text-sm text-gray-500 mt-1.5">Sign in to your account</p>
+        <p className="text-sm text-gray-500 mt-1.5">Sign in to your customer account</p>
       </div>
 
       {error && (
@@ -53,26 +56,33 @@ export default function CustomerLoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="label">Your Name</label>
+          <label className="label">Phone Number or Email</label>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             className="input-field"
-            placeholder="Enter your full name"
+            placeholder="Registered phone number or email"
             required
+            autoComplete="username"
           />
         </div>
         <div>
-          <label className="label">Phone Number</label>
+          <div className="flex items-center justify-between">
+            <label className="label">Name or Password</label>
+            <span className="text-xs text-gray-400">Card name or password</span>
+          </div>
           <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            type="text"
+            value={credential}
+            onChange={(e) => setCredential(e.target.value)}
             className="input-field"
-            placeholder="Enter your registered phone number"
-            required
+            placeholder="Your name as on card, or password"
+            autoComplete="current-password"
           />
+          <p className="text-xs text-gray-400 mt-1">
+            Ordered a card? Enter your name used during order. Registered user? Enter your password.
+          </p>
         </div>
         <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
           {loading ? 'Signing in...' : 'Sign In'}

@@ -347,8 +347,8 @@ function OrderContent() {
                       <div className="flex items-center gap-2.5 shrink-0">
                         <div className="text-right">
                           <div className="flex items-center gap-1.5 justify-end">
-                            <span className="text-xs text-gray-400 line-through">₹1999</span>
-                            <span className="inline-flex items-center bg-green-50 text-green-700 text-[9px] font-bold px-1.5 py-px rounded-full border border-green-100">65% OFF</span>
+                            <span className="text-xs text-gray-400 line-through">₹7999</span>
+                            <span className="inline-flex items-center bg-green-50 text-green-700 text-[9px] font-bold px-1.5 py-px rounded-full border border-green-100">50% OFF</span>
                           </div>
                           <div className="text-lg font-bold text-primary-600 leading-tight">₹{d.price}</div>
                         </div>
