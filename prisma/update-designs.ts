@@ -25,12 +25,12 @@ async function main() {
     if (existing) {
       await prisma.cardDesign.update({
         where: { id: existing.id },
-        data: { ...design, price: 3999, active: true },
+        data: { ...design, price: 4999, active: true },
       })
       console.log(`Updated: ${design.name}`)
     } else {
       await prisma.cardDesign.create({
-        data: { ...design, price: 3999, active: true },
+        data: { ...design, price: 4999, active: true },
       })
       console.log(`Created: ${design.name}`)
     }

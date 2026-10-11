@@ -159,7 +159,7 @@ export default function AdminDesignsPage() {
               </div>
               <div>
                 <label className="label">Price (₹) *</label>
-                <input type="number" min="1" className="input-field" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} required placeholder="3999" />
+                <input type="number" min="1" className="input-field" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} required placeholder="4999" />
               </div>
             </div>
 
