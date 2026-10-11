@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import PublicProfile from '@/components/public/PublicProfile'
 import { loadProfileByNfc, buildPublicMedia } from '@/lib/public-profile'
+import { loadPublicBuilderData } from '@/lib/card-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,7 @@ export default async function NfcCardProfilePage({ params }: { params: { nfcCard
 
   const { card, customer } = profile
   const media = buildPublicMedia(card.cardId, customer)
+  const builder = await loadPublicBuilderData(card.id)
 
   return (
     <PublicProfile
@@ -18,6 +20,7 @@ export default async function NfcCardProfilePage({ params }: { params: { nfcCard
       profilePath={card.nfcCardNumber ? `/card/${card.nfcCardNumber}` : `/p/${card.cardId}`}
       photos={media.photos}
       documents={media.documents}
+      builder={builder}
     />
   )
 }

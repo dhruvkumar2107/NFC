@@ -9,7 +9,19 @@ export async function GET(request: NextRequest) {
     if (error) return error
 
     const cards = await prisma.card.findMany({
-      include: { design: true, employee: true },
+      include: {
+        design: true,
+        employee: true,
+        builderConfig: {
+          select: {
+            status: true,
+            industry: true,
+            slug: true,
+            template: { select: { name: true } },
+            _count: { select: { albums: true, products: true, catalogues: true } },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     })
 

@@ -59,6 +59,9 @@ model Card {
   order    Order?
   employee Employee? @relation(fields: [soldByEmployeeId], references: [id])
   design   CardDesign @relation(fields: [designId], references: [id])
+  builderConfig CardBuilderConfig?
+  enquiries     Enquiry[]
+  analytics     AnalyticsEvent[]
 }
 
 model Order {
@@ -172,4 +175,244 @@ model RedemptionRequest {
   updatedAt    DateTime @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+// ============================================================
+// MySmartCard Platform: business identity + marketing entities
+// ============================================================
+
+model CardTemplate {
+  id           String   @id @default(uuid())
+  name         String
+  industry     String   @unique
+  category     String
+  description  String?
+  icon         String?
+  previewImage String?
+  config       String   @default("{}")
+  active       Boolean  @default(true)
+  isSystem     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  configs CardBuilderConfig[]
+
+  @@index([category])
+}
+
+model CardBuilderConfig {
+  id           String   @id @default(uuid())
+  cardId       String   @unique
+  templateId   String?
+  industry     String   @default("general")
+  slug         String?  @unique
+  status       String   @default("draft")
+  theme        String   @default("{}")
+  sections     String   @default("{}")
+  coverImage   String?
+  logoUrl      String?
+  profileImage String?
+  emiEnabled   Boolean  @default(false)
+  emiConfigId  String?
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  card       Card           @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  template   CardTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  emiConfig  EmiConfig?     @relation(fields: [emiConfigId], references: [id], onDelete: SetNull)
+  albums     GalleryAlbum[]
+  products   Product[]
+  categories ProductCategory[]
+  catalogues CatalogueDocument[]
+
+  @@index([status])
+  @@index([industry])
+}
+
+model GalleryAlbum {
+  id          String   @id @default(uuid())
+  configId    String
+  name        String
+  slug        String
+  description String?
+  sortOrder   Int      @default(0)
+  public      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  config CardBuilderConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  media  MediaItem[]
+
+  @@index([configId, sortOrder])
+}
+
+model MediaItem {
+  id           String   @id @default(uuid())
+  albumId      String
+  url          String
+  thumbnailUrl String?
+  name         String?
+  mime         String   @default("image/jpeg")
+  size         Int      @default(0)
+  width        Int?
+  height       Int?
+  sortOrder    Int      @default(0)
+  visibility   String   @default("public")
+  createdAt    DateTime @default(now())
+
+  album GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@index([albumId, sortOrder])
+}
+
+model ProductCategory {
+  id        String   @id @default(uuid())
+  configId  String
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  config   CardBuilderConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@index([configId, sortOrder])
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  configId    String
+  categoryId  String?
+  name        String
+  description String?
+  imageUrl    String?
+  mrp         Float?
+  price       Float?
+  discountPct Float?
+  stockStatus String   @default("in_stock")
+  attributes  String   @default("{}")
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  config   CardBuilderConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  category ProductCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([configId, sortOrder])
+}
+
+model CatalogueDocument {
+  id         String   @id @default(uuid())
+  configId   String
+  title      String
+  url        String
+  kind       String   @default("catalogue")
+  size       Int      @default(0)
+  sortOrder  Int      @default(0)
+  visibility String   @default("public")
+  createdAt  DateTime @default(now())
+
+  config CardBuilderConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId, sortOrder])
+}
+
+model EmiConfig {
+  id            String   @id @default(uuid())
+  defaultRate   Float    @default(10)
+  minTenure     Int      @default(3)
+  maxTenure     Int      @default(60)
+  defaultTenure Int      @default(12)
+  processingFee Float    @default(0)
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  configs CardBuilderConfig[]
+}
+
+model EmiCalculation {
+  id            String   @id @default(uuid())
+  cardId        String?
+  price         Float
+  downPayment   Float    @default(0)
+  principal     Float
+  rate          Float
+  tenure        Int
+  emi           Float
+  totalInterest Float
+  totalPayable  Float
+  processingFee Float    @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([cardId, createdAt])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  cardId    String?
+  type      String
+  sessionId String?
+  referrer  String?
+  device    String?
+  location  String?
+  metadata  String   @default("{}")
+  createdAt DateTime @default(now())
+
+  card Card? @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId, type, createdAt])
+  @@index([createdAt])
+}
+
+model Enquiry {
+  id         String   @id @default(uuid())
+  cardId     String?
+  configId   String?
+  name       String
+  phone      String?
+  email      String?
+  subject    String?
+  message    String?
+  source     String   @default("card")
+  productId  String?
+  emiData    String?
+  status     String   @default("new")
+  assignedTo String?
+  consent    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  card  Card? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  notes LeadNote[]
+
+  @@index([status, createdAt])
+  @@index([cardId, createdAt])
+}
+
+model LeadNote {
+  id         String   @id @default(uuid())
+  enquiryId  String
+  author     String?
+  note       String
+  followUpAt DateTime?
+  createdAt  DateTime @default(now())
+
+  enquiry Enquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+
+  @@index([enquiryId, createdAt])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  actorRole String?
+  action    String
+  target    String?
+  metadata  String   @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action])
 }

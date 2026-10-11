@@ -73,13 +73,30 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Link href="/dashboard/profile" className="card hover:shadow-md transition-shadow">
-          <h3 className="font-semibold text-lg mb-2">Edit Profile</h3>
-          <p className="text-gray-600 text-sm">Update your profile details. Changes appear instantly on your digital profile.</p>
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-lg">👤</div>
+          <h3 className="font-semibold text-lg mb-1">Edit Profile</h3>
+          <p className="text-gray-600 text-sm">Update your details. Changes appear instantly on your digital profile.</p>
+        </Link>
+        <Link href="/dashboard/builder" className="card hover:shadow-md transition-shadow">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-lg">🎨</div>
+          <h3 className="font-semibold text-lg mb-1">Card Builder</h3>
+          <p className="text-gray-600 text-sm">Customise your theme, sections, gallery, products and catalogues.</p>
+        </Link>
+        <Link href="/dashboard/leads" className="card hover:shadow-md transition-shadow">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-lg">💬</div>
+          <h3 className="font-semibold text-lg mb-1">Leads</h3>
+          <p className="text-gray-600 text-sm">Enquiries from your card. Track status and add follow-up notes.</p>
+        </Link>
+        <Link href="/dashboard/analytics" className="card hover:shadow-md transition-shadow">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-lg">📈</div>
+          <h3 className="font-semibold text-lg mb-1">Analytics</h3>
+          <p className="text-gray-600 text-sm">See views, visitors, device mix and how people engage with your card.</p>
         </Link>
         <Link href="/dashboard/card" className="card hover:shadow-md transition-shadow">
-          <h3 className="font-semibold text-lg mb-2">My Card</h3>
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg">💳</div>
+          <h3 className="font-semibold text-lg mb-1">My Card</h3>
           <p className="text-gray-600 text-sm">View your card details, QR codes, and NFC information.</p>
         </Link>
       </div>

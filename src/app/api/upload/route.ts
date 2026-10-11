@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server'
 import { join } from 'path'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
-import { requireAuth } from '@/lib/auth-guard'
+import { getAuthUser } from '@/lib/auth-guard'
+import { unauthorized } from '@/lib/api-response'
 import { MAX_IMAGE_BYTES, MAX_DOCUMENT_BYTES, sanitizeDocumentName } from '@/lib/profile-media'
 
 // Detect Vercel environment - files written to /tmp cannot be served via HTTP on Vercel
@@ -42,9 +43,11 @@ export async function POST(request: NextRequest) {
     const originalName = typeof file.name === 'string' ? file.name : ''
 
     if (kind === 'document') {
-      // Documents (CV / brochure / portfolio PDFs) may only be uploaded by an admin.
-      const { error } = await requireAuth(request, 'admin')
-      if (error) return error
+      // Catalogue / brochure PDFs may be uploaded by an admin or a business owner.
+      const user = await getAuthUser(request)
+      if (!user || (user.role !== 'admin' && user.role !== 'customer')) {
+        return unauthorized()
+      }
 
       if (bytes.length > MAX_DOCUMENT_BYTES) return badRequest('Document too large. Max size is 10MB.')
       if (!looksLikePdf(bytes)) return badRequest('Invalid file. Please upload a valid PDF document.')

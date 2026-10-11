@@ -52,6 +52,7 @@ const config: Config = {
         'slide-up': 'slide-up 0.5s ease-out',
         'fade-in': 'fade-in 0.6s ease-out',
         'scale-in': 'scale-in 0.3s ease-out',
+        'slide-in-right': 'slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'blur-in': 'blur-in 0.4s ease-out',
         'shimmer': 'shimmer 2.5s ease-in-out infinite',
         'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
@@ -100,6 +101,10 @@ const config: Config = {
         'scale-in': {
           '0%': { transform: 'scale(0.95)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'slide-in-right': {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
         },
         'blur-in': {
           '0%': { filter: 'blur(8px)', opacity: '0' },
