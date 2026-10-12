@@ -8,6 +8,7 @@ import EnquiryForm, { EnquiryPrefill } from './EnquiryForm'
 import AlbumGallery from './AlbumGallery'
 import ProductCatalog from './ProductCatalog'
 import CatalogueList from './CatalogueList'
+import DownloadCentre from './DownloadCentre'
 import { useCardAnalytics } from '@/lib/use-analytics'
 import { getSocialDisplay, getSocialUrl } from '@/lib/social'
 import { FONT_CLASS } from '@/lib/builder'
@@ -307,6 +308,11 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
               </div>
               <span className="text-sm font-semibold text-gray-600">{copied ? 'Link Copied!' : 'Copy Profile Link'}</span>
             </button>
+          </div>
+
+          {/* Download Centre */}
+          <div className="px-5 pb-5">
+            <DownloadCentre cardId={card.cardId} name={profile.name || 'this card'} onTrack={track} />
           </div>
 
           {/* Contact Details */}

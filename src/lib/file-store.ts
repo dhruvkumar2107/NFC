@@ -115,3 +115,57 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
+
+/** Extensions that PDFKit can embed directly (JPEG + PNG only). */
+const EMBEDDABLE_IMAGE_MIME = new Set(['image/jpeg', 'image/jpg', 'image/png'])
+
+export function isEmbeddableImage(mime: string | null | undefined): boolean {
+  if (!mime) return false
+  return EMBEDDABLE_IMAGE_MIME.has(mime.toLowerCase())
+}
+
+/**
+ * Estimates the byte size of a stored asset without downloading it.
+ * Returns 0 when the size cannot be known cheaply.
+ */
+export function estimateUrlSize(url: string): number {
+  if (!url) return 0
+  if (url.startsWith('data:')) {
+    const comma = url.indexOf(',')
+    if (comma === -1) return 0
+    const meta = url.slice(0, comma)
+    const payloadLength = url.length - comma - 1
+    return meta.includes(';base64') ? Math.floor((payloadLength * 3) / 4) : payloadLength
+  }
+  return 0
+}
+
+/**
+ * Builds a safe, standards-compliant Content-Disposition header value.
+ * Provides an ASCII fallback plus the RFC 5987 UTF-8 form so non-Latin
+ * file names survive intact on modern browsers.
+ */
+export function contentDisposition(filename: string, disposition: 'attachment' | 'inline' = 'attachment'): string {
+  const cleaned = (filename || 'file')
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120) || 'file'
+
+  const asciiFallback = cleaned.replace(/[^\x20-\x7e]/g, '_').replace(/"/g, "'")
+  const encoded = encodeURIComponent(cleaned)
+  return `${disposition}; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`
+}
+
+/** Turns an arbitrary label into a conservative file/folder name. */
+export function sanitizeBaseName(name: string, fallback = 'file'): string {
+  const cleaned = (name || '')
+    .replace(/[\\/:*?"<>|#%&{}$!'@+`=]/g, ' ')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    .trim()
+    .slice(0, 80)
+  return cleaned || fallback
+}
