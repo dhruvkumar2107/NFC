@@ -67,6 +67,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 1b. Fall back to matching by name (covers records with a missing/invalid phone).
+    if (candidates.length === 0 && !isEmail) {
+      const nameQuery = normalizeName(rawId) || normalizeName(rawCred)
+      if (nameQuery) {
+        const all = await prisma.customer.findMany()
+        const exact = all.filter((c) => normalizeName(c.name) === nameQuery)
+        if (exact.length > 0) {
+          candidates = exact
+        } else {
+          const partial = all.filter((c) => {
+            const n = normalizeName(c.name)
+            return n.includes(nameQuery) || nameQuery.includes(n)
+          })
+          if (partial.length === 1) candidates = partial
+        }
+      }
+    }
+
     if (candidates.length === 0) {
       return errorResponse('No account found with this phone number or email')
     }
