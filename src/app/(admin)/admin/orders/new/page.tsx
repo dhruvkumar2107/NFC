@@ -6,30 +6,37 @@ import { Suspense } from 'react'
 
 import { compressImage } from '@/lib/compress-image'
 import { apiFetch } from '@/lib/api-client'
-import { MAX_ADMIN_PHOTOS, MAX_DOCUMENTS, MAX_ORDER_DOCUMENTS } from '@/lib/profile-media'
+import { uploadFile as uploadWithProgress } from '@/lib/upload-client'
+import { MAX_ADMIN_PHOTOS, MAX_ORDER_DOCUMENTS } from '@/lib/profile-media'
 
-async function uploadFile(file: File, kind: 'image' | 'document' = 'image'): Promise<string> {
-  if (kind === 'image') {
-    const compressed = await compressImage(file)
-    const formData = new FormData()
-    formData.append('file', compressed)
-    const res = await fetch('/api/upload', { method: 'POST', body: formData })
-    const text = await res.text()
-    let data: any
-    try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
-    if (!data.success) throw new Error(data.error || 'Upload failed')
-    return data.url
-  } else {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('kind', 'document')
-    const res = await fetch('/api/upload', { method: 'POST', body: formData })
-    const text = await res.text()
-    let data: any
-    try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
-    if (!data.success) throw new Error(data.error || 'Upload failed')
-    return data.url
+function authHeaders(): Record<string, string> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+function uploadErrorMessage(status: number, fallback?: string): string {
+  switch (status) {
+    case 401: return 'Your session has expired. Please log out and log in again, then retry the upload.'
+    case 403: return fallback || 'You do not have permission to upload this file.'
+    case 413: return fallback || 'File is too large. PDF documents must be 10MB or smaller.'
+    case 415: return fallback || 'Unsupported file type. Please upload a valid PDF document.'
+    case 422: return fallback || 'The file failed validation. Please check it and try again.'
+    case 500: return fallback || 'The server could not process the upload. Please try again.'
+    default: return fallback || `Upload failed (${status}).`
   }
+}
+
+async function uploadImage(file: File): Promise<string> {
+  const compressed = await compressImage(file)
+  const formData = new FormData()
+  formData.append('file', compressed)
+  formData.append('kind', 'image')
+  const res = await fetch('/api/upload', { method: 'POST', headers: authHeaders(), body: formData })
+  const text = await res.text()
+  let data: any
+  try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
+  if (!data.success) throw new Error(uploadErrorMessage(res.status, data.error))
+  return data.url
 }
 
 function AdminNewOrderContent() {
@@ -37,6 +44,7 @@ function AdminNewOrderContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState<string | null>(null)
+  const [docProgress, setDocProgress] = useState(0)
   const [uploadMsg, setUploadMsg] = useState('')
   const [form, setForm] = useState({
     name: '', email: '', mobile: '', designation: '', company: '', college: '',
@@ -165,7 +173,7 @@ function AdminNewOrderContent() {
                 setUploading('logo')
                 setUploadMsg('')
                 try {
-                  const url = await uploadFile(file)
+                  const url = await uploadImage(file)
                   update('logoUrl', url)
                   setUploadMsg('Logo uploaded successfully!')
                   setTimeout(() => setUploadMsg(''), 3000)
@@ -196,7 +204,7 @@ function AdminNewOrderContent() {
                 setUploading('qr')
                 setUploadMsg('')
                 try {
-                  const url = await uploadFile(file)
+                  const url = await uploadImage(file)
                   update('paymentQrUrl', url)
                   setUploadMsg('Payment QR uploaded successfully!')
                   setTimeout(() => setUploadMsg(''), 3000)
@@ -241,7 +249,7 @@ function AdminNewOrderContent() {
                     setUploading(`adminPhoto-${i}`)
                     setUploadMsg('')
                     try {
-                      const url = await uploadFile(file, 'image')
+                      const url = await uploadImage(file)
                       setForm(f => ({ ...f, adminPhotos: f.adminPhotos.map((p, idx) => idx === i ? url : p) }))
                       setUploadMsg(`Gallery Photo ${i + 1} uploaded successfully!`)
                       setTimeout(() => setUploadMsg(''), 3000)
@@ -272,7 +280,7 @@ function AdminNewOrderContent() {
                     setUploading('adminPhoto-add')
                     setUploadMsg('')
                     try {
-                      const url = await uploadFile(file, 'image')
+                      const url = await uploadImage(file)
                       setForm(f => ({ ...f, adminPhotos: [...f.adminPhotos, url] }))
                       setUploadMsg('Gallery Photo uploaded successfully!')
                       setTimeout(() => setUploadMsg(''), 3000)
@@ -312,14 +320,16 @@ function AdminNewOrderContent() {
                     <p className="text-sm font-medium text-gray-700 truncate" title={doc.name}>{doc.name}</p>
                     <p className="text-xs text-gray-400">{(doc.size / 1024).toFixed(1)} KB</p>
                   </div>
-                  <label className={`text-xs px-2.5 py-1 rounded-lg cursor-pointer transition-colors ${uploading === `doc-${i}` ? 'bg-primary-100 text-primary-700' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-400'}`}>
-                    <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={async (e) => {
+                  <label className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${uploading === `doc-${i}` ? 'bg-primary-100 text-primary-700' : `cursor-pointer bg-white border border-gray-200 text-gray-600 hover:border-primary-400 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}`}>
+                    <input type="file" accept="application/pdf,.pdf" className="sr-only" disabled={uploading !== null} onChange={async (e) => {
                       const file = e.target.files?.[0]
+                      e.target.value = ''
                       if (file) {
                         setUploading(`doc-${i}`)
+                        setDocProgress(0)
                         setUploadMsg('')
                         try {
-                          const url = await uploadFile(file, 'document')
+                          const url = await uploadWithProgress(file, { kind: 'document', onProgress: setDocProgress })
                           setForm(f => ({ ...f, documents: f.documents.map((d, idx) => idx === i ? { ...d, url, name: file.name, size: file.size } : d) }))
                           setUploadMsg(`Document ${i + 1} uploaded successfully!`)
                           setTimeout(() => setUploadMsg(''), 3000)
@@ -328,9 +338,10 @@ function AdminNewOrderContent() {
                           setTimeout(() => setUploadMsg(''), 5000)
                         }
                         setUploading(null)
+                        setDocProgress(0)
                       }
                     }} />
-                    {uploading === `doc-${i}` ? '...' : 'Replace'}
+                    {uploading === `doc-${i}` ? (docProgress > 0 ? `${docProgress}%` : 'Uploading...') : 'Replace'}
                   </label>
                   <button type="button" onClick={() => setForm(f => ({ ...f, documents: f.documents.filter((_, idx) => idx !== i) }))} title="Remove" className="w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">&times;</button>
                 </div>
@@ -338,14 +349,16 @@ function AdminNewOrderContent() {
             </div>
           )}
           {form.documents.length < MAX_ORDER_DOCUMENTS && (
-            <label className="flex items-center justify-center gap-2 w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-primary-400">
-              <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={async (e) => {
+            <label className={`flex items-center justify-center gap-2 w-full h-24 border-2 border-dashed rounded-lg transition-colors ${uploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer hover:border-primary-400'}`}>
+              <input type="file" accept="application/pdf,.pdf" className="sr-only" disabled={uploading !== null} onChange={async (e) => {
                 const file = e.target.files?.[0]
+                e.target.value = ''
                 if (file) {
                   setUploading('doc-add')
+                  setDocProgress(0)
                   setUploadMsg('')
                   try {
-                    const url = await uploadFile(file, 'document')
+                    const url = await uploadWithProgress(file, { kind: 'document', onProgress: setDocProgress })
                     setForm(f => ({ ...f, documents: [...f.documents, { url, name: file.name, size: file.size }] }))
                     setUploadMsg('Document uploaded successfully!')
                     setTimeout(() => setUploadMsg(''), 3000)
@@ -354,6 +367,7 @@ function AdminNewOrderContent() {
                     setTimeout(() => setUploadMsg(''), 5000)
                   }
                   setUploading(null)
+                  setDocProgress(0)
                 }
               }} />
               {uploading === 'doc-add' ? (
@@ -361,7 +375,7 @@ function AdminNewOrderContent() {
               ) : (
                 <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-4.5A1.125 1.125 0 0113.5 7.125v-4.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
               )}
-              <span className="text-xs text-gray-400">{uploading === 'doc-add' ? 'Uploading...' : 'Upload PDF'}</span>
+              <span className="text-xs text-gray-400">{uploading === 'doc-add' ? (docProgress > 0 ? `Uploading... ${docProgress}%` : 'Uploading...') : 'Upload PDF'}</span>
             </label>
           )}
         </div>
