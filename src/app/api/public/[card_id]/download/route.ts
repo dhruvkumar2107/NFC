@@ -8,6 +8,7 @@ import {
   type BundleType,
 } from '@/lib/download-bundle'
 import { contentDisposition, formatFileSize } from '@/lib/file-store'
+import { streamedFileResponse } from '@/lib/stream-file'
 import { recordEvent, ANALYTICS_EVENTS } from '@/lib/analytics'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 
@@ -62,14 +63,11 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
       metadata: { bundle: rawType, files: result.fileCount, bytes: result.bytes },
     })
 
-    return new Response(new Uint8Array(result.buffer), {
-      headers: {
-        'Content-Type': 'application/zip',
-        'Content-Disposition': contentDisposition(result.filename),
-        'Content-Length': String(result.bytes),
-        'X-Content-Type-Options': 'nosniff',
-        'Cache-Control': 'no-store',
-      },
+    return streamedFileResponse(result.buffer, {
+      'Content-Type': 'application/zip',
+      'Content-Disposition': contentDisposition(result.filename),
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'no-store',
     })
   } catch (err: any) {
     if (err instanceof BundleLimitError) {

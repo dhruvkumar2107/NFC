@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import { errorResponse } from '@/lib/api-response'
 import { resolveFileBuffer, mimeToExt, sanitizeDownloadName } from '@/lib/file-store'
+import { streamedFileResponse } from '@/lib/stream-file'
 import { AdminPhotoEntry, parseJsonArray } from '@/lib/profile-media'
 
 function uniqueName(taken: Set<string>, base: string, ext: string): string {
@@ -60,13 +61,10 @@ export async function GET(
       if (added === 0) return errorResponse('Photos could not be read', 404)
       const content = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' })
       const base = sanitizeDownloadName(customer.name || 'customer', 'zip').replace(/\.[^.]+$/, '')
-      return new Response(new Uint8Array(content), {
-        headers: {
-          'Content-Type': 'application/zip',
-          'Content-Disposition': `attachment; filename="${base}-photos.zip"`,
-          'Content-Length': content.byteLength.toString(),
-          'X-Content-Type-Options': 'nosniff',
-        },
+      return streamedFileResponse(content, {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${base}-photos.zip"`,
+        'X-Content-Type-Options': 'nosniff',
       })
     }
 
@@ -102,12 +100,9 @@ export async function GET(
         return Response.json({ success: false, error: 'Could not fetch logo' }, { status: 404 })
       }
       const ext = mimeToExt(logoData.mime)
-      return new Response(new Uint8Array(logoData.buffer), {
-        headers: {
-          'Content-Type': logoData.mime,
-          'Content-Disposition': `attachment; filename="logo.${ext}"`,
-          'Content-Length': logoData.buffer.length.toString(),
-        },
+      return streamedFileResponse(logoData.buffer, {
+        'Content-Type': logoData.mime,
+        'Content-Disposition': `attachment; filename="logo.${ext}"`,
       })
     }
 
@@ -123,12 +118,9 @@ export async function GET(
     const ext = mimeToExt(photoData.mime)
     const filename = `photo-${index + 1}.${ext}`
 
-    return new Response(new Uint8Array(photoData.buffer), {
-      headers: {
-        'Content-Type': photoData.mime,
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': photoData.buffer.length.toString(),
-      },
+    return streamedFileResponse(photoData.buffer, {
+      'Content-Type': photoData.mime,
+      'Content-Disposition': `attachment; filename="${filename}"`,
     })
   } catch (err: any) {
     return Response.json({ success: false, error: err.message || 'Download failed' }, { status: 500 })

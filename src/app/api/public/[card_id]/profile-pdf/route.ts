@@ -3,6 +3,7 @@ import { errorResponse } from '@/lib/api-response'
 import { loadPublicCardData, businessName } from '@/lib/public-card-data'
 import { buildBusinessProfilePdf } from '@/lib/pdf/business-profile'
 import { contentDisposition, sanitizeBaseName } from '@/lib/file-store'
+import { streamedFileResponse } from '@/lib/stream-file'
 import { recordEvent, ANALYTICS_EVENTS } from '@/lib/analytics'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 
@@ -36,14 +37,11 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
       })
     }
 
-    return new Response(new Uint8Array(pdf), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': contentDisposition(filename, isDownload ? 'attachment' : 'inline'),
-        'Content-Length': String(pdf.length),
-        'X-Content-Type-Options': 'nosniff',
-        'Cache-Control': 'no-store',
-      },
+    return streamedFileResponse(pdf, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': contentDisposition(filename, isDownload ? 'attachment' : 'inline'),
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'no-store',
     })
   } catch (err: any) {
     return errorResponse(err?.message || 'Failed to generate business profile PDF', 500)

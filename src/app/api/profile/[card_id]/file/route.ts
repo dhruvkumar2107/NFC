@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { errorResponse } from '@/lib/api-response'
 import { resolveFileBuffer, mimeToExt, sanitizeDownloadName } from '@/lib/file-store'
+import { streamedFileResponse } from '@/lib/stream-file'
 import { buildPublicGallery, buildPublicDocuments } from '@/lib/public-profile'
 
 export const dynamic = 'force-dynamic'
@@ -45,14 +46,11 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
     const fullFilename = filename.includes('.') ? filename : `${filename}.${ext}`
     const disposition = (wantsDownload ? 'attachment' : 'inline') + `; filename="${fullFilename}"`
 
-    return new Response(new Uint8Array(resolved.buffer), {
-      headers: {
-        'Content-Type': kind === 'document' ? 'application/pdf' : resolved.mime,
-        'Content-Disposition': disposition,
-        'Content-Length': resolved.buffer.length.toString(),
-        'X-Content-Type-Options': 'nosniff',
-        'Cache-Control': 'public, max-age=3600',
-      },
+    return streamedFileResponse(resolved.buffer, {
+      'Content-Type': kind === 'document' ? 'application/pdf' : resolved.mime,
+      'Content-Disposition': disposition,
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'public, max-age=3600',
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to load file', 500)

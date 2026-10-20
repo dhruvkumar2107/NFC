@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import { errorResponse } from '@/lib/api-response'
 import { resolveFileBuffer, sanitizeDownloadName } from '@/lib/file-store'
+import { streamedFileResponse } from '@/lib/stream-file'
 import { ProfileDocumentEntry, parseJsonArray } from '@/lib/profile-media'
 
 export async function GET(
@@ -52,14 +53,11 @@ export async function GET(
       const content = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' })
       const filename = `${(customer.name || 'customer').replace(/[^a-z0-9]+/gi, '-')}-documents.zip`
 
-      return new Response(content as unknown as BodyInit, {
-        headers: {
-          'Content-Type': 'application/zip',
-          'Content-Disposition': `attachment; filename="${filename}"`,
-          'Content-Length': content.byteLength.toString(),
-          'X-Content-Type-Options': 'nosniff',
-          'Cache-Control': 'no-store',
-        },
+      return streamedFileResponse(content, {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'no-store',
       })
     }
 
@@ -89,14 +87,11 @@ export async function GET(
     const wantsDownload = url.searchParams.get('download') === '1'
     const filename = sanitizeDownloadName(doc.name, 'pdf')
 
-    return new Response(new Uint8Array(resolved.buffer), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `${wantsDownload ? 'attachment' : 'inline'}; filename="${filename}"`,
-        'Content-Length': resolved.buffer.length.toString(),
-        'X-Content-Type-Options': 'nosniff',
-        'Cache-Control': 'private, max-age=300',
-      },
+    return streamedFileResponse(resolved.buffer, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `${wantsDownload ? 'attachment' : 'inline'}; filename="${filename}"`,
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'private, max-age=300',
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to load document', 500)

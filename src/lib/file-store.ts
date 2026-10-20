@@ -1,5 +1,7 @@
 import { readFile } from 'fs/promises'
 import { join, normalize, extname } from 'path'
+import { parseStoredFileUrl } from './profile-media'
+import { resolveStoredFile } from './stored-files'
 
 export interface ResolvedFile {
   buffer: Buffer
@@ -70,6 +72,12 @@ function isSafeRelativePath(url: string): boolean {
 export async function resolveFileBuffer(url: string): Promise<ResolvedFile | null> {
   try {
     if (url.startsWith('data:')) return decodeDataUri(url)
+
+    const stored = parseStoredFileUrl(url)
+    if (stored) {
+      const row = await resolveStoredFile(stored.id)
+      return row ? { buffer: row.buffer, mime: row.mime } : null
+    }
 
     if (url.startsWith('/uploads/') && isSafeRelativePath(url)) {
       const filePath = join(process.cwd(), 'public', url)

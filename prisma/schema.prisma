@@ -405,14 +405,40 @@ model LeadNote {
 }
 
 model ActivityLog {
-  id        String   @id @default(uuid())
-  actorId   String?
-  actorRole String?
-  action    String
-  target    String?
-  metadata  String   @default("{}")
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  actorId    String?
+  actorRole  String?
+  action     String
+  target     String?
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
 
   @@index([createdAt])
   @@index([action])
+}
+
+// Files uploaded through /api/upload, stored in the database so they work
+// on serverless hosts where the filesystem is read-only (Vercel).
+model StoredFile {
+  id        String   @id @default(uuid())
+  name      String
+  mime      String   @default("application/octet-stream")
+  size      Int      @default(0)
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Temporarily holds chunk parts of a large upload until the final chunk
+// arrives and the file is assembled into StoredFile.
+model StoredFileChunk {
+  id        String   @id @default(uuid())
+  uploadId  String
+  idx       Int
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@unique([uploadId, idx])
+  @@index([uploadId])
 }

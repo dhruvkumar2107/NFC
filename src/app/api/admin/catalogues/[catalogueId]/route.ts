@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { successResponse, notFound } from '@/lib/api-response'
 import { authorizeCardAccess } from '@/lib/card-access'
 import { logActivity } from '@/lib/admin-log'
+import { deleteStoredFileByUrl } from '@/lib/stored-files'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +35,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { catal
   const { access, error } = await authorizeCardAccess(request, doc.config.cardId)
   if (error) return error
   await prisma.catalogueDocument.delete({ where: { id: params.catalogueId } })
+  await deleteStoredFileByUrl(doc.url)
   await logActivity({ actorId: access!.user.id, actorRole: access!.user.role, action: 'catalogue.delete', target: params.catalogueId })
   return successResponse({ deleted: true })
 }

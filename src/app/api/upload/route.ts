@@ -1,14 +1,14 @@
 import { NextRequest } from 'next/server'
-import { join } from 'path'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
 import { getAuthUser } from '@/lib/auth-guard'
 import { MAX_IMAGE_BYTES, MAX_DOCUMENT_BYTES, sanitizeDocumentName } from '@/lib/profile-media'
-
-// Detect Vercel environment - files written to /tmp cannot be served via HTTP on Vercel
-const IS_VERCEL = !!process.env.VERCEL
+import { saveStoredFile, saveUploadChunk, assembleUploadChunks, cleanupUploadChunks } from '@/lib/stored-files'
 
 const PDF_MIME_TYPES = ['application/pdf', 'application/x-pdf', 'application/octet-stream', '']
+
+// Each request body must stay well under Vercel's 4.5MB function payload cap,
+// so larger files are sent as 3MB chunks and assembled server-side.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const MAX_CHUNKS = 32
 
 function fail(status: number, error: string, meta: Record<string, unknown> = {}) {
   // Diagnostic log for failed uploads. Never log file contents, tokens or secrets.
@@ -19,20 +19,44 @@ function fail(status: number, error: string, meta: Record<string, unknown> = {})
 function looksLikePdf(buffer: Buffer): boolean {
   if (buffer.length < 5) return false
   if (buffer.subarray(0, 5).toString('latin1') === '%PDF-') return true
-  const head = buffer.subarray(0, 1024).toString('latin1')
+  const head = buffer.subarray(0, Math.min(buffer.length, 1024)).toString('latin1')
   return head.includes('%PDF-')
 }
 
-async function persistFile(buffer: Buffer, filename: string, mime: string): Promise<string> {
-  if (IS_VERCEL) {
-    return `data:${mime};base64,${buffer.toString('base64')}`
+function imageExtension(mime: string): string {
+  return mime.split('/')[1]?.replace('svg+xml', 'svg').replace('jpeg', 'jpg') || 'jpg'
+}
+
+function safeStoredName(name: string, fallback: string): string {
+  const cleaned = name
+    .replace(/[\\/]/g, '')
+    .replace(/[\u0000-\u001f]/g, '')
+    .replace(/[<>:"|?*]/g, '')
+    .trim()
+    .slice(0, 120)
+  return cleaned || fallback
+}
+
+function validateDocumentMeta(rawName: string, mime: string, size: number, meta: Record<string, unknown>): Response | null {
+  if (size <= 0) return fail(422, 'The selected file is empty.', meta)
+  if (size > MAX_DOCUMENT_BYTES) return fail(413, 'Document too large. Maximum size is 10MB.', meta)
+  const ext = (rawName.match(/\.([a-zA-Z0-9]+)$/)?.[1] || '').toLowerCase()
+  if (ext && ext !== 'pdf') {
+    return fail(415, 'Unsupported file type. Please upload a PDF document.', meta)
   }
-  const uploadDir = join(process.cwd(), 'public', 'uploads')
-  if (!existsSync(uploadDir)) {
-    await mkdir(uploadDir, { recursive: true })
+  if (!PDF_MIME_TYPES.includes(mime)) {
+    return fail(415, 'Unsupported file type. Please upload a PDF document.', meta)
   }
-  await writeFile(join(uploadDir, filename), buffer)
-  return `/uploads/${filename}`
+  return null
+}
+
+function validateImageMeta(mime: string, size: number, meta: Record<string, unknown>): Response | null {
+  if (size <= 0) return fail(422, 'The selected file is empty.', meta)
+  if (size > MAX_IMAGE_BYTES) return fail(413, 'File too large. Max size is 20MB.', meta)
+  if (mime && !mime.startsWith('image/')) {
+    return fail(415, 'Invalid file type. Please upload an image file.', meta)
+  }
+  return null
 }
 
 export async function POST(request: NextRequest) {
@@ -48,78 +72,106 @@ export async function POST(request: NextRequest) {
     }
 
     const upload = file as File
-    const bytes = Buffer.from(await upload.arrayBuffer())
-    const originalName = typeof upload.name === 'string' ? upload.name : ''
-    const mime = (upload.type || '').toLowerCase()
+    const rawName = String(formData.get('originalName') || upload.name || '')
+    const originalName = kind === 'document'
+      ? sanitizeDocumentName(rawName, '')
+      : safeStoredName(rawName, `file-${Date.now()}`)
+    const mime = String(formData.get('mimeType') || upload.type || '').toLowerCase()
+    const totalSize = Number(formData.get('totalSize'))
+    const uploadId = String(formData.get('uploadId') || '')
+    const chunkIndexRaw = formData.get('chunkIndex')
+    const chunked = UUID_RE.test(uploadId) && chunkIndexRaw !== null && chunkIndexRaw !== undefined
 
+    // ---- document uploads: admin / business owner only ----
     if (kind === 'document') {
-      // Catalogue / brochure PDFs may be uploaded by an admin or a business owner.
       const user = await getAuthUser(request)
       if (!user) {
-        return fail(401, 'Your session has expired. Please log in again and retry the upload.', { kind, size: bytes.length })
+        return fail(401, 'Your session has expired. Please log in again and retry the upload.', { kind, role: null })
       }
       if (user.role !== 'admin' && user.role !== 'customer') {
-        return fail(403, 'You do not have permission to upload documents.', { kind, size: bytes.length, role: user.role })
+        return fail(403, 'You do not have permission to upload documents.', { kind, role: user.role })
+      }
+    }
+
+    // ---------------- chunked upload path ----------------
+    if (chunked) {
+      const idx = Number(chunkIndexRaw)
+      const totalChunks = Number(formData.get('totalChunks'))
+      const size = Number.isFinite(totalSize) ? Math.round(totalSize) : 0
+
+      if (!Number.isInteger(idx) || !Number.isInteger(totalChunks) || idx < 0 || totalChunks < 1 || idx >= totalChunks || totalChunks > MAX_CHUNKS) {
+        return fail(422, 'Invalid upload chunk. Please try again.', { kind, uploadId })
       }
 
-      if (bytes.length === 0) {
-        return fail(422, 'The selected file is empty.', { kind, size: 0, role: user.role })
-      }
-      if (bytes.length > MAX_DOCUMENT_BYTES) {
-        return fail(413, 'Document too large. Maximum size is 10MB.', { kind, size: bytes.length, role: user.role })
+      const meta = { kind, size, uploadId, chunk: `${idx + 1}/${totalChunks}` }
+      const metaError =
+        kind === 'document'
+          ? validateDocumentMeta(rawName, mime, size, meta)
+          : validateImageMeta(mime, size, meta)
+      if (metaError) return metaError
+
+      const chunkBytes = Buffer.from(await upload.arrayBuffer())
+
+      // Fast fail: the PDF header lives in the first chunk.
+      if (kind === 'document' && idx === 0 && !looksLikePdf(chunkBytes)) {
+        return fail(422, 'This file is not a valid PDF or appears to be corrupted.', meta)
       }
 
-      const ext = (originalName.match(/\.([a-zA-Z0-9]+)$/)?.[1] || '').toLowerCase()
-      if (ext && ext !== 'pdf') {
-        return fail(415, 'Unsupported file type. Please upload a PDF document.', { kind, size: bytes.length, role: user.role })
+      await saveUploadChunk(uploadId, idx, chunkBytes)
+
+      if (idx < totalChunks - 1) {
+        return Response.json({ success: true, partial: true, received: idx + 1, totalChunks })
       }
-      if (!PDF_MIME_TYPES.includes(mime)) {
-        return fail(415, 'Unsupported file type. Please upload a PDF document.', { kind, size: bytes.length, role: user.role })
+
+      const assembled = await assembleUploadChunks(uploadId, totalChunks)
+      if (!assembled) {
+        return fail(422, 'Upload incomplete. Please try again.', { kind, uploadId, size })
       }
+      if (assembled.length !== size) {
+        return fail(422, 'Upload corrupted. Please try again.', { kind, uploadId, size, received: assembled.length })
+      }
+
+      if (kind === 'document') {
+        if (!looksLikePdf(assembled)) {
+          return fail(422, 'This file is not a valid PDF or appears to be corrupted.', meta)
+        }
+        const saved = await saveStoredFile(originalName, 'application/pdf', assembled)
+        await cleanupUploadChunks(uploadId)
+        return Response.json({ success: true, url: saved.url, name: saved.name, size: saved.size, mime: saved.mime })
+      }
+
+      const imageMime = mime || 'image/jpeg'
+      const name = originalName.match(/\.[a-z0-9]+$/i)
+        ? originalName
+        : `${originalName}-${Date.now()}.${imageExtension(imageMime)}`
+      const saved = await saveStoredFile(name, imageMime, assembled)
+      await cleanupUploadChunks(uploadId)
+      return Response.json({ success: true, url: saved.url, name: saved.name, size: saved.size, mime: saved.mime })
+    }
+
+    // ---------------- single-request path ----------------
+    const bytes = Buffer.from(await upload.arrayBuffer())
+    const size = bytes.length
+    const meta = { kind, size }
+
+    if (kind === 'document') {
+      const metaError = validateDocumentMeta(rawName, mime, size, meta)
+      if (metaError) return metaError
       if (!looksLikePdf(bytes)) {
-        return fail(422, 'This file is not a valid PDF or appears to be corrupted.', { kind, size: bytes.length, role: user.role })
+        return fail(422, 'This file is not a valid PDF or appears to be corrupted.', meta)
       }
-
-      const safeName = sanitizeDocumentName(originalName, '')
-      let url: string
-      try {
-        url = await persistFile(bytes, `${Date.now()}-${safeName.replace(/[^a-zA-Z0-9._-]/g, '_')}`, 'application/pdf')
-      } catch {
-        url = `data:application/pdf;base64,${bytes.toString('base64')}`
-      }
-      return Response.json({
-        success: true,
-        url,
-        name: safeName,
-        size: bytes.length,
-        mime: 'application/pdf',
-      })
+      const saved = await saveStoredFile(originalName, 'application/pdf', bytes)
+      return Response.json({ success: true, url: saved.url, name: saved.name, size: saved.size, mime: saved.mime })
     }
 
-    // Image uploads (public profile photos, logos, QR codes)
-    if (bytes.length === 0) return fail(422, 'The selected file is empty.', { kind })
-    if (bytes.length > MAX_IMAGE_BYTES) {
-      return fail(413, 'File too large. Max size is 20MB.', { kind, size: bytes.length })
-    }
-
-    // Accept image formats — MIME type must start with "image/"
-    // Also allow empty MIME (some mobile browsers send blank type)
-    const imageMime = upload.type || 'image/jpeg'
-    if (imageMime && !imageMime.startsWith('image/')) {
-      return fail(415, 'Invalid file type. Please upload an image file.', { kind, size: bytes.length })
-    }
-
-    const ext = imageMime.split('/')[1]?.replace('svg+xml', 'svg').replace('jpeg', 'jpg') || 'jpg'
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-
-    try {
-      const url = await persistFile(bytes, filename, imageMime)
-      return Response.json({ success: true, url })
-    } catch {
-      // Fallback to base64 if disk write fails locally too
-      const dataUrl = `data:${imageMime};base64,${bytes.toString('base64')}`
-      return Response.json({ success: true, url: dataUrl })
-    }
+    const imageMime = (mime || upload.type || 'image/jpeg').toLowerCase()
+    const imageError = validateImageMeta(imageMime, size, meta)
+    if (imageError) return imageError
+    const filename = originalName.match(/\.[a-z0-9]+$/i)
+      ? originalName
+      : `${originalName}-${Date.now()}.${imageExtension(imageMime)}`
+    const saved = await saveStoredFile(filename, imageMime, bytes)
+    return Response.json({ success: true, url: saved.url, name: saved.name, size: saved.size, mime: saved.mime })
   } catch (err: any) {
     console.error('[upload] unexpected error', { message: err?.message })
     return Response.json({ success: false, error: err.message || 'Upload failed' }, { status: 500 })

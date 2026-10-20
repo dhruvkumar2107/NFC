@@ -8,6 +8,33 @@ export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
 export const ACCEPTED_IMAGE_EXT = /\.(jpe?g|png|webp|gif|avif)$/i
 
+// Uploaded files live in the database and are served from this route.
+export const STORED_FILE_PATH = '/api/files'
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const STORED_FILE_URL_RE = /^\/api\/files\/([0-9a-f-]{36})(?:\/(.*))?$/i
+
+export interface StoredFileRef {
+  id: string
+  name: string
+}
+
+export function buildStoredFileUrl(id: string, name: string): string {
+  return `${STORED_FILE_PATH}/${id}/${encodeURIComponent(name)}`
+}
+
+export function parseStoredFileUrl(url: unknown): StoredFileRef | null {
+  if (typeof url !== 'string') return null
+  const match = url.trim().match(STORED_FILE_URL_RE)
+  if (!match || !UUID_RE.test(match[1])) return null
+  let name = ''
+  try {
+    name = match[2] ? decodeURIComponent(match[2]) : ''
+  } catch {
+    name = match[2] || ''
+  }
+  return { id: match[1], name }
+}
+
 export interface AdminPhotoEntry {
   url: string
   visibility?: string
@@ -50,6 +77,7 @@ export function isSafeMediaUrl(url: unknown): url is string {
   if (value.startsWith('data:image/')) return true
   if (value.startsWith('data:application/pdf')) return true
   if (value.startsWith('/uploads/')) return !value.includes('..')
+  if (value.startsWith(STORED_FILE_PATH + '/')) return parseStoredFileUrl(value) !== null
   if (value.startsWith('/') && !value.startsWith('//')) return true
   if (value.startsWith('http://') || value.startsWith('https://')) return true
   return false
@@ -60,6 +88,8 @@ export function isImageValue(value: unknown): boolean {
   const v = value.trim()
   if (v.startsWith('data:')) return /^data:image\//i.test(v)
   if (v.startsWith('/uploads/')) return ACCEPTED_IMAGE_EXT.test(v)
+  const stored = parseStoredFileUrl(v)
+  if (stored) return ACCEPTED_IMAGE_EXT.test(stored.name)
   if (v.startsWith('http://') || v.startsWith('https://')) {
     try {
       return ACCEPTED_IMAGE_EXT.test(new URL(v).pathname)
@@ -75,6 +105,8 @@ export function isPdfValue(value: unknown): boolean {
   const v = value.trim()
   if (v.startsWith('data:')) return /^data:application\/pdf;base64,JVBERi/i.test(v)
   if (v.startsWith('/uploads/')) return /\.pdf$/i.test(v) && !v.includes('..')
+  const stored = parseStoredFileUrl(v)
+  if (stored) return /\.pdf$/i.test(stored.name)
   if (v.startsWith('http://') || v.startsWith('https://')) {
     try {
       return /\.pdf$/i.test(new URL(v).pathname)

@@ -19,6 +19,10 @@
     "src/app/api/public/[card_id]/profile-pdf/route.ts": {
       "maxDuration": 60,
       "memory": 1024
+    },
+    "src/app/api/files/[...file]/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   }
 }

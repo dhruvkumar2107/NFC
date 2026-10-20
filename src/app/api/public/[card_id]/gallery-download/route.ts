@@ -3,6 +3,7 @@ import JSZip from 'jszip'
 import { prisma } from '@/lib/db'
 import { errorResponse } from '@/lib/api-response'
 import { resolveFileBuffer, sanitizeDownloadName } from '@/lib/file-store'
+import { streamedFileResponse } from '@/lib/stream-file'
 import { recordEvent, ANALYTICS_EVENTS } from '@/lib/analytics'
 
 export const dynamic = 'force-dynamic'
@@ -85,14 +86,11 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
     const safeName = sanitizeDownloadName(card.customer?.name || 'gallery', 'zip').replace(/\.zip$/i, '')
     const filename = `${safeName}-gallery.zip`
 
-    return new Response(content as unknown as BodyInit, {
-      headers: {
-        'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': content.byteLength.toString(),
-        'X-Content-Type-Options': 'nosniff',
-        'Cache-Control': 'no-store',
-      },
+    return streamedFileResponse(content, {
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'no-store',
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Download failed', 500)

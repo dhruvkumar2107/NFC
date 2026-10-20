@@ -2,17 +2,8 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import { Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel, BorderStyle, ShadingType } from 'docx'
-import { join } from 'path'
-import { readFile } from 'fs/promises'
-
-function decodeDataUri(dataUri: string): { buffer: Buffer; mime: string } | null {
-  const match = dataUri.match(/^data:([^;]+);base64,(.+)$/)
-  if (!match) return null
-  const mime = match[1]
-  const base64 = match[2]
-  const buffer = Buffer.from(base64, 'base64')
-  return { buffer, mime }
-}
+import { resolveFileBuffer } from '@/lib/file-store'
+import { streamedFileResponse } from '@/lib/stream-file'
 
 function mimeToDocxType(mime: string): 'png' | 'jpg' | 'gif' {
   if (mime === 'image/png') return 'png'
@@ -22,22 +13,9 @@ function mimeToDocxType(mime: string): 'png' | 'jpg' | 'gif' {
 
 async function fetchImageBuffer(url: string): Promise<{ buffer: Buffer; type: 'png' | 'jpg' | 'gif' } | null> {
   try {
-    if (url.startsWith('data:')) {
-      const decoded = decodeDataUri(url)
-      if (!decoded) return null
-      return { buffer: decoded.buffer, type: mimeToDocxType(decoded.mime) }
-    }
-    if (url.startsWith('/uploads/')) {
-      const filePath = join(process.cwd(), 'public', url)
-      const buffer = await readFile(filePath)
-      return { buffer, type: 'png' }
-    }
-    const res = await fetch(url)
-    if (!res.ok) return null
-    const arrayBuffer = await res.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const contentType = res.headers.get('content-type') || 'image/jpeg'
-    return { buffer, type: mimeToDocxType(contentType) }
+    const resolved = await resolveFileBuffer(url)
+    if (!resolved) return null
+    return { buffer: resolved.buffer, type: mimeToDocxType(resolved.mime) }
   } catch {
     return null
   }
@@ -86,8 +64,9 @@ export async function POST(request: NextRequest) {
     const where: any = {}
     if (orderIds && orderIds.length > 0) {
       where.id = { in: orderIds }
+    } else {
+      where.status = { not: 'Cancelled' }
     }
-    where.status = { not: 'Cancelled' }
 
     const orders = await prisma.order.findMany({
       where,
@@ -290,13 +269,10 @@ export async function POST(request: NextRequest) {
     })
 
     const buffer = await Packer.toBuffer(doc)
-    const uint8Array = new Uint8Array(buffer)
 
-    return new Response(uint8Array, {
-      headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="customer-data-${new Date().toISOString().slice(0, 10)}.docx"`,
-      },
+    return streamedFileResponse(buffer, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Disposition': `attachment; filename="customer-data-${new Date().toISOString().slice(0, 10)}.docx"`,
     })
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message || 'Failed to generate document' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
