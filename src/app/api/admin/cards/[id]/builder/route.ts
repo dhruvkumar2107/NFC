@@ -20,7 +20,11 @@ const BUILDER_INCLUDE = {
 async function getOrCreate(cardId: string) {
   const existing = await prisma.cardBuilderConfig.findUnique({ where: { cardId }, include: BUILDER_INCLUDE })
   if (existing) return existing
-  await prisma.cardBuilderConfig.create({ data: { cardId } })
+  try {
+    await prisma.cardBuilderConfig.create({ data: { cardId } })
+  } catch {
+    // A concurrent request already created the row — fall through and read it.
+  }
   return prisma.cardBuilderConfig.findUniqueOrThrow({ where: { cardId }, include: BUILDER_INCLUDE })
 }
 
@@ -87,6 +91,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           const incoming = body.sections && typeof body.sections === 'object' ? body.sections : {}
           const incomingSections = normalizeSections(incoming)
           if (incoming.fields) merged.fields = incomingSections.fields
+          // Applying a template must not wipe the custom sections already on the card.
+          if (incomingSections.custom.length > 0) {
+            merged.custom = incomingSections.custom
+            for (const c of incomingSections.custom) {
+              merged.enabled[c.key] = incomingSections.enabled[c.key]
+              if (!merged.order.includes(c.key)) merged.order.push(c.key)
+            }
+          }
           data.sections = JSON.stringify(merged)
         }
       }
@@ -98,11 +110,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (body.emiConfig && typeof body.emiConfig === 'object') {
       const e = body.emiConfig
       const num = (v: any, d: number) => (Number.isFinite(Number(v)) ? Number(v) : d)
+      const minTenure = Math.max(1, Math.round(num(e.minTenure, 3)))
+      const maxTenure = Math.max(minTenure, Math.round(num(e.maxTenure, 60)))
       const values = {
         defaultRate: Math.max(0, Math.min(100, num(e.defaultRate, 10))),
-        minTenure: Math.max(1, Math.round(num(e.minTenure, 3))),
-        maxTenure: Math.max(1, Math.round(num(e.maxTenure, 60))),
-        defaultTenure: Math.max(1, Math.round(num(e.defaultTenure, 12))),
+        minTenure,
+        maxTenure,
+        defaultTenure: Math.min(maxTenure, Math.max(minTenure, Math.round(num(e.defaultTenure, 12)))),
         processingFee: Math.max(0, num(e.processingFee, 0)),
       }
       const current = await prisma.cardBuilderConfig.findUnique({ where: { cardId: params.id }, select: { emiConfigId: true } })

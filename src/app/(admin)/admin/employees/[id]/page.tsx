@@ -29,35 +29,51 @@ export default function EmployeeDetailPage() {
   async function resetPassword(autoGenerate = false) {
     const password = autoGenerate ? undefined : pw
     if (!autoGenerate && !pw) return
-    const token = localStorage.getItem('token')
-    const res = await fetch(`/api/admin/employees/${params.id}/reset-password`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ password, autoGenerate }),
-    })
-    const d = await res.json()
-    if (d.success) {
-      setResetPw(d.data.plainPassword)
-      setMsg('Password reset successfully!')
-    } else {
-      setMsg(d.error)
+    if (!autoGenerate && pw.length < 6) { setMsg('Password must be at least 6 characters'); return }
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/admin/employees/${params.id}/reset-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password, autoGenerate }),
+      })
+      const d = await res.json().catch(() => null)
+      if (d?.success) {
+        setResetPw(d.data.plainPassword)
+        setMsg('Password reset successfully!')
+      } else {
+        setMsg(d?.error || 'Failed to reset password')
+      }
+    } catch {
+      setMsg('Something went wrong. Please try again.')
+    } finally {
+      setPw('')
     }
-    setPw('')
   }
 
   async function toggleStatus() {
     const token = localStorage.getItem('token')
     const endpoint = employee.status === 'active' ? 'deactivate' : 'activate'
-    await fetch(`/api/admin/employees/${params.id}/${endpoint}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
-    setEmployee((e: any) => ({ ...e, status: e.status === 'active' ? 'inactive' : 'active' }))
+    try {
+      const res = await fetch(`/api/admin/employees/${params.id}/${endpoint}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+      const d = await res.json().catch(() => null)
+      if (d?.success) setEmployee((e: any) => ({ ...e, status: e.status === 'active' ? 'inactive' : 'active' }))
+      else setMsg(d?.error || 'Failed to update status')
+    } catch {
+      setMsg('Something went wrong. Please try again.')
+    }
   }
 
   async function deleteEmployee() {
-    if (!confirm('DELETE this employee? This cannot be undone.')) return
-    const token = localStorage.getItem('token')
-    const res = await fetch(`/api/admin/employees/${params.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
-    const d = await res.json()
-    if (d.success) router.push('/admin/employees')
-    else alert(d.error)
+    if (!confirm('DELETE this employee? This cannot be undone. Employees with wallet or redemption history must be deactivated instead.')) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`/api/admin/employees/${params.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+      const d = await res.json().catch(() => null)
+      if (d?.success) router.push('/admin/employees')
+      else alert(d?.error || 'Failed to delete employee')
+    } catch {
+      alert('Something went wrong. Please try again.')
+    }
   }
 
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48"></div></div>

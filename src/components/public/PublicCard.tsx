@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import ShareButton from './ShareButton'
 import ProfileMedia, { ProfilePhotoItem, ProfileDocumentItem } from './ProfileMedia'
+import ProfileVideos, { ProfileVideoItem } from './ProfileVideos'
 import EmiCalculator from './EmiCalculator'
 import EnquiryForm, { EnquiryPrefill } from './EnquiryForm'
 import AlbumGallery from './AlbumGallery'
@@ -42,6 +43,7 @@ interface Props {
   profileUrl: string
   photos: ProfilePhotoItem[]
   documents: ProfileDocumentItem[]
+  videos?: ProfileVideoItem[]
   builder: PublicBuilderData | null
 }
 
@@ -66,7 +68,7 @@ function TextBlock({ value }: { value: string }) {
   )
 }
 
-export default function PublicCard({ card, profile, profileUrl, photos, documents, builder }: Props) {
+export default function PublicCard({ card, profile, profileUrl, photos, documents, videos = [], builder }: Props) {
   const track = useCardAnalytics(card.cardId)
   const [prefill, setPrefill] = useState<EnquiryPrefill | undefined>()
   const [copied, setCopied] = useState(false)
@@ -149,7 +151,7 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
         )
       }
       case 'gallery': {
-        if ((builder?.albums.length || 0) === 0 && photos.length === 0) return null
+        if ((builder?.albums.length || 0) === 0 && photos.length === 0 && videos.length === 0) return null
         return (
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{sectionTitle('gallery')}</p>
@@ -157,6 +159,7 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
               <AlbumGallery cardId={card.cardId} albums={builder.albums} name={profile.name} onTrack={track} />
             )}
             <ProfileMedia cardId={card.cardId} name={profile.name || 'Profile'} photos={photos} documents={documents} />
+            <ProfileVideos videos={videos} name={profile.name || 'Profile'} onTrack={track} />
           </div>
         )
       }
@@ -365,6 +368,11 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
                 <div key={key}>{renderSection(key)}</div>
               ))}
             </div>
+
+            {/* Videos live on the customer record, so they show even when the gallery section is off. */}
+            {videos.length > 0 && !enabled.gallery && (
+              <ProfileVideos videos={videos} name={profile.name || 'Profile'} onTrack={track} />
+            )}
 
             <div className="pt-4 text-center">
               <ShareButton name={profile.name || 'Profile'} />

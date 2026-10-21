@@ -391,9 +391,10 @@ function AdminOrdersContent() {
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                           o.attributionType === 'link' ? 'bg-blue-100 text-blue-700' :
                           o.attributionType === 'manual_code' ? 'bg-purple-100 text-purple-700' :
+                          o.attributionType === 'admin_manual' ? 'bg-amber-100 text-amber-700' :
                           'bg-gray-100 text-gray-700'
                         }`}>
-                          {o.attributionType === 'link' ? 'Link' : o.attributionType === 'manual_code' ? 'Code' : 'Direct'}
+                          {o.attributionType === 'link' ? 'Link' : o.attributionType === 'manual_code' ? 'Code' : o.attributionType === 'admin_manual' ? 'Admin' : 'Direct'}
                         </span>
                       </td>
                       <td className="p-3">

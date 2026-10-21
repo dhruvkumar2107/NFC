@@ -7,10 +7,13 @@ import {
   MAX_ADMIN_PHOTOS,
   MAX_DOCUMENTS,
   MAX_ORDER_DOCUMENTS,
+  MAX_VIDEOS,
   validateAdminPhotoList,
   validateDocumentList,
+  validateVideoList,
   isImageValue,
   isPdfValue,
+  type ProfileVideoEntry,
 } from '@/lib/profile-media'
 
 function coerceList(value: unknown): unknown {
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
       name, email, mobile, whatsapp, designation, company, college,
       website, address, taluk, city, state, pincode,
       socialLinks, logoUrl, paymentQrUrl, description,
-      adminPhotos, documents,
+      adminPhotos, documents, videos,
       designId, employeeId, amount,
     } = body
 
@@ -55,6 +58,12 @@ export async function POST(request: NextRequest) {
       const check = validateDocumentList(docs)
       if (!check.ok) return errorResponse(check.error, 400)
     }
+    let validatedVideos: ProfileVideoEntry[] | undefined
+    if (videos !== undefined) {
+      const check = validateVideoList(coerceList(videos), MAX_VIDEOS)
+      if (!check.ok) return errorResponse(check.error, 400)
+      validatedVideos = check.value
+    }
 
     const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
     const cleanedMobile = clean(mobile)
@@ -66,17 +75,52 @@ export async function POST(request: NextRequest) {
     let customer = cleanedMobile ? await prisma.customer.findFirst({ where: { mobile: cleanedMobile } }) : null
     if (!customer && cleanedEmail) customer = await prisma.customer.findFirst({ where: { email: cleanedEmail } })
     if (customer) {
+      // Only overwrite fields the admin actually provided. The order form starts
+      // blank and never loads the existing profile, so persisting empty values
+      // would silently wipe a returning customer's saved details and media.
+      const updateData: Record<string, unknown> = {}
+      const assignText = (key: string, value: string | null) => {
+        if (value !== null) updateData[key] = value
+      }
+      assignText('name', clean(name))
+      assignText('designation', clean(designation))
+      assignText('company', clean(company))
+      assignText('college', clean(college))
+      assignText('mobile', cleanedMobile)
+      assignText('whatsapp', clean(whatsapp))
+      assignText('email', cleanedEmail)
+      assignText('website', clean(website))
+      assignText('address', clean(address))
+      assignText('taluk', clean(taluk))
+      assignText('city', clean(city))
+      assignText('state', clean(state))
+      assignText('pincode', clean(pincode))
+      assignText('logoUrl', clean(logoUrl))
+      assignText('paymentQrUrl', clean(paymentQrUrl))
+      assignText('description', clean(description))
+
+      if (socialLinks && typeof socialLinks === 'object' && Object.keys(socialLinks).length > 0) {
+        updateData.socialLinks = JSON.stringify(socialLinks)
+      }
+
+      const providedPhotos = adminPhotos !== undefined ? coerceList(adminPhotos) : undefined
+      if (Array.isArray(providedPhotos) && providedPhotos.length > 0) {
+        updateData.adminPhotos = JSON.stringify(providedPhotos)
+      }
+
+      const providedDocs = documents !== undefined ? coerceList(documents) : undefined
+      if (Array.isArray(providedDocs) && providedDocs.length > 0) {
+        updateData.documents = JSON.stringify(providedDocs)
+      }
+
+      const providedVideos = validatedVideos
+      if (Array.isArray(providedVideos) && providedVideos.length > 0) {
+        updateData.videos = JSON.stringify(providedVideos)
+      }
+
       customer = await prisma.customer.update({
         where: { id: customer.id },
-        data: {
-          name, designation: clean(designation), company: clean(company), college: clean(college),
-          mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
-          socialLinks: JSON.stringify(socialLinks || {}),
-          address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
-          logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
-          adminPhotos: adminPhotos !== undefined ? JSON.stringify(adminPhotos) : undefined,
-          documents: documents !== undefined ? JSON.stringify(documents) : undefined,
-        },
+        data: updateData,
       })
     } else {
       const tempPassword = await hashPassword((cleanedMobile || name) + '_mysmartcard_temp')
@@ -89,6 +133,7 @@ export async function POST(request: NextRequest) {
           logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
           adminPhotos: JSON.stringify(adminPhotos || []),
           documents: JSON.stringify(documents || []),
+          videos: JSON.stringify(validatedVideos || []),
           soldByEmployeeId: employeeId || null,
           passwordHash: tempPassword,
         },

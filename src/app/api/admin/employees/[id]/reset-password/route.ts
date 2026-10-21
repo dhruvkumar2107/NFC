@@ -16,6 +16,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { user, error } = await requireAuth(request, 'admin')
     if (error) return error
     const { password: customPassword, autoGenerate } = await request.json()
+    if (!autoGenerate && (!customPassword || String(customPassword).length < 6)) {
+      return errorResponse('Password must be at least 6 characters')
+    }
     const plainPassword = autoGenerate ? generatePassword() : customPassword
     if (!plainPassword) return errorResponse('Password required')
     const passwordHash = await hashPassword(plainPassword)

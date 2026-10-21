@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { errorResponse } from '@/lib/api-response'
-import { resolveFileBuffer, mimeToExt, sanitizeDownloadName } from '@/lib/file-store'
-import { streamedFileResponse } from '@/lib/stream-file'
-import { buildPublicGallery, buildPublicDocuments } from '@/lib/public-profile'
+import { resolveFileBuffer, mimeToExt, sanitizeDownloadName, contentDisposition } from '@/lib/file-store'
+import { streamedFileResponse, parseByteRange, rangedFileResponse } from '@/lib/stream-file'
+import { buildPublicGallery, buildPublicDocuments, buildPublicVideos } from '@/lib/public-profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
 
     let url: string | null = null
     let filename: string
+    let contentType: string | null = null
 
     if (kind === 'photo') {
       const gallery = buildPublicGallery(customer)
@@ -35,6 +36,13 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
       if (index < 0 || index >= documents.length) return errorResponse('Document not found', 404)
       url = documents[index].url
       filename = sanitizeDownloadName(documents[index].name, 'pdf')
+      contentType = 'application/pdf'
+    } else if (kind === 'video') {
+      const videos = buildPublicVideos(customer)
+      if (index < 0 || index >= videos.length) return errorResponse('Video not found', 404)
+      url = videos[index].url
+      filename = sanitizeDownloadName(videos[index].name, 'mp4')
+      contentType = videos[index].mime || 'video/mp4'
     } else {
       return errorResponse('Unsupported file kind', 400)
     }
@@ -44,13 +52,26 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
 
     const ext = kind === 'document' ? 'pdf' : mimeToExt(resolved.mime)
     const fullFilename = filename.includes('.') ? filename : `${filename}.${ext}`
-    const disposition = (wantsDownload ? 'attachment' : 'inline') + `; filename="${fullFilename}"`
+    const disposition = contentDisposition(fullFilename, wantsDownload ? 'attachment' : 'inline')
+    const type = contentType || resolved.mime
+    const isVideo = kind === 'video' || (resolved.mime || '').startsWith('video/')
+
+    const range = isVideo ? parseByteRange(request.headers.get('range'), resolved.buffer.length) : null
+    if (range) {
+      return rangedFileResponse(resolved.buffer, {
+        'Content-Type': type,
+        'Content-Disposition': disposition,
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'public, max-age=3600',
+      }, range)
+    }
 
     return streamedFileResponse(resolved.buffer, {
-      'Content-Type': kind === 'document' ? 'application/pdf' : resolved.mime,
+      'Content-Type': type,
       'Content-Disposition': disposition,
       'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'public, max-age=3600',
+      ...(isVideo ? { 'Accept-Ranges': 'bytes' } : {}),
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to load file', 500)

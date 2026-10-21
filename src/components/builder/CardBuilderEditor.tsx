@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { uploadFile } from '@/lib/upload-client'
-import { FONT_CLASS, SECTION_REGISTRY, normalizeSections, normalizeTheme, type CardSections, type CardTheme } from '@/lib/builder'
-import { formatFileSize } from '@/lib/profile-media'
+import { FONT_CLASS, SECTION_REGISTRY, normalizeSections, normalizeTheme, type CardSections, type CardTheme, type CustomSection } from '@/lib/builder'
+import { formatFileSize, MAX_VIDEOS, MAX_ALBUM_MEDIA } from '@/lib/profile-media'
 import { formatInr } from '@/lib/emi'
 import { parseAttributes } from '@/lib/product-utils'
 
@@ -54,6 +54,9 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
   const [emiEnabled, setEmiEnabled] = useState(false)
   const [emiConfig, setEmiConfig] = useState<any>({ defaultRate: 10, minTenure: 3, maxTenure: 60, defaultTenure: 12, processingFee: 0 })
   const [templateId, setTemplateId] = useState<string>('')
+  const [coverImage, setCoverImage] = useState('')
+  const [logoUrl, setLogoUrl] = useState('')
+  const [profileImage, setProfileImage] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -70,6 +73,9 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
       setStatus(c.status || 'draft')
       setEmiEnabled(!!c.emiEnabled)
       setTemplateId(c.templateId || '')
+      setCoverImage(c.coverImage || '')
+      setLogoUrl(c.logoUrl || '')
+      setProfileImage(c.profileImage || '')
       if (c.emiConfig) setEmiConfig({
         defaultRate: c.emiConfig.defaultRate,
         minTenure: c.emiConfig.minTenure,
@@ -107,6 +113,9 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
         emiEnabled,
         emiConfig,
         templateId: templateId || null,
+        coverImage: coverImage || null,
+        logoUrl: logoUrl || null,
+        profileImage: profileImage || null,
         ...overrides,
       }
       const data = await jfetch(`/api/admin/cards/${cardId}/builder`, {
@@ -176,7 +185,7 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
             ))}
           </div>
           <div className="p-4">
-            {tab === 'theme' && <ThemePanel theme={theme} setTheme={setTheme} sections={sections} customer={customer} onUploaded={(url: string) => save({ profileImage: url })} config={config} />}
+            {tab === 'theme' && <ThemePanel theme={theme} setTheme={setTheme} customer={customer} config={config} onSave={save} coverImage={coverImage} setCoverImage={setCoverImage} logoUrl={logoUrl} setLogoUrl={setLogoUrl} profileImage={profileImage} setProfileImage={setProfileImage} />}
             {tab === 'sections' && <SectionsPanel sections={sections} setSections={setSections} />}
             {tab === 'media' && <MediaPanel cardId={cardId} config={config} reload={load} />}
             {tab === 'products' && <ProductsPanel cardId={cardId} config={config} reload={load} />}
@@ -193,22 +202,30 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
 }
 
 /* ------------------------------- Theme ------------------------------- */
-function ThemePanel({ theme, setTheme, sections, customer, onUploaded, config }: any) {
-  const [uploading, setUploading] = useState(false)
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+function ThemePanel({ theme, setTheme, customer, config, onSave, coverImage, setCoverImage, logoUrl, setLogoUrl, profileImage, setProfileImage }: any) {
+  const [uploading, setUploading] = useState<string | null>(null)
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>, target: 'profileImage' | 'coverImage' | 'logoUrl') {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
-    setUploading(true)
+    setUploading(target)
     try {
       const url = await uploadFile(file, { kind: 'image' })
-      await onUploaded(url)
+      if (target === 'profileImage') setProfileImage(url)
+      if (target === 'coverImage') setCoverImage(url)
+      if (target === 'logoUrl') setLogoUrl(url)
+      await onSave({ [target]: url })
     } catch (err: any) {
       alert(err.message)
     } finally {
-      setUploading(false)
+      setUploading(null)
     }
   }
+
   const upd = (patch: Partial<CardTheme>) => setTheme({ ...theme, ...patch })
+  const shownProfile = profileImage || customer?.logoUrl
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -239,11 +256,48 @@ function ThemePanel({ theme, setTheme, sections, customer, onUploaded, config }:
       <div className="rounded-xl bg-gray-50 p-3">
         <p className="mb-2 text-xs font-semibold text-gray-500">Profile image</p>
         <div className="flex items-center gap-3">
-          {(config?.profileImage || customer?.logoUrl) && <img src={config?.profileImage || customer?.logoUrl} alt="" className="h-14 w-14 rounded-full object-cover" />}
+          {shownProfile && <img src={shownProfile} alt="" className="h-14 w-14 rounded-full object-cover" />}
           <label className="cursor-pointer rounded-lg bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm">
-            {uploading ? 'Uploading...' : 'Upload photo'}
-            <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+            {uploading === 'profileImage' ? 'Uploading...' : 'Upload photo'}
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e, 'profileImage')} disabled={!!uploading} />
           </label>
+          {profileImage && (
+            <button type="button" onClick={() => { setProfileImage(''); onSave({ profileImage: null }) }} className="text-xs text-gray-400 hover:text-red-500">
+              Remove
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl bg-gray-50 p-3">
+          <p className="mb-2 text-xs font-semibold text-gray-500">Cover image</p>
+          <div className="flex items-center gap-3">
+            {coverImage && <img src={coverImage} alt="" className="h-12 w-16 rounded-lg object-cover" />}
+            <label className="cursor-pointer rounded-lg bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm">
+              {uploading === 'coverImage' ? 'Uploading...' : coverImage ? 'Change' : 'Upload'}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e, 'coverImage')} disabled={!!uploading} />
+            </label>
+            {coverImage && (
+              <button type="button" onClick={() => { setCoverImage(''); onSave({ coverImage: null }) }} className="text-xs text-gray-400 hover:text-red-500">
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="rounded-xl bg-gray-50 p-3">
+          <p className="mb-2 text-xs font-semibold text-gray-500">Brand logo</p>
+          <div className="flex items-center gap-3">
+            {logoUrl && <img src={logoUrl} alt="" className="h-12 w-12 rounded-lg object-contain bg-white" />}
+            <label className="cursor-pointer rounded-lg bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm">
+              {uploading === 'logoUrl' ? 'Uploading...' : logoUrl ? 'Change' : 'Upload'}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e, 'logoUrl')} disabled={!!uploading} />
+            </label>
+            {logoUrl && (
+              <button type="button" onClick={() => { setLogoUrl(''); onSave({ logoUrl: null }) }} className="text-xs text-gray-400 hover:text-red-500">
+                Remove
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -255,6 +309,30 @@ function SectionsPanel({ sections, setSections }: { sections: CardSections; setS
   const toggle = (key: string) => setSections({ ...sections, enabled: { ...sections.enabled, [key]: !sections.enabled[key] } })
   const setTitle = (key: string, v: string) => setSections({ ...sections, titles: { ...sections.titles, [key]: v } })
   const setField = (key: string, v: string) => setSections({ ...sections, fields: { ...sections.fields, [key]: v } })
+
+  const updateCustom = (key: string, patch: Partial<CustomSection>) =>
+    setSections({ ...sections, custom: sections.custom.map((c) => (c.key === key ? { ...c, ...patch } : c)) })
+
+  const addCustom = () => {
+    const key = `custom-${Date.now().toString(36)}`
+    setSections({
+      ...sections,
+      custom: [...sections.custom, { key, title: 'New section', body: '' }],
+      enabled: { ...sections.enabled, [key]: true },
+      order: [...sections.order, key],
+    })
+  }
+
+  const removeCustom = (key: string) => {
+    const enabled = { ...sections.enabled }
+    delete enabled[key]
+    setSections({
+      ...sections,
+      custom: sections.custom.filter((c) => c.key !== key),
+      enabled,
+      order: sections.order.filter((k) => k !== key),
+    })
+  }
 
   const move = (idx: number, dir: -1 | 1) => {
     const order = [...sections.order]
@@ -271,7 +349,8 @@ function SectionsPanel({ sections, setSections }: { sections: CardSections; setS
       <div className="space-y-2">
         {sections.order.map((key, idx) => {
           const meta = SECTION_REGISTRY.find((s) => s.key === key)
-          if (!meta) return null
+          const custom = sections.custom.find((c) => c.key === key)
+          if (!meta && !custom) return null
           return (
             <div key={key} className="rounded-xl border border-gray-100 p-3">
               <div className="flex items-center gap-2">
@@ -279,13 +358,25 @@ function SectionsPanel({ sections, setSections }: { sections: CardSections; setS
                 <button type="button" onClick={() => move(idx, 1)} className="text-gray-400 hover:text-gray-600">↓</button>
                 <label className="flex flex-1 items-center gap-2 text-sm font-medium text-gray-700">
                   <input type="checkbox" checked={!!sections.enabled[key]} onChange={() => toggle(key)} className="accent-primary-600" />
-                  {meta.label}
+                  {meta ? meta.label : custom?.title || 'Custom section'}
+                  {!meta && <span className="rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600">CUSTOM</span>}
                 </label>
-                <input value={sections.titles[key] || ''} onChange={(e) => setTitle(key, e.target.value)} className="w-40 rounded-lg border border-gray-200 px-2 py-1 text-xs" placeholder="Section title" />
+                {meta ? (
+                  <input value={sections.titles[key] || ''} onChange={(e) => setTitle(key, e.target.value)} className="w-40 rounded-lg border border-gray-200 px-2 py-1 text-xs" placeholder="Section title" />
+                ) : (
+                  <input value={custom?.title || ''} onChange={(e) => updateCustom(key, { title: e.target.value })} className="w-40 rounded-lg border border-gray-200 px-2 py-1 text-xs" placeholder="Section title" />
+                )}
+                {custom && (
+                  <button type="button" onClick={() => removeCustom(key)} className="text-xs text-red-500">Remove</button>
+                )}
               </div>
-              {sections.enabled[key] && fieldSections.includes(key) && (
+              {sections.enabled[key] && meta && fieldSections.includes(key) && (
                 <textarea value={sections.fields[key] || ''} onChange={(e) => setField(key, e.target.value)} rows={2}
                   placeholder={meta.description} className="mt-2 w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs" />
+              )}
+              {sections.enabled[key] && custom && (
+                <textarea value={custom.body || ''} onChange={(e) => updateCustom(key, { body: e.target.value })} rows={3}
+                  placeholder="Section content" className="mt-2 w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs" />
               )}
               {sections.enabled[key] && key === 'offers' && (
                 <OffersEditor sections={sections} setSections={setSections} />
@@ -294,6 +385,9 @@ function SectionsPanel({ sections, setSections }: { sections: CardSections; setS
           )
         })}
       </div>
+      <button type="button" onClick={addCustom} className="w-full rounded-lg border border-dashed border-gray-300 py-2 text-xs font-semibold text-primary-600 hover:border-primary-400">
+        + Add custom section
+      </button>
     </div>
   )
 }
@@ -319,9 +413,15 @@ function OffersEditor({ sections, setSections }: { sections: CardSections; setSe
 }
 
 /* ------------------------------- Media ------------------------------- */
+function isVideoMedia(m: any): boolean {
+  return typeof m?.mime === 'string' && m.mime.toLowerCase().startsWith('video/')
+}
+
 function MediaPanel({ cardId, config, reload }: any) {
   const [busy, setBusy] = useState(false)
   const [albumName, setAlbumName] = useState('')
+  const albums = config?.albums || []
+
   async function addAlbum() {
     if (!albumName.trim()) return
     setBusy(true)
@@ -330,23 +430,30 @@ function MediaPanel({ cardId, config, reload }: any) {
   }
   async function uploadToAlbum(albumId: string, files: FileList | null) {
     if (!files?.length) return
+    const album = albums.find((a: any) => a.id === albumId)
+    const current = album?.media?.length || 0
+    if (current + files.length > MAX_ALBUM_MEDIA) {
+      alert(`An album can hold up to ${MAX_ALBUM_MEDIA} items. This album already has ${current}.`)
+      return
+    }
     setBusy(true)
     try {
       const items: any[] = []
       for (const file of Array.from(files)) {
-        const url = await uploadFile(file, { kind: 'image' })
-        items.push({ url, name: file.name, mime: file.type || 'image/jpeg', size: file.size })
+        const isVideo = (file.type || '').toLowerCase().startsWith('video/')
+        const url = await uploadFile(file, { kind: isVideo ? 'video' : 'image' })
+        items.push({ url, name: file.name, mime: file.type || (isVideo ? 'video/mp4' : 'image/jpeg'), size: file.size })
       }
       await jfetch(`/api/admin/albums/${albumId}/media`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) })
       await reload()
     } catch (e: any) { alert(e.message) } finally { setBusy(false) }
   }
   async function removeMedia(id: string) {
-    if (!confirm('Delete this photo?')) return
+    if (!confirm('Delete this item?')) return
     await jfetch(`/api/admin/media/${id}`, { method: 'DELETE' }); await reload()
   }
   async function removeAlbum(id: string) {
-    if (!confirm('Delete this album and all its photos?')) return
+    if (!confirm('Delete this album and all its media?')) return
     await jfetch(`/api/admin/albums/${id}`, { method: 'DELETE' }); await reload()
   }
   async function moveMedia(album: any, index: number, dir: -1 | 1) {
@@ -358,10 +465,9 @@ function MediaPanel({ cardId, config, reload }: any) {
     await reload()
   }
 
-  const albums = config?.albums || []
-
   return (
     <div className="space-y-4">
+      <VideosPanel cardId={cardId} />
       <div className="flex gap-2">
         <input value={albumName} onChange={(e) => setAlbumName(e.target.value)} placeholder="New album name (e.g. Products)" className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
         <button onClick={addAlbum} disabled={busy} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Add album</button>
@@ -370,11 +476,11 @@ function MediaPanel({ cardId, config, reload }: any) {
       {albums.map((album: any) => (
         <div key={album.id} className="rounded-xl border border-gray-100 p-3">
           <div className="flex items-center justify-between">
-            <p className="font-medium text-gray-700">{album.name} <span className="text-xs text-gray-400">({album.media.length})</span></p>
+            <p className="font-medium text-gray-700">{album.name} <span className="text-xs text-gray-400">({album.media.length}/{MAX_ALBUM_MEDIA})</span></p>
             <div className="flex items-center gap-2">
               <label className="cursor-pointer rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600">
                 {busy ? '...' : 'Upload'}
-                <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => uploadToAlbum(album.id, e.target.files)} />
+                <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple className="hidden" onChange={(e) => uploadToAlbum(album.id, e.target.files)} />
               </label>
               <button onClick={() => removeAlbum(album.id)} className="text-xs text-red-500">Delete album</button>
             </div>
@@ -382,7 +488,14 @@ function MediaPanel({ cardId, config, reload }: any) {
           <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
             {album.media.map((m: any, i: number) => (
               <div key={m.id} className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100">
-                <img src={`/api/public/${config.card.cardId}/media/${m.id}?s=x`} alt="" className="h-full w-full object-cover" />
+                {isVideoMedia(m) ? (
+                  <video src={m.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                ) : (
+                  <img src={m.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                )}
+                {isVideoMedia(m) && (
+                  <span className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold text-white">VIDEO</span>
+                )}
                 <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                   <button onClick={() => moveMedia(album, i, -1)} className="text-white">←</button>
                   <button onClick={() => moveMedia(album, i, 1)} className="text-white">→</button>
@@ -393,6 +506,137 @@ function MediaPanel({ cardId, config, reload }: any) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+/* ------------------------------ Videos ------------------------------- */
+function VideosPanel({ cardId }: { cardId: string }) {
+  const [videos, setVideos] = useState<any[]>([])
+  const [max, setMax] = useState(MAX_VIDEOS)
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [error, setError] = useState('')
+
+  const load = useCallback(async () => {
+    try {
+      const data = await jfetch(`/api/admin/cards/${cardId}/videos`)
+      setVideos(Array.isArray(data?.videos) ? data.videos : [])
+      setMax(Number(data?.max) || MAX_VIDEOS)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [cardId])
+
+  useEffect(() => { load() }, [load])
+
+  async function upload(files: FileList | null) {
+    if (!files?.length) return
+    if (videos.length + files.length > max) {
+      setError(`Maximum ${max} videos allowed per card (already ${videos.length}).`)
+      return
+    }
+    setBusy(true)
+    setError('')
+    setProgress(0)
+    try {
+      const items: any[] = []
+      for (const file of Array.from(files)) {
+        const url = await uploadFile(file, { kind: 'video', onProgress: setProgress })
+        items.push({ url, name: file.name, size: file.size, mime: file.type || 'video/mp4' })
+      }
+      await jfetch(`/api/admin/cards/${cardId}/videos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      })
+      await load()
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
+      setProgress(0)
+    }
+  }
+
+  async function remove(index: number) {
+    if (!confirm('Remove this video?')) return
+    setBusy(true)
+    try {
+      await jfetch(`/api/admin/cards/${cardId}/videos`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index }),
+      })
+      await load()
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function move(index: number, dir: -1 | 1) {
+    const next = index + dir
+    if (next < 0 || next >= videos.length) return
+    const reordered = [...videos]
+    ;[reordered[index], reordered[next]] = [reordered[next], reordered[index]]
+    setVideos(reordered)
+    try {
+      await jfetch(`/api/admin/cards/${cardId}/videos`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videos: reordered }),
+      })
+      await load()
+    } catch (e: any) {
+      setError(e.message)
+      await load()
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-primary-100 bg-primary-50/40 p-3 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-gray-700">Videos</p>
+          <p className="text-xs text-gray-400">MP4, WebM or MOV · max 50MB each · up to {max} per card</p>
+        </div>
+        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${videos.length >= max ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>
+          {videos.length} / {max}
+        </span>
+      </div>
+
+      {error && <p className="rounded-lg bg-red-50 p-2 text-xs text-red-600">{error}</p>}
+
+      {videos.length > 0 && (
+        <div className="space-y-2">
+          {videos.map((v: any, i: number) => (
+            <div key={`${v.url}-${i}`} className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-2">
+              <video src={v.url} className="h-11 w-16 flex-shrink-0 rounded-md bg-gray-100 object-cover" muted playsInline preload="metadata" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium text-gray-700" title={v.name}>{v.name || 'Video'}</p>
+                <p className="text-[11px] text-gray-400">{formatFileSize(v.size)}</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => move(i, -1)} className="rounded p-1 text-gray-300 hover:text-gray-600">↑</button>
+                <button type="button" onClick={() => move(i, 1)} className="rounded p-1 text-gray-300 hover:text-gray-600">↓</button>
+                <button type="button" onClick={() => remove(i)} className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50">Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {videos.length < max && (
+        <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-200 bg-white py-4 text-xs font-semibold text-primary-600 transition-colors hover:border-primary-400 ${busy || loading ? 'pointer-events-none opacity-50' : ''}`}>
+          <input type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" multiple className="hidden" onChange={(e) => { upload(e.target.files); e.target.value = '' }} disabled={busy || loading} />
+          {busy ? (progress > 0 ? `Uploading... ${progress}%` : 'Uploading...') : 'Upload video'}
+        </label>
+      )}
     </div>
   )
 }
@@ -607,7 +851,27 @@ function CataloguesPanel({ cardId, config, reload }: any) {
 
 /* -------------------------------- EMI -------------------------------- */
 function EmiPanel({ enabled, setEnabled, value, setValue }: any) {
+  const toNumber = (v: any, fallback: number) => {
+    const n = Number(v)
+    return Number.isFinite(n) ? n : fallback
+  }
+  const minTenure = Math.max(1, Math.round(toNumber(value.minTenure, 3)))
+  const maxTenure = Math.max(minTenure, Math.round(toNumber(value.maxTenure, 60)))
+  const defaultTenure = Math.min(maxTenure, Math.max(minTenure, Math.round(toNumber(value.defaultTenure, 12))))
+
   const upd = (patch: any) => setValue({ ...value, ...patch })
+  const updTenure = (patch: any) => {
+    const next = { ...value, ...patch }
+    const min = Math.max(1, Math.round(toNumber(next.minTenure, 3)))
+    const max = Math.max(min, Math.round(toNumber(next.maxTenure, 60)))
+    setValue({
+      ...next,
+      minTenure: min,
+      maxTenure: max,
+      defaultTenure: Math.min(max, Math.max(min, Math.round(toNumber(next.defaultTenure, 12)))),
+    })
+  }
+
   return (
     <div className="space-y-4">
       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -617,19 +881,19 @@ function EmiPanel({ enabled, setEnabled, value, setValue }: any) {
       {enabled && (
         <div className="grid grid-cols-2 gap-3">
           <label className="text-xs font-semibold text-gray-500">Default interest rate (% p.a.)
-            <input type="number" value={value.defaultRate} onChange={(e) => upd({ defaultRate: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+            <input type="number" min="0" max="100" step="0.01" value={value.defaultRate} onChange={(e) => upd({ defaultRate: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           </label>
           <label className="text-xs font-semibold text-gray-500">Processing fee (₹)
-            <input type="number" value={value.processingFee} onChange={(e) => upd({ processingFee: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+            <input type="number" min="0" step="1" value={value.processingFee} onChange={(e) => upd({ processingFee: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           </label>
           <label className="text-xs font-semibold text-gray-500">Min tenure (months)
-            <input type="number" value={value.minTenure} onChange={(e) => upd({ minTenure: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+            <input type="number" min="1" step="1" value={minTenure} onChange={(e) => updTenure({ minTenure: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           </label>
           <label className="text-xs font-semibold text-gray-500">Max tenure (months)
-            <input type="number" value={value.maxTenure} onChange={(e) => upd({ maxTenure: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+            <input type="number" min={minTenure} step="1" value={maxTenure} onChange={(e) => updTenure({ maxTenure: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           </label>
           <label className="text-xs font-semibold text-gray-500">Default tenure (months)
-            <input type="number" value={value.defaultTenure} onChange={(e) => upd({ defaultTenure: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+            <input type="number" min={minTenure} max={maxTenure} step="1" value={defaultTenure} onChange={(e) => updTenure({ defaultTenure: e.target.value })} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           </label>
         </div>
       )}
@@ -666,7 +930,15 @@ function SettingsPanel({ templates, templateId, applyTemplate, industry, setIndu
 function CardPreview({ theme, sections, customer, config }: any) {
   const hero = config?.profileImage || customer?.logoUrl
   const bg = theme.headerStyle === 'solid' ? theme.primary : `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`
-  const enabled = SECTION_REGISTRY.filter((s) => sections.enabled[s.key])
+  const enabled = (sections.order || [])
+    .filter((key: string) => sections.enabled[key])
+    .map((key: string) => {
+      const meta = SECTION_REGISTRY.find((s) => s.key === key)
+      if (meta) return { key, label: sections.titles[key] || meta.label }
+      const custom = (sections.custom || []).find((c: any) => c.key === key)
+      return custom ? { key, label: custom.title } : null
+    })
+    .filter(Boolean) as { key: string; label: string }[]
   return (
     <div className="lg:sticky lg:top-4 lg:self-start">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Live preview</p>
@@ -683,7 +955,7 @@ function CardPreview({ theme, sections, customer, config }: any) {
           {enabled.map((s) => (
             <div key={s.key} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
               <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />
-              {sections.titles[s.key] || s.label}
+              {s.label}
             </div>
           ))}
           {enabled.length === 0 && <p className="text-center text-xs text-gray-400">No sections enabled</p>}

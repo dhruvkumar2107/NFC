@@ -17,8 +17,14 @@ export async function GET(request: NextRequest) {
     if (employeeId) where.employeeId = employeeId
     if (from || to) {
       where.orderDate = {}
-      if (from) where.orderDate.gte = new Date(from)
-      if (to) where.orderDate.lte = new Date(to)
+      if (from) {
+        const d = new Date(from)
+        if (!Number.isNaN(d.getTime())) { d.setHours(0, 0, 0, 0); where.orderDate.gte = d }
+      }
+      if (to) {
+        const d = new Date(to)
+        if (!Number.isNaN(d.getTime())) { d.setHours(23, 59, 59, 999); where.orderDate.lte = d }
+      }
     }
 
     const orders = await prisma.order.findMany({

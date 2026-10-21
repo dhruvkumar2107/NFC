@@ -43,18 +43,21 @@ export async function GET(request: NextRequest) {
       if (card) cardUuid = card.id
     }
 
+    const scope = cardUuid ? { cardId: cardUuid } : {}
+    const range = { createdAt: { gte: from, lte: to } }
+
     const [summary, totalCards, activeCards, totalEnquiries, converted, emiCount, calcCount, visitAgg] = await Promise.all([
       getAnalyticsSummary({ cardId: cardUuid, from, to }),
       prisma.card.count(),
       prisma.card.count({ where: { status: 'Active' } }),
-      prisma.enquiry.count({ where: { createdAt: { gte: from, lte: to } } }),
-      prisma.enquiry.count({ where: { createdAt: { gte: from, lte: to }, status: 'converted' } }),
-      prisma.emiCalculation.count({ where: { createdAt: { gte: from, lte: to } } }),
-      prisma.emiCalculation.aggregate({ where: { createdAt: { gte: from, lte: to } }, _avg: { emi: true, price: true } }),
-      prisma.analyticsEvent.aggregate({ where: { createdAt: { gte: from, lte: to } }, _count: { _all: true } }),
+      prisma.enquiry.count({ where: { ...scope, ...range } }),
+      prisma.enquiry.count({ where: { ...scope, ...range, status: 'converted' } }),
+      prisma.emiCalculation.count({ where: { ...scope, ...range } }),
+      prisma.emiCalculation.aggregate({ where: { ...scope, ...range }, _avg: { emi: true, price: true } }),
+      prisma.analyticsEvent.aggregate({ where: { ...scope, ...range }, _count: { _all: true } }),
     ])
 
-    const enquiryRate = visitAgg._count._all > 0 ? (totalEnquiries / summary.totalVisits) * 100 : 0
+    const enquiryRate = summary.totalVisits > 0 ? (totalEnquiries / summary.totalVisits) * 100 : 0
 
     return successResponse({
       range: summary.range,

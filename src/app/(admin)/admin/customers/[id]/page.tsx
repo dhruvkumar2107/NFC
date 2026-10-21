@@ -31,6 +31,24 @@ async function downloadPhoto(customerId: string, index: number, source: 'user' |
   URL.revokeObjectURL(url)
 }
 
+async function openDocument(customerId: string, index: number) {
+  const token = localStorage.getItem('token')
+  const res = await fetch(`/api/admin/customers/${customerId}/documents?index=${index}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Failed to open document')
+  const blob = await res.blob()
+  const objectUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = objectUrl
+  a.target = '_blank'
+  a.rel = 'noopener noreferrer'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
+}
+
 async function triggerBlobDownload(url: string, fallbackName: string, auth = true) {
   const token = auth ? localStorage.getItem('token') : null
   const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : undefined })
@@ -140,9 +158,12 @@ export default function CustomerDetailPage() {
       method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload),
     })
-    const d = await res.json()
-    if (d.success) { setCustomer(d.data); setEditing(false); setMsg('Saved!') }
-    else setMsg(d.error)
+    const d = await res.json().catch(() => null)
+    if (d?.success) {
+      setCustomer((c: any) => ({ ...c, ...d.data }))
+      setEditing(false)
+      setMsg('Saved!')
+    } else setMsg(d?.error || 'Failed to save')
   }
 
   async function runUpload(key: string, file: File | undefined, label: string, kind: 'image' | 'document', onOk: (url: string) => void) {
@@ -630,12 +651,15 @@ export default function CustomerDetailPage() {
                         <p className="text-sm font-medium text-gray-700 truncate" title={doc.name}>{doc.name}</p>
                         <p className="text-xs text-gray-400">{formatFileSize(doc.size)} · {doc.visibility === 'private' ? 'Hidden from profile' : 'Public'}</p>
                       </div>
-                      <a
-                        href={`/api/admin/customers/${customer.id}/documents?index=${i}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await openDocument(customer.id, i)
+                          } catch { alert('Could not open document. Please try again.') }
+                        }}
                         className="text-xs bg-white border border-gray-200 text-gray-600 px-2.5 py-1 rounded-lg hover:border-primary-400 transition-colors"
-                      >View</a>
+                      >View</button>
                       <button
                         onClick={async () => {
                           setDownloading(`doc-${i}`)

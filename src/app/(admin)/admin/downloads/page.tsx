@@ -49,6 +49,7 @@ export default function AdminDownloadsPage() {
 
   useEffect(() => {
     if (!cardId) { setInventory(null); return }
+    setInventory(null)
     setLoading(true)
     setError(null)
     apiFetch(`/api/admin/cards/${cardId}/downloads`)
@@ -67,7 +68,6 @@ export default function AdminDownloadsPage() {
       .slice(0, 50)
   }, [cards, query])
 
-  const selected = cards.find((c: any) => c.id === cardId)
   const base = inventory?.base as string | undefined
 
   function open(url: string) {

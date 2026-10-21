@@ -124,13 +124,33 @@ export function normalizeSections(raw: unknown): CardSections {
   const o = asObject(raw)
   const d = defaultSections()
 
-  const validKeys = new Set(DEFAULT_SECTION_ORDER)
+  // Custom sections are parsed first so their keys can join the section order.
+  const custom: CustomSection[] = Array.isArray(o.custom)
+    ? o.custom
+        .filter((c: any) => c && typeof c === 'object' && typeof c.title === 'string')
+        .slice(0, 20)
+        .map((c: any, i: number) => {
+          const rawKey = typeof c.key === 'string' ? c.key.trim() : ''
+          const key = rawKey && !DEFAULT_SECTION_ORDER.includes(rawKey) ? rawKey : `custom-${i}`
+          return {
+            key,
+            title: String(c.title).slice(0, 60),
+            body: typeof c.body === 'string' ? c.body.slice(0, 4000) : '',
+          }
+        })
+    : []
+
+  const validKeys = new Set<string>([...DEFAULT_SECTION_ORDER, ...custom.map((c) => c.key)])
   let order = Array.isArray(o.order) ? o.order.filter((k: unknown) => typeof k === 'string' && validKeys.has(k)) : []
   for (const key of d.order) if (!order.includes(key)) order.push(key)
+  for (const c of custom) if (!order.includes(c.key)) order.push(c.key)
 
   const enabled: Record<string, boolean> = {}
   for (const key of DEFAULT_SECTION_ORDER) {
     enabled[key] = typeof o.enabled?.[key] === 'boolean' ? o.enabled[key] : d.enabled[key]
+  }
+  for (const c of custom) {
+    enabled[c.key] = typeof o.enabled?.[c.key] === 'boolean' ? o.enabled[c.key] : true
   }
 
   const titles: Record<string, string> = {}
@@ -138,17 +158,6 @@ export function normalizeSections(raw: unknown): CardSections {
     const t = o.titles?.[s.key]
     titles[s.key] = typeof t === 'string' && t.trim() ? t.trim().slice(0, 60) : s.label
   }
-
-  const custom: CustomSection[] = Array.isArray(o.custom)
-    ? o.custom
-        .filter((c: any) => c && typeof c === 'object' && typeof c.title === 'string')
-        .slice(0, 20)
-        .map((c: any) => ({
-          key: typeof c.key === 'string' && c.key ? c.key : `custom-${Math.random().toString(36).slice(2, 8)}`,
-          title: String(c.title).slice(0, 60),
-          body: typeof c.body === 'string' ? c.body.slice(0, 4000) : '',
-        }))
-    : []
 
   const offers: OfferEntry[] = Array.isArray(o.offers)
     ? o.offers

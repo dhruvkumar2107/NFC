@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { errorResponse } from '@/lib/api-response'
-import { resolveFileBuffer, sanitizeDownloadName } from '@/lib/file-store'
-import { streamedFileResponse } from '@/lib/stream-file'
+import { resolveFileBuffer, sanitizeDownloadName, contentDisposition } from '@/lib/file-store'
+import { streamedFileResponse, parseByteRange, rangedFileResponse } from '@/lib/stream-file'
 import { recordEvent, ANALYTICS_EVENTS } from '@/lib/analytics'
 
 export const dynamic = 'force-dynamic'
@@ -34,13 +34,25 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
     const base = sanitizeDownloadName(media.name || 'photo', 'jpg').replace(/\.[^.]+$/, '')
     const ext = (resolved.mime.split('/')[1] || 'jpg').replace('jpeg', 'jpg')
     const filename = `${base}.${ext}`
-    const disposition = (wantsDownload ? 'attachment' : 'inline') + `; filename="${filename}"`
+    const disposition = contentDisposition(filename, wantsDownload ? 'attachment' : 'inline')
+    const isVideo = (resolved.mime || '').startsWith('video/')
+
+    const range = isVideo ? parseByteRange(request.headers.get('range'), resolved.buffer.length) : null
+    if (range) {
+      return rangedFileResponse(resolved.buffer, {
+        'Content-Type': resolved.mime,
+        'Content-Disposition': disposition,
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'public, max-age=3600',
+      }, range)
+    }
 
     return streamedFileResponse(resolved.buffer, {
       'Content-Type': resolved.mime,
       'Content-Disposition': disposition,
       'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'public, max-age=3600',
+      ...(isVideo ? { 'Accept-Ranges': 'bytes' } : {}),
     })
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to load media', 500)

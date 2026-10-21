@@ -20,6 +20,11 @@ const MIME_BY_EXT: Record<string, string> = {
   '.svg': 'image/svg+xml',
   '.pdf': 'application/pdf',
   '.vcf': 'text/vcard',
+  '.mp4': 'video/mp4',
+  '.m4v': 'video/x-m4v',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+  '.ogv': 'video/ogg',
 }
 
 export function decodeDataUri(dataUri: string): { buffer: Buffer; mime: string } | null {
@@ -42,6 +47,11 @@ export function mimeToExt(mime: string): string {
     case 'image/avif': return 'avif'
     case 'image/svg+xml': return 'svg'
     case 'application/pdf': return 'pdf'
+    case 'video/mp4': return 'mp4'
+    case 'video/x-m4v': return 'm4v'
+    case 'video/webm': return 'webm'
+    case 'video/quicktime': return 'mov'
+    case 'video/ogg': return 'ogv'
     default: return 'jpg'
   }
 }

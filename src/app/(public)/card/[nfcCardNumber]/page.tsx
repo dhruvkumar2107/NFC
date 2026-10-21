@@ -20,6 +20,7 @@ export default async function NfcCardProfilePage({ params }: { params: { nfcCard
       profilePath={card.nfcCardNumber ? `/card/${card.nfcCardNumber}` : `/p/${card.cardId}`}
       photos={media.photos}
       documents={media.documents}
+      videos={media.videos}
       builder={builder}
     />
   )

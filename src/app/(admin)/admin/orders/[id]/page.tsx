@@ -8,6 +8,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState('')
+  const [msgError, setMsgError] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
@@ -20,13 +21,18 @@ export default function OrderDetailPage() {
 
   async function updateStatus(status: string) {
     const token = localStorage.getItem('token')
-    const res = await fetch(`/api/admin/orders/${params.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status }),
-    })
-    const d = await res.json()
-    if (d.success) { setOrder((o: any) => ({ ...o, status })); setMsg(`Status updated to ${status}`) }
-    else setMsg(d.error)
+    try {
+      const res = await fetch(`/api/admin/orders/${params.id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      })
+      const d = await res.json().catch(() => null)
+      if (d?.success) { setOrder((o: any) => ({ ...o, status })); setMsg(`Status updated to ${status}`); setMsgError(false) }
+      else { setMsg(d?.error || 'Failed to update status'); setMsgError(true) }
+    } catch {
+      setMsg('Something went wrong. Please try again.')
+      setMsgError(true)
+    }
   }
 
   const downloadDocx = useCallback(async () => {
@@ -77,7 +83,7 @@ export default function OrderDetailPage() {
         </button>
       </div>
 
-      {msg && <div className="bg-green-50 text-green-700 p-3 rounded-lg mb-4 text-sm">{msg}</div>}
+      {msg && <div className={`p-3 rounded-lg mb-4 text-sm ${msgError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>{msg}</div>}
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <div className="card"><div className="text-sm text-gray-500">Amount</div><div className="text-2xl font-bold">₹{order.amount}</div></div>
@@ -103,7 +109,7 @@ export default function OrderDetailPage() {
             <div className="space-y-2 text-sm">
               <div><Link href={`/admin/employees/${order.employee.id}`} className="text-primary-600 hover:underline font-medium">{order.employee.name}</Link></div>
               <div>{order.employee.employeeId}</div>
-              <div><span className="text-gray-500">Attribution:</span> <span className={`px-2 py-0.5 rounded text-xs ${order.attributionType === 'link' ? 'bg-blue-100 text-blue-700' : order.attributionType === 'manual_code' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100'}`}>{order.attributionType || 'direct'}</span></div>
+              <div><span className="text-gray-500">Attribution:</span> <span className={`px-2 py-0.5 rounded text-xs ${order.attributionType === 'link' ? 'bg-blue-100 text-blue-700' : order.attributionType === 'manual_code' ? 'bg-purple-100 text-purple-700' : order.attributionType === 'admin_manual' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'}`}>{order.attributionType === 'link' ? 'Link' : order.attributionType === 'manual_code' ? 'Code' : order.attributionType === 'admin_manual' ? 'Admin' : 'Direct'}</span></div>
             </div>
           ) : <p className="text-gray-500">Direct sale (no employee)</p>}
         </div>

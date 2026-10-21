@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { successResponse, errorResponse } from '@/lib/api-response'
-import { buildPublicGallery, buildPublicDocuments, publicFileUrl, publicDownloadUrl } from '@/lib/public-profile'
+import { buildPublicGallery, buildPublicDocuments, buildPublicVideos, publicFileUrl, publicDownloadUrl } from '@/lib/public-profile'
 
 export async function GET(_request: NextRequest, { params }: { params: { card_id: string } }) {
   try {
@@ -21,6 +21,7 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
 
     const gallery = buildPublicGallery(customer)
     const documents = buildPublicDocuments(customer)
+    const videos = buildPublicVideos(customer)
 
     return successResponse({
       cardId: card.cardId,
@@ -45,8 +46,14 @@ export async function GET(_request: NextRequest, { params }: { params: { card_id
         viewUrl: publicFileUrl(card.cardId, 'document', index),
         downloadUrl: `${publicFileUrl(card.cardId, 'document', index)}&download=1`,
       })),
-      downloadAllUrl: publicDownloadUrl(card.cardId, 'all'),
-      downloadPhotosUrl: publicDownloadUrl(card.cardId, 'photos'),
+      videos: videos.map((video, index) => ({
+        name: video.name,
+        size: video.size,
+        mime: video.mime,
+        viewUrl: publicFileUrl(card.cardId, 'video', index),
+        downloadUrl: `${publicFileUrl(card.cardId, 'video', index)}&download=1`,
+      })),
+      downloadAllUrl: publicDownloadUrl(card.cardId, 'all'),      downloadPhotosUrl: publicDownloadUrl(card.cardId, 'photos'),
       logoUrl: customer.logoUrl,
       description: customer.description,
       address: customer.address,

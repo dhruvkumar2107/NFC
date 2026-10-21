@@ -6,6 +6,8 @@ export interface PublicMedia {
   url: string
   thumbnailUrl: string | null
   name: string | null
+  mime: string | null
+  kind: 'image' | 'video'
 }
 
 export interface PublicAlbum {
@@ -106,6 +108,8 @@ export function buildPublicBuilderData(config: any): PublicBuilderData {
             ? `/api/public/${encodeURIComponent(config.card.cardId)}/media/${m.id}?thumb=1`
             : null,
           name: m.name || null,
+          mime: m.mime || null,
+          kind: typeof m.mime === 'string' && m.mime.toLowerCase().startsWith('video/') ? 'video' : 'image',
         })),
     }))
     .filter((a: PublicAlbum) => a.photos.length > 0)

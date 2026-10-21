@@ -1,6 +1,6 @@
-import { MAX_IMAGE_BYTES, MAX_DOCUMENT_BYTES } from './profile-media'
+import { MAX_IMAGE_BYTES, MAX_DOCUMENT_BYTES, MAX_VIDEO_BYTES } from './profile-media'
 
-export type UploadKind = 'image' | 'document'
+export type UploadKind = 'image' | 'document' | 'video'
 
 export interface UploadOptions {
   kind?: UploadKind
@@ -8,6 +8,7 @@ export interface UploadOptions {
 }
 
 const IMAGE_EXT = /\.(jpe?g|png|webp|gif|avif)$/i
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v|ogv)$/i
 
 // Vercel functions reject request bodies over 4.5MB with a 413, so larger
 // files are split into chunks that each stay comfortably below that cap.
@@ -27,6 +28,14 @@ export function validatePdfFile(file: File): string | null {
   const looksLikePdf =
     (file.type && file.type.toLowerCase() === 'application/pdf') || /\.pdf$/i.test(file.name)
   if (!looksLikePdf) return 'Only PDF documents are allowed.'
+  return null
+}
+
+export function validateVideoFile(file: File): string | null {
+  if (!file) return 'No file selected'
+  if (file.size > MAX_VIDEO_BYTES) return 'Video too large. Max size is 50MB.'
+  const typeOk = file.type ? file.type.toLowerCase().startsWith('video/') : VIDEO_EXT.test(file.name)
+  if (!typeOk) return 'Only MP4, WebM and MOV video files are allowed.'
   return null
 }
 
@@ -109,7 +118,8 @@ function buildFormData(file: Blob, kind: UploadKind, originalName: string, extra
  */
 export function uploadFile(file: File, options: UploadOptions = {}): Promise<string> {
   const kind: UploadKind = options.kind || 'image'
-  const validation = kind === 'document' ? validatePdfFile(file) : validateImageFile(file)
+  const validation =
+    kind === 'document' ? validatePdfFile(file) : kind === 'video' ? validateVideoFile(file) : validateImageFile(file)
   if (validation) return Promise.reject(new Error(validation))
 
   if (file.size <= CHUNK_SIZE) {

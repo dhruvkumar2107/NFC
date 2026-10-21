@@ -6,6 +6,7 @@ export default function AdminCommissionPage() {
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({ minCards: '', maxCards: '', commissionPerCard: '', pointsPerCard: '' })
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -18,42 +19,64 @@ export default function AdminCommissionPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    const token = localStorage.getItem('token')
-    const res = await fetch('/api/admin/commission-rules', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        minCards: parseInt(form.minCards),
-        maxCards: form.maxCards ? parseInt(form.maxCards) : null,
-        commissionPerCard: parseFloat(form.commissionPerCard),
-        pointsPerCard: parseInt(form.pointsPerCard) || parseFloat(form.commissionPerCard),
-      }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      setForm({ minCards: '', maxCards: '', commissionPerCard: '', pointsPerCard: '' })
-      const r2 = await fetch('/api/admin/commission-rules', { headers: { Authorization: `Bearer ${token}` } })
-      const d2 = await r2.json()
-      if (d2.success) setRules(d2.data)
+    setError('')
+    try {
+      const token = localStorage.getItem('token')
+      const commission = parseFloat(form.commissionPerCard)
+      const points = form.pointsPerCard ? parseInt(form.pointsPerCard, 10) : Math.round(commission)
+      const res = await fetch('/api/admin/commission-rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          minCards: parseInt(form.minCards),
+          maxCards: form.maxCards ? parseInt(form.maxCards) : null,
+          commissionPerCard: commission,
+          pointsPerCard: Number.isFinite(points) ? points : 0,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (data?.success) {
+        setForm({ minCards: '', maxCards: '', commissionPerCard: '', pointsPerCard: '' })
+        const r2 = await fetch('/api/admin/commission-rules', { headers: { Authorization: `Bearer ${token}` } })
+        const d2 = await r2.json().catch(() => null)
+        if (d2?.success) setRules(d2.data)
+      } else {
+        setError(data?.error || 'Failed to create rule')
+      }
+    } catch {
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function toggleActive(id: string, active: boolean) {
     const token = localStorage.getItem('token')
-    await fetch(`/api/admin/commission-rules/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ active: !active }),
-    })
-    setRules(prev => prev.map(r => r.id === id ? { ...r, active: !active } : r))
+    try {
+      const res = await fetch(`/api/admin/commission-rules/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ active: !active }),
+      })
+      const d = await res.json().catch(() => null)
+      if (d?.success) setRules(prev => prev.map(r => r.id === id ? { ...r, active: !active } : r))
+      else setError(d?.error || 'Failed to update rule')
+    } catch {
+      setError('Something went wrong. Please try again.')
+    }
   }
 
   async function deleteRule(id: string) {
     if (!confirm('Delete this commission rule?')) return
     const token = localStorage.getItem('token')
-    await fetch(`/api/admin/commission-rules/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
-    setRules(prev => prev.filter(r => r.id !== id))
+    try {
+      const res = await fetch(`/api/admin/commission-rules/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+      const d = await res.json().catch(() => null)
+      if (d?.success) setRules(prev => prev.filter(r => r.id !== id))
+      else setError(d?.error || 'Failed to delete rule')
+    } catch {
+      setError('Something went wrong. Please try again.')
+    }
   }
 
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48"></div></div>
@@ -61,6 +84,7 @@ export default function AdminCommissionPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Commission & Points Rules</h1>
+      {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm">{error}</div>}
       <p className="text-gray-600 text-sm mb-6">
         Define how much commission (₹) and points employees earn per card sold at each sales tier.
         Points can be redeemed for cash (1 point = ₹1). Rules are off by default until activated.

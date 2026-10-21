@@ -9,7 +9,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (error) return error
 
     const { status } = await request.json()
-    if (!['Active', 'Deactivated', 'Issued', 'Delivered'].includes(status)) {
+    if (!['Pending', 'Active', 'Deactivated', 'Issued', 'Delivered'].includes(status)) {
       return errorResponse('Invalid status')
     }
     const updated = await prisma.card.update({

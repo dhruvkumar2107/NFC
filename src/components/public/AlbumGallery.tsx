@@ -100,8 +100,15 @@ export default function AlbumGallery({ cardId, albums, name, onTrack }: Props) {
               <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100">
                 <button type="button" onClick={() => { setActive({ albumIndex: ai, photoIndex: pi }); onTrack?.('gallery_open', { albumId: album.id }) }}
                   className="h-full w-full focus:outline-none focus:ring-2 focus:ring-primary-400">
-                  <img src={photo.thumbnailUrl || photo.url} alt={photo.name || `${album.name} photo ${pi + 1}`} loading="lazy"
-                    className="h-full w-full object-cover" />
+                  {photo.kind === 'video' ? (
+                    <>
+                      <video src={photo.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                      <span className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold text-white">VIDEO</span>
+                    </>
+                  ) : (
+                    <img src={photo.thumbnailUrl || photo.url} alt={photo.name || `${album.name} photo ${pi + 1}`} loading="lazy"
+                      className="h-full w-full object-cover" />
+                  )}
                 </button>
                 <a href={withDownload(photo.url)} download
                   onClick={() => onTrack?.('image_download', { albumId: album.id })}
@@ -117,7 +124,11 @@ export default function AlbumGallery({ cardId, albums, name, onTrack }: Props) {
       {current && active && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setActive(null)} role="dialog" aria-modal="true">
           <div className="flex max-h-full max-w-full flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-            <img src={current.url} alt={current.name || 'Photo'} className="max-h-[70vh] max-w-full rounded-xl object-contain" />
+            {current.kind === 'video' ? (
+              <video src={current.url} controls autoPlay playsInline className="max-h-[70vh] max-w-full rounded-xl bg-black" />
+            ) : (
+              <img src={current.url} alt={current.name || 'Photo'} className="max-h-[70vh] max-w-full rounded-xl object-contain" />
+            )}
             <div className="flex items-center gap-2">
               <a href={withDownload(current.url)} download className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100">Download</a>
               <button type="button" onClick={() => move(-1)} className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">‹</button>

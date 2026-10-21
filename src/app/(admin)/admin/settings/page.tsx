@@ -29,42 +29,59 @@ export default function AdminSettingsPage() {
     if (pwForm.newPassword !== pwForm.confirmPassword) { setMsg('Passwords do not match'); return }
     if (pwForm.newPassword.length < 6) { setMsg('Password must be at least 6 characters'); return }
     setSaving(true); setMsg('')
-    const token = localStorage.getItem('token')
-    const res = await fetch('/api/admin/change-password', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
-    })
-    const d = await res.json()
-    if (d.success) { setMsg('Password changed successfully!'); setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' }) }
-    else setMsg(d.error || 'Failed')
-    setSaving(false)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
+      })
+      const d = await res.json().catch(() => null)
+      if (d?.success) { setMsg('Password changed successfully!'); setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' }) }
+      else setMsg(d?.error || 'Failed to change password')
+    } catch {
+      setMsg('Something went wrong. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function onQrUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
     setQrUploading(true); setQrMsg('')
-    const fd = new FormData()
-    fd.append('file', file)
-    const token = localStorage.getItem('token')
-    const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
-    const d = await res.json()
-    if (d.success && d.data) setPaymentQrUrl(d.data)
-    else setQrMsg(d.error || 'Upload failed')
-    setQrUploading(false)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/upload', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+      const d = await res.json().catch(() => null)
+      if (d?.success && d.url) setPaymentQrUrl(d.url)
+      else setQrMsg(d?.error || 'Upload failed')
+    } catch {
+      setQrMsg('Upload failed. Please try again.')
+    } finally {
+      setQrUploading(false)
+    }
   }
 
   async function savePaymentQr() {
+    if (!paymentQrUrl) { setQrMsg('Please upload a payment QR image first'); return }
     setQrSaving(true); setQrMsg('')
-    const token = localStorage.getItem('token')
-    const res = await fetch('/api/admin/settings', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ paymentQrUrl }),
-    })
-    const d = await res.json()
-    if (d.success) { setQrMsg('Payment QR code URL saved!') }
-    else setQrMsg(d.error || 'Failed to save')
-    setQrSaving(false)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/settings', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ paymentQrUrl }),
+      })
+      const d = await res.json().catch(() => null)
+      if (d?.success) { setQrMsg('Payment QR code URL saved!') }
+      else setQrMsg(d?.error || 'Failed to save')
+    } catch {
+      setQrMsg('Something went wrong. Please try again.')
+    } finally {
+      setQrSaving(false)
+    }
   }
 
   return (

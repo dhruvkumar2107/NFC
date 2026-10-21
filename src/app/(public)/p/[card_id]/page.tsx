@@ -20,6 +20,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
       profilePath={`/p/${card.cardId}`}
       photos={media.photos}
       documents={media.documents}
+      videos={media.videos}
       builder={builder}
     />
   )

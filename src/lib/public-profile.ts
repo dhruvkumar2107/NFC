@@ -2,6 +2,7 @@ import { prisma } from './db'
 import {
   AdminPhotoEntry,
   ProfileDocumentEntry,
+  ProfileVideoEntry,
   parseJsonArray,
   isPublicVisibility,
 } from './profile-media'
@@ -17,6 +18,13 @@ export interface PublicDocument {
   size: number
   mime: string
   createdAt?: string
+}
+
+export interface PublicVideo {
+  url: string
+  name: string
+  size: number
+  mime: string
 }
 
 export async function loadProfileByCardId(cardId: string) {
@@ -74,7 +82,19 @@ export function buildPublicDocuments(customer: {
     }))
 }
 
-export function publicFileUrl(cardId: string, kind: 'photo' | 'document', index: number): string {
+/** Videos published on the card profile. */
+export function buildPublicVideos(customer: { videos?: string | null }): PublicVideo[] {
+  return parseJsonArray<ProfileVideoEntry>(customer.videos)
+    .filter((v) => v && typeof v.url === 'string' && v.url && isPublicVisibility(v.visibility))
+    .map((v) => ({
+      url: v.url,
+      name: v.name || 'video.mp4',
+      size: Number(v.size) || 0,
+      mime: typeof v.mime === 'string' && v.mime ? v.mime : 'video/mp4',
+    }))
+}
+
+export function publicFileUrl(cardId: string, kind: 'photo' | 'document' | 'video', index: number): string {
   return `/api/profile/${encodeURIComponent(cardId)}/file?kind=${kind}&i=${index}`
 }
 
@@ -85,12 +105,14 @@ export function publicDownloadUrl(cardId: string, type: 'all' | 'photos' | 'docu
 export interface PublicMediaAssets {
   photos: { url: string; source: 'user' | 'admin' }[]
   documents: { name: string; size: number; viewUrl: string; downloadUrl: string }[]
+  videos: { name: string; size: number; mime: string; viewUrl: string; downloadUrl: string }[]
 }
 
-/** Gallery + documents rendered on the public NFC profile (public files only). */
+/** Gallery + documents + videos rendered on the public NFC profile (public files only). */
 export function buildPublicMedia(cardId: string, customer: any): PublicMediaAssets {
   const gallery = buildPublicGallery(customer)
   const docs = buildPublicDocuments(customer)
+  const videos = buildPublicVideos(customer)
   return {
     photos: gallery.map((photo, index) => ({
       url: publicFileUrl(cardId, 'photo', index),
@@ -99,6 +121,10 @@ export function buildPublicMedia(cardId: string, customer: any): PublicMediaAsse
     documents: docs.map((doc, index) => {
       const viewUrl = publicFileUrl(cardId, 'document', index)
       return { name: doc.name, size: doc.size, viewUrl, downloadUrl: `${viewUrl}&download=1` }
+    }),
+    videos: videos.map((video, index) => {
+      const viewUrl = publicFileUrl(cardId, 'video', index)
+      return { name: video.name, size: video.size, mime: video.mime, viewUrl, downloadUrl: `${viewUrl}&download=1` }
     }),
   }
 }

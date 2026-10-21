@@ -16,19 +16,24 @@ export default function AdminRedemptionsPage() {
 
   async function updateStatus(id: string, status: string) {
     setProcessingId(id)
-    const token = localStorage.getItem('token')
-    const res = await fetch('/api/admin/redemptions', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ id, status }),
-    })
-    const d = await res.json()
-    if (d.success) {
-      setRedemptions(prev => prev.map(r => r.id === id ? { ...r, status } : r))
-    } else {
-      alert(d.error)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/admin/redemptions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id, status }),
+      })
+      const d = await res.json().catch(() => null)
+      if (d?.success) {
+        setRedemptions(prev => prev.map(r => r.id === id ? { ...r, status } : r))
+      } else {
+        alert(d?.error || 'Failed to update request')
+      }
+    } catch {
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setProcessingId(null)
     }
-    setProcessingId(null)
   }
 
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-48"></div></div>
@@ -98,6 +103,7 @@ export default function AdminRedemptionsPage() {
                   <th className="text-left p-3 font-medium text-gray-600">UPI</th>
                   <th className="text-left p-3 font-medium text-gray-600">Status</th>
                   <th className="text-left p-3 font-medium text-gray-600">Date</th>
+                  <th className="text-left p-3 font-medium text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -116,6 +122,26 @@ export default function AdminRedemptionsPage() {
                       }`}>{r.status}</span>
                     </td>
                     <td className="p-3 text-gray-600">{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td className="p-3">
+                      {r.status === 'approved' ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => updateStatus(r.id, 'paid')}
+                            disabled={processingId === r.id}
+                            className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            Mark Paid
+                          </button>
+                          <button
+                            onClick={() => updateStatus(r.id, 'rejected')}
+                            disabled={processingId === r.id}
+                            className="text-xs bg-red-600 text-white px-2.5 py-1 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : <span className="text-gray-300 text-xs">—</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>

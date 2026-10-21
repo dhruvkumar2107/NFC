@@ -32,7 +32,11 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       include: { card: true, orders: true, employee: true },
     })
     if (!customer) return errorResponse('Customer not found', 404)
-    return successResponse(customer)
+    const { passwordHash, employee, ...safeCustomer } = customer
+    const safeEmployee = employee
+      ? (({ passwordHash: _ph, ...e }) => e)(employee)
+      : employee
+    return successResponse({ ...safeCustomer, employee: safeEmployee })
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to fetch customer', 500)
   }
@@ -77,7 +81,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       if (existing) return errorResponse('Email already registered')
     }
     const updated = await prisma.customer.update({ where: { id: params.id }, data: safeData })
-    return successResponse(updated)
+    const { passwordHash, ...safeUpdated } = updated
+    return successResponse(safeUpdated)
   } catch (err: any) {
     return errorResponse(err.message || 'Failed to update customer', 500)
   }

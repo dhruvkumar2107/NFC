@@ -47,13 +47,22 @@ export default function AnalyticsDashboard({ base, heading = 'Analytics', subtit
   useEffect(() => { load() }, [load])
 
   async function exportCsv() {
-    const token = localStorage.getItem('token')
-    const res = await fetch(`${base}/export?days=${days}`, { headers: { Authorization: `Bearer ${token}` } })
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = `analytics-${days}d.csv`; a.click()
-    URL.revokeObjectURL(url)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${base}/export?days=${days}`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) {
+        setError('Export failed. Please try again.')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `analytics-${days}d.csv`
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('Export failed. Please try again.')
+    }
   }
 
   const daily: any[] = data?.daily || []

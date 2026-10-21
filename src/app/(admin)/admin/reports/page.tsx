@@ -6,17 +6,19 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true)
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [error, setError] = useState('')
 
   function fetchReports() {
     setLoading(true)
+    setError('')
     const token = localStorage.getItem('token')
     const params = new URLSearchParams()
     if (from) params.set('from', from)
     if (to) params.set('to', to)
     fetch(`/api/admin/reports/sales?${params}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
-      .then(d => { if (d.success) setData(d.data); setLoading(false) })
-      .catch(() => setLoading(false))
+      .then(d => { if (d.success) setData(d.data); else setError(d.error || 'Failed to load reports'); setLoading(false) })
+      .catch(() => { setError('Failed to load reports. Please try again.'); setLoading(false) })
   }
 
   useEffect(() => { fetchReports() }, [])
@@ -34,7 +36,7 @@ export default function AdminReportsPage() {
       o.status,
       new Date(o.orderDate).toLocaleDateString(),
     ])
-    const csv = [headers.join(','), ...rows.map((r: (string | number)[]) => r.map(c => `"${c}"`).join(','))].join('\n')
+    const csv = [headers.join(','), ...rows.map((r: (string | number)[]) => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -49,6 +51,7 @@ export default function AdminReportsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Sales Reports</h1>
+      {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm">{error}</div>}
 
       <div className="card mb-6">
         <div className="flex flex-wrap gap-4 items-end">
@@ -138,8 +141,8 @@ export default function AdminReportsPage() {
                         <td className="p-2">{o.customer?.name || '-'}</td>
                         <td className="p-2">{o.employee?.name || <span className="text-gray-400">Direct</span>}</td>
                         <td className="p-2">
-                          <span className={`px-2 py-0.5 rounded text-xs ${o.attributionType === 'link' ? 'bg-blue-100 text-blue-700' : o.attributionType === 'manual_code' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
-                            {o.attributionType === 'link' ? 'Link' : o.attributionType === 'manual_code' ? 'Code' : 'Direct'}
+                          <span className={`px-2 py-0.5 rounded text-xs ${o.attributionType === 'link' ? 'bg-blue-100 text-blue-700' : o.attributionType === 'manual_code' ? 'bg-purple-100 text-purple-700' : o.attributionType === 'admin_manual' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {o.attributionType === 'link' ? 'Link' : o.attributionType === 'manual_code' ? 'Code' : o.attributionType === 'admin_manual' ? 'Admin' : 'Direct'}
                           </span>
                         </td>
                         <td className="p-2">₹{o.amount}</td>

@@ -29,6 +29,7 @@ model Customer {
   photos           String   @default("[]")
   adminPhotos      String   @default("[]")
   documents        String   @default("[]")
+  videos           String   @default("[]")
   paymentQrUrl     String?
   logoUrl          String?
   description      String?
