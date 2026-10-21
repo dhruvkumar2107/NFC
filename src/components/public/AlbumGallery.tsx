@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { PublicAlbum } from '@/lib/card-data'
 
 interface Props {
@@ -12,6 +12,128 @@ interface Props {
 
 function withDownload(url: string): string {
   return url + (url.includes('?') ? '&' : '?') + 'download=1'
+}
+
+function PhotoThumbnail({ photo, onClick, onDownload, downloading, onTrack, albumId }: {
+  photo: { id: string; url: string; thumbnailUrl?: string | null; name?: string | null; kind: string }
+  onClick: () => void
+  onDownload: () => void
+  downloading: boolean
+  onTrack?: (type: string, meta?: Record<string, unknown>) => void
+  albumId: string
+}) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  const handleImageError = useCallback(() => {
+    setImageError(true)
+    setImageLoaded(false)
+  }, [])
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true)
+    setImageError(false)
+  }, [])
+
+  return (
+    <div className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100">
+      <button type="button" onClick={onClick} className="h-full w-full focus:outline-none focus:ring-2 focus:ring-primary-400">
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 animate-pulse">
+            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+        {imageError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50 text-red-600 p-4">
+            <svg className="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span className="text-xs font-medium">Failed to load</span>
+          </div>
+        )}
+        {photo.kind === 'video' ? (
+          <>
+            <video src={photo.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+            <span className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold text-white">VIDEO</span>
+          </>
+        ) : (
+          <img src={photo.thumbnailUrl || photo.url} alt={photo.name || 'Photo'} loading="lazy"
+            className={`h-full w-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            style={{ display: imageLoaded ? 'block' : 'none' }}
+          />
+        )}
+      </button>
+      <a href={withDownload(photo.url)} download
+        onClick={() => onTrack?.('image_download', { albumId })}
+        className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 px-2 py-1 text-[10px] text-white hover:bg-black/85"
+      >
+        Save
+      </a>
+    </div>
+  )
+}
+
+function PhotoModal({ current, onClose, onDownload, onPrev, onNext }: {
+  current: { id: string; url: string; name?: string | null; kind: string }
+  onClose: () => void
+  onDownload: () => void
+  onPrev: () => void
+  onNext: () => void
+}) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  const handleImageError = useCallback(() => {
+    setImageError(true)
+    setImageLoaded(false)
+  }, [])
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true)
+    setImageError(false)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="flex max-h-full max-w-full flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+        {!imageLoaded && !imageError && (
+          <div className="w-full max-w-2xl aspect-video flex items-center justify-center bg-gray-900 animate-pulse rounded-xl">
+            <svg className="w-12 h-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+        {imageError && (
+          <div className="w-full max-w-2xl aspect-video flex flex-col items-center justify-center bg-gray-900 rounded-xl p-8 text-center text-red-400">
+            <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p className="text-lg font-medium mb-2">Failed to load image</p>
+            <p className="text-sm">The image could not be loaded. It may have been removed or the link may be expired.</p>
+          </div>
+        )}
+        {current.kind === 'video' ? (
+          <video src={current.url} controls autoPlay playsInline className="max-h-[70vh] max-w-full rounded-xl bg-black" />
+        ) : (
+          <img src={current.url} alt={current.name || 'Photo'} className={`max-h-[70vh] max-w-full rounded-xl object-contain transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            style={{ display: imageLoaded ? 'block' : 'none' }}
+          />
+        )}
+        <div className="flex items-center gap-2">
+          <a href={withDownload(current.url)} download className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100">Download</a>
+          <button type="button" onClick={onPrev} className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">‹</button>
+          <button type="button" onClick={onNext} className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">›</button>
+          <button type="button" onClick={onClose} className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">Close</button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function AlbumGallery({ cardId, albums, name, onTrack }: Props) {
@@ -97,46 +219,28 @@ export default function AlbumGallery({ cardId, albums, name, onTrack }: Props) {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {album.photos.map((photo, pi) => (
-              <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100">
-                <button type="button" onClick={() => { setActive({ albumIndex: ai, photoIndex: pi }); onTrack?.('gallery_open', { albumId: album.id }) }}
-                  className="h-full w-full focus:outline-none focus:ring-2 focus:ring-primary-400">
-                  {photo.kind === 'video' ? (
-                    <>
-                      <video src={photo.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
-                      <span className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold text-white">VIDEO</span>
-                    </>
-                  ) : (
-                    <img src={photo.thumbnailUrl || photo.url} alt={photo.name || `${album.name} photo ${pi + 1}`} loading="lazy"
-                      className="h-full w-full object-cover" />
-                  )}
-                </button>
-                <a href={withDownload(photo.url)} download
-                  onClick={() => onTrack?.('image_download', { albumId: album.id })}
-                  className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 px-2 py-1 text-[10px] text-white hover:bg-black/85">
-                  Save
-                </a>
-              </div>
+              <PhotoThumbnail
+                key={photo.id}
+                photo={photo}
+                onClick={() => { setActive({ albumIndex: ai, photoIndex: pi }); onTrack?.('gallery_open', { albumId: album.id }) }}
+                onDownload={() => {}}
+                downloading={false}
+                onTrack={onTrack}
+                albumId={album.id}
+              />
             ))}
           </div>
         </div>
       ))}
 
       {current && active && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={() => setActive(null)} role="dialog" aria-modal="true">
-          <div className="flex max-h-full max-w-full flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-            {current.kind === 'video' ? (
-              <video src={current.url} controls autoPlay playsInline className="max-h-[70vh] max-w-full rounded-xl bg-black" />
-            ) : (
-              <img src={current.url} alt={current.name || 'Photo'} className="max-h-[70vh] max-w-full rounded-xl object-contain" />
-            )}
-            <div className="flex items-center gap-2">
-              <a href={withDownload(current.url)} download className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100">Download</a>
-              <button type="button" onClick={() => move(-1)} className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">‹</button>
-              <button type="button" onClick={() => move(1)} className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">›</button>
-              <button type="button" onClick={() => setActive(null)} className="rounded-xl bg-white/15 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25">Close</button>
-            </div>
-          </div>
-        </div>
+        <PhotoModal
+          current={current}
+          onClose={() => setActive(null)}
+          onDownload={() => {}}
+          onPrev={() => move(-1)}
+          onNext={() => move(1)}
+        />
       )}
     </div>
   )

@@ -15,15 +15,28 @@ export default function ImageCropper({ file, onComplete, onCancel, aspectRatio =
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
   const [dragState, setDragState] = useState<{ x: number; y: number; scale: number; pinchDistance?: number }>({ x: 0, y: 0, scale: 1 })
   const [isDragging, setIsDragging] = useState(false)
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const objectUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
     const img = imgRef.current
     if (!img) return
-    img.src = URL.createObjectURL(file)
-    img.onload = () => {
+    
+    // Revoke previous object URL to prevent memory leaks
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+    }
+    
+    const objectUrl = URL.createObjectURL(file)
+    objectUrlRef.current = objectUrl
+    img.src = objectUrl
+    setImageLoaded(false)
+    setImageError(null)
+    
+    const handleLoad = () => {
       setImageLoaded(true)
       const { width, height } = img
       const canvas = canvasRef.current
@@ -35,6 +48,23 @@ export default function ImageCropper({ file, onComplete, onCancel, aspectRatio =
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       const initialScale = Math.max(canvas.width / width, canvas.height / height)
       setDragState({ x: 0, y: 0, scale: initialScale })
+    }
+    
+    const handleError = () => {
+      setImageError('Failed to load image. The file may be corrupted or in an unsupported format.')
+      setImageLoaded(false)
+    }
+    
+    img.onload = handleLoad
+    img.onerror = handleError
+    
+    return () => {
+      img.onload = null
+      img.onerror = null
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
     }
   }, [file, maxWidth, maxHeight])
 
@@ -139,6 +169,27 @@ export default function ImageCropper({ file, onComplete, onCancel, aspectRatio =
     }, 'image/jpeg', 0.85)
   }
 
+  if (imageError) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+        <div className="text-center text-white max-w-md">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <p className="text-red-300 mb-4">{imageError}</p>
+          <button
+            onClick={onCancel}
+            className="px-6 py-3 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!imageLoaded) {
     return (
       <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
@@ -178,7 +229,7 @@ export default function ImageCropper({ file, onComplete, onCancel, aspectRatio =
         
         <img
           ref={imgRef}
-          src={URL.createObjectURL(file)}
+          src={objectUrlRef.current || URL.createObjectURL(file)}
           alt=""
           className="hidden"
         />

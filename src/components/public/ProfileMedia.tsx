@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { formatFileSize } from '@/lib/profile-media'
 
 export interface ProfilePhotoItem {
@@ -52,6 +52,155 @@ async function triggerDownload(url: string, filename: string, useAuth = false) {
   }
 }
 
+function PhotoThumbnail({ photo, index, name, onClick, onDownload, downloading }: {
+  photo: ProfilePhotoItem
+  index: number
+  name: string
+  onClick: () => void
+  onDownload: () => void
+  downloading: boolean
+}) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  const handleImageError = useCallback(() => {
+    setImageError(true)
+    setImageLoaded(false)
+  }, [])
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true)
+    setImageError(false)
+  }, [])
+
+  // Use the shared getPhotoFilename function from outer scope
+
+  return (
+    <div className="relative group rounded-xl overflow-hidden aspect-square bg-gray-100">
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full h-full focus:outline-none focus:ring-2 focus:ring-primary-400"
+        aria-label={`View ${name} photo ${index + 1}`}
+        disabled={!imageLoaded && !imageError}
+      >
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 animate-pulse">
+            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+        {imageError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50 text-red-600 p-4">
+            <svg className="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span className="text-xs font-medium">Failed to load</span>
+          </div>
+        )}
+        <img
+          src={photo.url}
+          alt={`${name} photo ${index + 1}`}
+          loading="lazy"
+          className={`w-full h-full object-cover object-center transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          style={{ display: imageLoaded ? 'block' : 'none' }}
+        />
+      </button>
+      <button
+        type="button"
+        onClick={onDownload}
+        disabled={downloading || !imageLoaded}
+        title="Download this photo"
+        className="absolute bottom-1.5 right-1.5 bg-black/60 hover:bg-black/85 text-white text-[10px] px-2 py-1 rounded-md flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        {downloading ? 'Saving...' : 'Save'}
+      </button>
+    </div>
+  )
+}
+
+function PhotoModal({ photo, index, name, onClose, onDownload }: {
+  photo: ProfilePhotoItem
+  index: number
+  name: string
+  onClose: () => void
+  onDownload: () => void
+}) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  const handleImageError = useCallback(() => {
+    setImageError(true)
+    setImageLoaded(false)
+  }, [])
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true)
+    setImageError(false)
+  }, [])
+
+  // Use the shared getPhotoFilename function from outer scope
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="max-w-full max-h-full flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+        {!imageLoaded && !imageError && (
+          <div className="w-full max-w-2xl aspect-video flex items-center justify-center bg-gray-900 animate-pulse rounded-xl">
+            <svg className="w-12 h-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+        {imageError && (
+          <div className="w-full max-w-2xl aspect-video flex flex-col items-center justify-center bg-gray-900 rounded-xl p-8 text-center text-red-400">
+            <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p className="text-lg font-medium mb-2">Failed to load image</p>
+            <p className="text-sm">The image could not be loaded. It may have been removed or the link may be expired.</p>
+          </div>
+        )}
+        <img
+          src={photo.url}
+          alt={`${name} photo ${index + 1}`}
+          className={`max-w-full max-h-[70vh] object-contain rounded-xl transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          style={{ display: imageLoaded ? 'block' : 'none' }}
+        />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onDownload}
+            className="bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
+            disabled={!imageLoaded}
+          >
+            Download
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-white/15 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-white/25 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfileMedia({ cardId, name, photos, documents }: ProfileMediaProps) {
   const [active, setActive] = useState<number | null>(null)
   const [downloading, setDownloading] = useState<string | null>(null)
@@ -64,17 +213,6 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [active])
-
-  function getPhotoFilename(photo: ProfilePhotoItem, index: number): string {
-    try {
-      const url = new URL(photo.url, window.location.origin)
-      const pathname = url.pathname
-      const ext = pathname.split('.').pop() || 'jpg'
-      return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.${ext}`
-    } catch {
-      return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.jpg`
-    }
-  }
 
   if (photos.length === 0 && documents.length === 0) return null
 
@@ -97,37 +235,19 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {photos.map((photo, i) => (
-              <div key={`${photo.url}-${i}`} className="relative group rounded-xl overflow-hidden aspect-square bg-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setActive(i)}
-                  className="w-full h-full focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  aria-label={`View ${name} photo ${i + 1}`}
-                >
-                  <img
-                    src={photo.url}
-                    alt={`${name} photo ${i + 1}`}
-                    loading="lazy"
-                    className="w-full h-full object-cover object-center"
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDownloading(`photo-${i}`)
-                    triggerDownload(photo.url, getPhotoFilename(photo, i))
-                    setTimeout(() => setDownloading(null), 1000)
-                  }}
-                  disabled={downloading === `photo-${i}`}
-                  title="Download this photo"
-                  className="absolute bottom-1.5 right-1.5 bg-black/60 hover:bg-black/85 text-white text-[10px] px-2 py-1 rounded-md flex items-center gap-1 transition-colors disabled:opacity-50"
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                  </svg>
-                  {downloading === `photo-${i}` ? 'Saving...' : 'Save'}
-                </button>
-              </div>
+              <PhotoThumbnail
+                key={`${photo.url}-${i}`}
+                photo={photo}
+                index={i}
+                name={name}
+                onClick={() => setActive(i)}
+                onDownload={() => {
+                  setDownloading(`photo-${i}`)
+                  triggerDownload(photo.url, getPhotoFilename(photo, i, name))
+                  setTimeout(() => setDownloading(null), 1000)
+                }}
+                downloading={downloading === `photo-${i}`}
+              />
             ))}
           </div>
         </div>
@@ -191,39 +311,28 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
       </a>
 
       {active !== null && photos[active] && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setActive(null)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="max-w-full max-h-full flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={photos[active].url}
-              alt={`${name} photo ${active + 1}`}
-              className="max-w-full max-h-[70vh] object-contain rounded-xl"
-            />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  triggerDownload(photos[active].url, getPhotoFilename(photos[active], active))
-                }}
-                className="bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                Download
-              </button>
-              <button
-                type="button"
-                onClick={() => setActive(null)}
-                className="bg-white/15 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-white/25 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <PhotoModal
+          photo={photos[active]}
+          index={active}
+          name={name}
+          onClose={() => setActive(null)}
+          onDownload={() => {
+            const photo = photos[active]
+            triggerDownload(photo.url, getPhotoFilename(photo, active, name))
+          }}
+        />
       )}
     </div>
   )
+}
+
+function getPhotoFilename(photo: ProfilePhotoItem, index: number, name: string): string {
+  try {
+    const url = new URL(photo.url, window.location.origin)
+    const pathname = url.pathname
+    const ext = pathname.split('.').pop() || 'jpg'
+    return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.${ext}`
+  } catch {
+    return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.jpg`
+  }
 }
