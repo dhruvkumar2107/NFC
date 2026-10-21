@@ -189,7 +189,7 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
             {tab === 'sections' && <SectionsPanel sections={sections} setSections={setSections} />}
             {tab === 'media' && <MediaPanel cardId={cardId} config={config} reload={load} />}
             {tab === 'products' && <ProductsPanel cardId={cardId} config={config} reload={load} />}
-            {tab === 'catalogues' && <CataloguesPanel cardId={cardId} config={config} reload={load} />}
+            {tab === 'catalogues' && <CataloguesPanel config={config} reload={load} />}
             {tab === 'emi' && <EmiPanel enabled={emiEnabled} setEnabled={setEmiEnabled} value={emiConfig} setValue={setEmiConfig} />}
             {tab === 'settings' && <SettingsPanel templates={templates} templateId={templateId} applyTemplate={applyTemplate} industry={industry} setIndustry={setIndustry} slug={slug} setSlug={setSlug} />}
           </div>
@@ -425,7 +425,7 @@ function MediaPanel({ cardId, config, reload }: any) {
   async function addAlbum() {
     if (!albumName.trim()) return
     setBusy(true)
-    try { await jfetch(`/api/admin/cards/${cardId}/albums`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: albumName }) }); setAlbumName(''); await reload() }
+    try { await jfetch(`/api/customer/albums`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: albumName }) }); setAlbumName(''); await reload() }
     catch (e: any) { alert(e.message) } finally { setBusy(false) }
   }
   async function uploadToAlbum(albumId: string, files: FileList | null) {
@@ -444,30 +444,30 @@ function MediaPanel({ cardId, config, reload }: any) {
         const url = await uploadFile(file, { kind: isVideo ? 'video' : 'image' })
         items.push({ url, name: file.name, mime: file.type || (isVideo ? 'video/mp4' : 'image/jpeg'), size: file.size })
       }
-      await jfetch(`/api/admin/albums/${albumId}/media`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) })
+      await jfetch(`/api/customer/albums/${albumId}/media`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) })
       await reload()
     } catch (e: any) { alert(e.message) } finally { setBusy(false) }
   }
   async function removeMedia(id: string) {
     if (!confirm('Delete this item?')) return
-    await jfetch(`/api/admin/media/${id}`, { method: 'DELETE' }); await reload()
+    await jfetch(`/api/customer/media/${id}`, { method: 'DELETE' }); await reload()
   }
   async function removeAlbum(id: string) {
     if (!confirm('Delete this album and all its media?')) return
-    await jfetch(`/api/admin/albums/${id}`, { method: 'DELETE' }); await reload()
+    await jfetch(`/api/customer/albums/${id}`, { method: 'DELETE' }); await reload()
   }
   async function moveMedia(album: any, index: number, dir: -1 | 1) {
     const media = album.media
     const next = index + dir
     if (next < 0 || next >= media.length) return
-    await jfetch(`/api/admin/media/${media[index].id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sortOrder: next }) })
-    await jfetch(`/api/admin/media/${media[next].id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sortOrder: index }) })
+    await jfetch(`/api/customer/media/${media[index].id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sortOrder: next }) })
+    await jfetch(`/api/customer/media/${media[next].id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sortOrder: index }) })
     await reload()
   }
 
   return (
     <div className="space-y-4">
-      <VideosPanel cardId={cardId} />
+      <VideosPanel />
       <div className="flex gap-2">
         <input value={albumName} onChange={(e) => setAlbumName(e.target.value)} placeholder="New album name (e.g. Products)" className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
         <button onClick={addAlbum} disabled={busy} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Add album</button>
@@ -511,7 +511,7 @@ function MediaPanel({ cardId, config, reload }: any) {
 }
 
 /* ------------------------------ Videos ------------------------------- */
-function VideosPanel({ cardId }: { cardId: string }) {
+function VideosPanel() {
   const [videos, setVideos] = useState<any[]>([])
   const [max, setMax] = useState(MAX_VIDEOS)
   const [loading, setLoading] = useState(true)
@@ -521,7 +521,7 @@ function VideosPanel({ cardId }: { cardId: string }) {
 
   const load = useCallback(async () => {
     try {
-      const data = await jfetch(`/api/admin/cards/${cardId}/videos`)
+      const data = await jfetch(`/api/customer/videos`)
       setVideos(Array.isArray(data?.videos) ? data.videos : [])
       setMax(Number(data?.max) || MAX_VIDEOS)
     } catch (e: any) {
@@ -529,7 +529,7 @@ function VideosPanel({ cardId }: { cardId: string }) {
     } finally {
       setLoading(false)
     }
-  }, [cardId])
+  }, [])
 
   useEffect(() => { load() }, [load])
 
@@ -548,7 +548,7 @@ function VideosPanel({ cardId }: { cardId: string }) {
         const url = await uploadFile(file, { kind: 'video', onProgress: setProgress })
         items.push({ url, name: file.name, size: file.size, mime: file.type || 'video/mp4' })
       }
-      await jfetch(`/api/admin/cards/${cardId}/videos`, {
+      await jfetch(`/api/customer/videos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items }),
@@ -566,7 +566,7 @@ function VideosPanel({ cardId }: { cardId: string }) {
     if (!confirm('Remove this video?')) return
     setBusy(true)
     try {
-      await jfetch(`/api/admin/cards/${cardId}/videos`, {
+      await jfetch(`/api/customer/videos`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ index }),
@@ -586,7 +586,7 @@ function VideosPanel({ cardId }: { cardId: string }) {
     ;[reordered[index], reordered[next]] = [reordered[next], reordered[index]]
     setVideos(reordered)
     try {
-      await jfetch(`/api/admin/cards/${cardId}/videos`, {
+      await jfetch(`/api/customer/videos`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videos: reordered }),
@@ -802,7 +802,7 @@ function ProductsPanel({ cardId, config, reload }: any) {
 }
 
 /* ----------------------------- Catalogues ---------------------------- */
-function CataloguesPanel({ cardId, config, reload }: any) {
+function CataloguesPanel({ config, reload }: any) {
   const [title, setTitle] = useState('')
   const [kind, setKind] = useState('catalogue')
   const [busy, setBusy] = useState(false)
@@ -813,14 +813,14 @@ function CataloguesPanel({ cardId, config, reload }: any) {
     setBusy(true)
     try {
       const url = await uploadFile(file, { kind: 'document' })
-      await jfetch(`/api/admin/cards/${cardId}/catalogues`, {
+      await jfetch(`/api/customer/catalogues`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: title || file.name.replace(/\.pdf$/i, ''), kind, url, size: file.size }),
       })
       setTitle(''); await reload()
     } catch (e: any) { alert(e.message) } finally { setBusy(false) }
   }
-  async function remove(id: string) { if (confirm('Delete document?')) { await jfetch(`/api/admin/catalogues/${id}`, { method: 'DELETE' }); await reload() } }
+  async function remove(id: string) { if (confirm('Delete document?')) { await jfetch(`/api/customer/catalogues/${id}`, { method: 'DELETE' }); await reload() } }
 
   return (
     <div className="space-y-4">

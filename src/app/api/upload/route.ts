@@ -130,6 +130,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ---- image uploads: any signed-in user (admin, employee or customer) ----
+    if (kind === 'image') {
+      const user = await getAuthUser(request)
+      if (!user) {
+        return fail(401, 'Your session has expired. Please log in again and retry the upload.', { kind, role: null })
+      }
+    }
+
     // ---------------- chunked upload path ----------------
     if (chunked) {
       const idx = Number(chunkIndexRaw)
