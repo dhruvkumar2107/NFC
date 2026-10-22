@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { resolveStoredFile } from '@/lib/stored-files'
 import { contentDisposition } from '@/lib/file-store'
-import { streamedFileResponse } from '@/lib/stream-file'
+import { streamedFileResponse, parseByteRange, rangedFileResponse } from '@/lib/stream-file'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,13 +24,18 @@ export async function GET(request: NextRequest, { params }: { params: { file: st
     const name = urlName || file.name || 'file'
     const download = request.nextUrl.searchParams.get('download') === '1'
     const mime = file.mime || 'application/octet-stream'
-
-    return streamedFileResponse(file.buffer, {
+    const headers = {
       'Content-Type': mime,
       'Content-Disposition': contentDisposition(name, download ? 'attachment' : 'inline'),
       'Cache-Control': 'public, max-age=31536000, immutable',
       'X-Content-Type-Options': 'nosniff',
-    })
+      'Accept-Ranges': 'bytes',
+    }
+
+    const range = parseByteRange(request.headers.get('range'), file.buffer.length)
+    if (range) return rangedFileResponse(file.buffer, headers, range)
+
+    return streamedFileResponse(file.buffer, headers)
   } catch (err: any) {
     console.error('[files] read failed', { id, message: err?.message })
     return Response.json({ success: false, error: 'File not found' }, { status: 404 })

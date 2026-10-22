@@ -17,6 +17,11 @@ const MIME_BY_EXT: Record<string, string> = {
   '.webp': 'image/webp',
   '.gif': 'image/gif',
   '.avif': 'image/avif',
+  '.bmp': 'image/bmp',
+  '.heic': 'image/heic',
+  '.heif': 'image/heif',
+  '.tif': 'image/tiff',
+  '.tiff': 'image/tiff',
   '.svg': 'image/svg+xml',
   '.pdf': 'application/pdf',
   '.vcf': 'text/vcard',
@@ -45,6 +50,10 @@ export function mimeToExt(mime: string): string {
     case 'image/gif': return 'gif'
     case 'image/webp': return 'webp'
     case 'image/avif': return 'avif'
+    case 'image/bmp': return 'bmp'
+    case 'image/heic': return 'heic'
+    case 'image/heif': return 'heif'
+    case 'image/tiff': return 'tiff'
     case 'image/svg+xml': return 'svg'
     case 'application/pdf': return 'pdf'
     case 'video/mp4': return 'mp4'

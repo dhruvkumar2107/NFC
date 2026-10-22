@@ -1,15 +1,26 @@
-export const MAX_USER_PHOTOS = 10
-export const MAX_ADMIN_PHOTOS = 30
-export const MAX_DOCUMENTS = 20
-export const MAX_ORDER_DOCUMENTS = 10
-export const MAX_VIDEOS = 10
-export const MAX_ALBUM_MEDIA = 50
-export const MAX_IMAGE_BYTES = 20 * 1024 * 1024
-export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
-export const MAX_VIDEO_BYTES = 50 * 1024 * 1024
+export const MAX_USER_PHOTOS = 50
+export const MAX_ADMIN_PHOTOS = 100
+export const MAX_DOCUMENTS = 50
+export const MAX_ORDER_DOCUMENTS = 50
+export const MAX_VIDEOS = 50
+export const MAX_ALBUM_MEDIA = 200
+export const MAX_IMAGE_BYTES = 50 * 1024 * 1024
+export const MAX_DOCUMENT_BYTES = 50 * 1024 * 1024
+export const MAX_VIDEO_BYTES = 200 * 1024 * 1024
 
-export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
-export const ACCEPTED_IMAGE_EXT = /\.(jpe?g|png|webp|gif|avif)$/i
+export const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+  'image/bmp',
+  'image/heic',
+  'image/heif',
+  'image/tiff',
+]
+export const ACCEPTED_IMAGE_EXT = /\.(jpe?g|png|webp|gif|avif|bmp|heic|heif|tiff?)$/i
 
 export const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v', 'video/ogg']
 export const ACCEPTED_VIDEO_EXT = /\.(mp4|webm|mov|m4v|ogv)$/i
@@ -83,6 +94,94 @@ export function parseJsonArray<T>(raw: string | null | undefined, fallback: T[] 
   } catch {
     return fallback
   }
+}
+
+/**
+ * Reads a column that may be a JSON string, an array, or a single entry.
+ * Legacy rows stored plain URL strings while newer rows store objects.
+ */
+function asEntryList(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim()
+    if (!trimmed) return []
+    if (trimmed.startsWith('[')) return parseJsonArray<unknown>(trimmed)
+    return [trimmed]
+  }
+  return []
+}
+
+function entryUrl(item: unknown): string {
+  if (typeof item === 'string') return item.trim()
+  if (item && typeof item === 'object' && typeof (item as any).url === 'string') {
+    return (item as any).url.trim()
+  }
+  return ''
+}
+
+/** Accepts both `"https://…"` and `{ url, visibility }` entries. */
+export function parseAdminPhotoEntries(raw: unknown): AdminPhotoEntry[] {
+  const out: AdminPhotoEntry[] = []
+  for (const item of asEntryList(raw)) {
+    const url = entryUrl(item)
+    if (!url) continue
+    const entry = item && typeof item === 'object' ? (item as any) : null
+    out.push({
+      url,
+      visibility: entry?.visibility === 'private' ? 'private' : 'public',
+      createdAt: typeof entry?.createdAt === 'string' ? entry.createdAt : undefined,
+    })
+  }
+  return out
+}
+
+/** Accepts both a plain URL string and a full document metadata object. */
+export function parseDocumentEntries(raw: unknown): ProfileDocumentEntry[] {
+  const out: ProfileDocumentEntry[] = []
+  for (const item of asEntryList(raw)) {
+    const url = entryUrl(item)
+    if (!url) continue
+    const entry = item && typeof item === 'object' ? (item as any) : null
+    const name = entry?.name || url.split('?')[0].split('/').pop() || 'document.pdf'
+    out.push({
+      url,
+      name: /\.pdf$/i.test(name) ? name : `${name}.pdf`,
+      size: Number(entry?.size) > 0 ? Math.round(Number(entry.size)) : estimateDataUriSize(url),
+      mime: 'application/pdf',
+      visibility: entry?.visibility === 'private' ? 'private' : 'public',
+      createdAt: typeof entry?.createdAt === 'string' ? entry.createdAt : undefined,
+    })
+  }
+  return out
+}
+
+/** Accepts both a plain URL string and a full video metadata object. */
+export function parseVideoEntries(raw: unknown): ProfileVideoEntry[] {
+  const out: ProfileVideoEntry[] = []
+  for (const item of asEntryList(raw)) {
+    const url = entryUrl(item)
+    if (!url) continue
+    const entry = item && typeof item === 'object' ? (item as any) : null
+    out.push({
+      url,
+      name: sanitizeVideoName(entry?.name, url),
+      size: Number(entry?.size) > 0 ? Math.round(Number(entry.size)) : estimateDataUriSize(url),
+      mime: typeof entry?.mime === 'string' && entry.mime.startsWith('video/') ? entry.mime : guessVideoMime(url),
+      visibility: entry?.visibility === 'private' ? 'private' : 'public',
+      createdAt: typeof entry?.createdAt === 'string' ? entry.createdAt : undefined,
+    })
+  }
+  return out
+}
+
+/** Accepts both a plain URL string and `{ url }` entries for a photo list. */
+export function parsePhotoUrlList(raw: unknown): string[] {
+  const out: string[] = []
+  for (const item of asEntryList(raw)) {
+    const url = entryUrl(item)
+    if (url) out.push(url)
+  }
+  return out
 }
 
 export function isSafeMediaUrl(url: unknown): url is string {
@@ -186,8 +285,8 @@ export function validateVideoList(input: unknown, max: number = MAX_VIDEOS): Val
   if (input.length > max) return fail(`Maximum ${max} videos allowed (received ${input.length})`)
   const cleaned: ProfileVideoEntry[] = []
   for (const raw of input) {
-    if (!raw || typeof raw !== 'object') return fail('Videos contain an invalid entry')
-    const entry = raw as any
+    const entry: any = typeof raw === 'string' ? { url: raw } : raw
+    if (!entry || typeof entry !== 'object') return fail('Videos contain an invalid entry')
     const url = typeof entry.url === 'string' ? entry.url.trim() : ''
     if (!url || !isSafeMediaUrl(url)) return fail('Videos contain an unsupported file location')
     if (!isVideoValue(url)) return fail('Only MP4, WebM and MOV videos are allowed')
@@ -210,7 +309,7 @@ export function validatePhotoList(input: unknown, max: number, label: string): V
   for (const item of input) {
     if (typeof item !== 'string' || !item.trim()) return fail(`${label} contains an invalid entry`)
     if (!isSafeMediaUrl(item)) return fail(`${label} contains an unsupported file location`)
-    if (!isImageValue(item)) return fail('Only JPG, JPEG, PNG and WebP images are allowed')
+    if (!isImageValue(item)) return fail('Only supported image formats are allowed (JPG, PNG, WebP, GIF, BMP, HEIC, HEIF, AVIF, TIFF)')
   }
   return pass(input.map((i) => String(i).trim()))
 }
@@ -226,7 +325,7 @@ export function validateAdminPhotoList(input: unknown): ValidationResult {
     if (!entry || typeof entry !== 'object') return fail('Gallery contains an invalid entry')
     const url = typeof entry.url === 'string' ? entry.url.trim() : ''
     if (!url || !isSafeMediaUrl(url)) return fail('Gallery contains an unsupported file location')
-    if (!isImageValue(url)) return fail('Only JPG, JPEG, PNG and WebP images are allowed')
+    if (!isImageValue(url)) return fail('Only supported image formats are allowed (JPG, PNG, WebP, GIF, BMP, HEIC, HEIF, AVIF, TIFF)')
     cleaned.push({
       url,
       visibility: entry.visibility === 'private' ? 'private' : 'public',
@@ -270,8 +369,8 @@ export function validateDocumentList(input: unknown): ValidationResult {
   }
   const cleaned: ProfileDocumentEntry[] = []
   for (const raw of input) {
-    if (!raw || typeof raw !== 'object') return fail('Documents contain an invalid entry')
-    const doc = raw as ProfileDocumentEntry
+    const doc: any = typeof raw === 'string' ? { url: raw } : raw
+    if (!doc || typeof doc !== 'object') return fail('Documents contain an invalid entry')
     const url = typeof doc.url === 'string' ? doc.url.trim() : ''
     if (!url || !isSafeMediaUrl(url)) return fail('Documents contain an unsupported file location')
     if (!isPdfValue(url)) return fail('Only PDF documents can be published on a profile')

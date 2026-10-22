@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth-guard'
 import { Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel, BorderStyle, ShadingType } from 'docx'
 import { resolveFileBuffer } from '@/lib/file-store'
 import { streamedFileResponse } from '@/lib/stream-file'
+import { parsePhotoUrlList } from '@/lib/profile-media'
 
 function mimeToDocxType(mime: string): 'png' | 'jpg' | 'gif' {
   if (mime === 'image/png') return 'png'
@@ -19,11 +20,6 @@ async function fetchImageBuffer(url: string): Promise<{ buffer: Buffer; type: 'p
   } catch {
     return null
   }
-}
-
-function parseJsonArray(val: string | null | undefined): string[] {
-  if (!val) return []
-  try { return JSON.parse(val) } catch { return [] }
 }
 
 function parseJsonObject(val: string | null | undefined): Record<string, string> {
@@ -85,7 +81,7 @@ export async function POST(request: NextRequest) {
       const c = order.customer
       if (!c) continue
 
-      const photos = parseJsonArray(c.photos)
+      const photos = parsePhotoUrlList(c.photos)
       const socialLinks = parseJsonObject(c.socialLinks)
       const addressParts = [c.address, c.city, c.state, c.pincode].filter(Boolean)
       const fullAddress = addressParts.join(', ')

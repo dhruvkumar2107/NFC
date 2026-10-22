@@ -2,12 +2,13 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
 import ExcelJS from 'exceljs'
+import { parsePhotoUrlList } from '@/lib/profile-media'
 
 const BASE_URL = 'https://www.mysmartcard.net'
 
 function toAbsoluteUrl(value: string): string {
   if (!value) return ''
-  if (value.startsWith('/uploads/')) return `${BASE_URL}${value}`
+  if (value.startsWith('/')) return `${BASE_URL}${value}`
   return value
 }
 
@@ -76,8 +77,7 @@ export async function POST(request: NextRequest) {
       const nfcCardNumber = order.card?.nfcCardNumber || ''
       const nfcUrl = nfcCardNumber ? `${BASE_URL}/card/${nfcCardNumber}` : ''
 
-      let photos: string[] = []
-      try { photos = JSON.parse(c.photos || '[]') } catch { photos = [] }
+      const photos = parsePhotoUrlList(c.photos)
 
       const row = sheet.addRow({
         name: c.name || '',

@@ -151,7 +151,7 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
         )
       }
       case 'gallery': {
-        if ((builder?.albums.length || 0) === 0 && photos.length === 0 && videos.length === 0) return null
+        if ((builder?.albums.length || 0) === 0 && photos.length === 0 && documents.length === 0 && videos.length === 0) return null
         return (
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{sectionTitle('gallery')}</p>

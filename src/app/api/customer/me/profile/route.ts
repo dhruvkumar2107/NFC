@@ -22,15 +22,17 @@ export async function PATCH(request: NextRequest) {
     const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
     const cleanedEmail = clean(email)
 
+    let cleanedPhotos: string[] | undefined
     if (photos !== undefined) {
       const photosCheck = validatePhotoList(photos, MAX_USER_PHOTOS, 'Photos')
       if (!photosCheck.ok) return errorResponse(photosCheck.error, 400)
+      cleanedPhotos = photosCheck.value
     }
     if (logoUrl !== undefined && clean(logoUrl) && !isImageValue(clean(logoUrl))) {
-      return errorResponse('Profile picture must be a JPG, JPEG, PNG or WebP image', 400)
+      return errorResponse('Profile picture must be a supported image file', 400)
     }
     if (paymentQrUrl !== undefined && clean(paymentQrUrl) && !isImageValue(clean(paymentQrUrl))) {
-      return errorResponse('Payment QR must be a JPG, JPEG, PNG or WebP image', 400)
+      return errorResponse('Payment QR must be a supported image file', 400)
     }
 
     const existing = await prisma.customer.findFirst({ where: { email: cleanedEmail || '___none___' , NOT: { id: user!.id } } })
@@ -56,7 +58,7 @@ export async function PATCH(request: NextRequest) {
         city: clean(city) || undefined,
         state: clean(state) || undefined,
         pincode: clean(pincode) || undefined,
-        photos: photos ? JSON.stringify(photos) : undefined,
+        photos: cleanedPhotos !== undefined ? JSON.stringify(cleanedPhotos) : undefined,
       },
     })
     return successResponse(updated)

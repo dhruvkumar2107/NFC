@@ -1,10 +1,10 @@
 import { prisma } from './db'
 import {
-  AdminPhotoEntry,
-  ProfileDocumentEntry,
-  ProfileVideoEntry,
-  parseJsonArray,
   isPublicVisibility,
+  parseAdminPhotoEntries,
+  parseDocumentEntries,
+  parsePhotoUrlList,
+  parseVideoEntries,
 } from './profile-media'
 
 export interface PublicPhoto {
@@ -51,14 +51,14 @@ export async function loadProfileByNfc(nfcCardNumber: string) {
   }
 }
 
-/** Everything published on the NFC profile: user gallery (max 10) + public admin gallery (max 30). */
+/** Everything published on the NFC profile: user photos + public admin gallery entries. */
 export function buildPublicGallery(customer: {
   photos: string
   adminPhotos?: string | null
 }): PublicPhoto[] {
-  const userPhotos = parseJsonArray<string>(customer.photos).filter((p) => typeof p === 'string' && p)
-  const adminPhotos = parseJsonArray<AdminPhotoEntry>(customer.adminPhotos)
-    .filter((p) => p && typeof p.url === 'string' && p.url && isPublicVisibility(p.visibility))
+  const userPhotos = parsePhotoUrlList(customer.photos)
+  const adminPhotos = parseAdminPhotoEntries(customer.adminPhotos)
+    .filter((p) => isPublicVisibility(p.visibility))
     .map((p) => p.url)
 
   return [
@@ -71,8 +71,8 @@ export function buildPublicGallery(customer: {
 export function buildPublicDocuments(customer: {
   documents?: string | null
 }): PublicDocument[] {
-  return parseJsonArray<ProfileDocumentEntry>(customer.documents)
-    .filter((d) => d && typeof d.url === 'string' && d.url && isPublicVisibility(d.visibility))
+  return parseDocumentEntries(customer.documents)
+    .filter((d) => isPublicVisibility(d.visibility))
     .map((d) => ({
       url: d.url,
       name: d.name || 'document.pdf',
@@ -84,8 +84,8 @@ export function buildPublicDocuments(customer: {
 
 /** Videos published on the card profile. */
 export function buildPublicVideos(customer: { videos?: string | null }): PublicVideo[] {
-  return parseJsonArray<ProfileVideoEntry>(customer.videos)
-    .filter((v) => v && typeof v.url === 'string' && v.url && isPublicVisibility(v.visibility))
+  return parseVideoEntries(customer.videos)
+    .filter((v) => isPublicVisibility(v.visibility))
     .map((v) => ({
       url: v.url,
       name: v.name || 'video.mp4',

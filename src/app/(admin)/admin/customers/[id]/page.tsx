@@ -7,7 +7,11 @@ import {
   MAX_USER_PHOTOS,
   MAX_ADMIN_PHOTOS,
   MAX_DOCUMENTS,
+  MAX_DOCUMENT_BYTES,
   formatFileSize,
+  parseAdminPhotoEntries,
+  parseDocumentEntries,
+  parsePhotoUrlList,
 } from '@/lib/profile-media'
 import DragDropSortable from '@/components/DragDropSortable'
 
@@ -91,19 +95,15 @@ export default function CustomerDetailPage() {
       .catch(() => setLoading(false))
   }, [params.id])
 
-  function parsePhotos(str: string): string[] {
-    try { return JSON.parse(str || '[]') } catch { return [] }
-  }
-
   function parseSocial(str: string): Record<string, string> {
     try { return JSON.parse(str || '{}') } catch { return {} }
   }
 
   function startEdit() {
     setEditSocial(parseSocial(customer.socialLinks))
-    setEditPhotos(parsePhotos(customer.photos))
-    setEditAdminPhotos(parsePhotos(customer.adminPhotos).map((p: any) => typeof p === 'string' ? { url: p, visibility: 'public' } : p))
-    setEditDocs(parsePhotos(customer.documents))
+    setEditPhotos(parsePhotoUrlList(customer.photos))
+    setEditAdminPhotos(parseAdminPhotoEntries(customer.adminPhotos))
+    setEditDocs(parseDocumentEntries(customer.documents))
     setForm(customer)
     setEditing(true)
     setMsg('')
@@ -213,9 +213,9 @@ export default function CustomerDetailPage() {
   if (!customer) return <div className="text-center py-12 text-gray-500">Customer not found.</div>
 
   const socialLinks = parseSocial(customer.socialLinks)
-  const photos = parsePhotos(customer.photos)
-  const adminPhotos: any[] = parsePhotos(customer.adminPhotos).map((p: any) => (typeof p === 'string' ? { url: p, visibility: 'public' } : p))
-  const documents: any[] = parsePhotos(customer.documents)
+  const photos = parsePhotoUrlList(customer.photos)
+  const adminPhotos = parseAdminPhotoEntries(customer.adminPhotos)
+  const documents = parseDocumentEntries(customer.documents)
 
   const socialFields = [
     { id: 'instagram', label: 'Instagram' },
@@ -413,7 +413,7 @@ export default function CustomerDetailPage() {
                 <h2 className="font-semibold">Documents (PDF)</h2>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${editDocs.length >= MAX_DOCUMENTS ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>{editDocs.length} / {MAX_DOCUMENTS}</span>
               </div>
-              <p className="text-xs text-gray-400 -mt-1">Catalogs, price lists, brochures and certificates (PDF, max 10MB each). Public documents appear on the profile with a download button.</p>
+              <p className="text-xs text-gray-400 -mt-1">Catalogs, price lists, brochures and certificates (PDF, max {formatFileSize(MAX_DOCUMENT_BYTES)} each). Public documents appear on the profile with a download button.</p>
               {uploadMsg && uploadMsg.startsWith('Document') && <p className={`text-xs ${uploadMsg.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
               {editDocs.length > 0 && (
                 <div className="space-y-2">

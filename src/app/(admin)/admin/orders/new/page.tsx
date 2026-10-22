@@ -4,40 +4,16 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 
-import { compressImage } from '@/lib/compress-image'
 import { apiFetch } from '@/lib/api-client'
-import { uploadFile as uploadWithProgress } from '@/lib/upload-client'
-import { MAX_ADMIN_PHOTOS, MAX_ORDER_DOCUMENTS, MAX_VIDEOS } from '@/lib/profile-media'
-
-function authHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-function uploadErrorMessage(status: number, fallback?: string): string {
-  switch (status) {
-    case 401: return 'Your session has expired. Please log out and log in again, then retry the upload.'
-    case 403: return fallback || 'You do not have permission to upload this file.'
-    case 413: return fallback || 'File is too large. PDF documents must be 10MB or smaller.'
-    case 415: return fallback || 'Unsupported file type. Please upload a valid PDF document.'
-    case 422: return fallback || 'The file failed validation. Please check it and try again.'
-    case 500: return fallback || 'The server could not process the upload. Please try again.'
-    default: return fallback || `Upload failed (${status}).`
-  }
-}
-
-async function uploadImage(file: File): Promise<string> {
-  const compressed = await compressImage(file)
-  const formData = new FormData()
-  formData.append('file', compressed)
-  formData.append('kind', 'image')
-  const res = await fetch('/api/upload', { method: 'POST', headers: authHeaders(), body: formData })
-  const text = await res.text()
-  let data: any
-  try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
-  if (!data.success) throw new Error(uploadErrorMessage(res.status, data.error))
-  return data.url
-}
+import { uploadFile } from '@/lib/upload-client'
+import {
+  formatFileSize,
+  MAX_ADMIN_PHOTOS,
+  MAX_DOCUMENT_BYTES,
+  MAX_ORDER_DOCUMENTS,
+  MAX_VIDEO_BYTES,
+  MAX_VIDEOS,
+} from '@/lib/profile-media'
 
 function AdminNewOrderContent() {
   const router = useRouter()
@@ -176,7 +152,7 @@ function AdminNewOrderContent() {
                 setUploading('logo')
                 setUploadMsg('')
                 try {
-                  const url = await uploadImage(file)
+                  const url = await uploadFile(file, { kind: 'image' })
                   update('logoUrl', url)
                   setUploadMsg('Logo uploaded successfully!')
                   setTimeout(() => setUploadMsg(''), 3000)
@@ -207,7 +183,7 @@ function AdminNewOrderContent() {
                 setUploading('qr')
                 setUploadMsg('')
                 try {
-                  const url = await uploadImage(file)
+                  const url = await uploadFile(file, { kind: 'image' })
                   update('paymentQrUrl', url)
                   setUploadMsg('Payment QR uploaded successfully!')
                   setTimeout(() => setUploadMsg(''), 3000)
@@ -252,7 +228,7 @@ function AdminNewOrderContent() {
                     setUploading(`adminPhoto-${i}`)
                     setUploadMsg('')
                     try {
-                      const url = await uploadImage(file)
+                      const url = await uploadFile(file, { kind: 'image' })
                       setForm(f => ({ ...f, adminPhotos: f.adminPhotos.map((p, idx) => idx === i ? url : p) }))
                       setUploadMsg(`Gallery Photo ${i + 1} uploaded successfully!`)
                       setTimeout(() => setUploadMsg(''), 3000)
@@ -283,7 +259,7 @@ function AdminNewOrderContent() {
                     setUploading('adminPhoto-add')
                     setUploadMsg('')
                     try {
-                      const url = await uploadImage(file)
+                      const url = await uploadFile(file, { kind: 'image' })
                       setForm(f => ({ ...f, adminPhotos: [...f.adminPhotos, url] }))
                       setUploadMsg('Gallery Photo uploaded successfully!')
                       setTimeout(() => setUploadMsg(''), 3000)
@@ -312,7 +288,7 @@ function AdminNewOrderContent() {
               {form.videos.length} / {MAX_VIDEOS}
             </span>
           </div>
-          <p className="text-xs text-gray-400 -mt-1">Upload up to {MAX_VIDEOS} videos (MP4, WebM or MOV, max 50MB each). Videos play on the customer&apos;s public NFC card page.</p>
+          <p className="text-xs text-gray-400 -mt-1">Upload up to {MAX_VIDEOS} videos (MP4, WebM or MOV, max {formatFileSize(MAX_VIDEO_BYTES)} each). Videos play on the customer&apos;s public NFC card page.</p>
           {uploadMsg && uploadMsg.startsWith('Video') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           {form.videos.length > 0 && (
             <div className="space-y-2">
@@ -332,7 +308,7 @@ function AdminNewOrderContent() {
                         setVideoProgress(0)
                         setUploadMsg('')
                         try {
-                          const url = await uploadWithProgress(file, { kind: 'video', onProgress: setVideoProgress })
+                          const url = await uploadFile(file, { kind: 'video', onProgress: setVideoProgress })
                           setForm(f => ({ ...f, videos: f.videos.map((v, idx) => idx === i ? { url, name: file.name, size: file.size, mime: file.type || 'video/mp4' } : v) }))
                           setUploadMsg(`Video ${i + 1} uploaded successfully!`)
                           setTimeout(() => setUploadMsg(''), 3000)
@@ -361,7 +337,7 @@ function AdminNewOrderContent() {
                   setVideoProgress(0)
                   setUploadMsg('')
                   try {
-                    const url = await uploadWithProgress(file, { kind: 'video', onProgress: setVideoProgress })
+                    const url = await uploadFile(file, { kind: 'video', onProgress: setVideoProgress })
                     setForm(f => ({ ...f, videos: [...f.videos, { url, name: file.name, size: file.size, mime: file.type || 'video/mp4' }] }))
                     setUploadMsg('Video uploaded successfully!')
                     setTimeout(() => setUploadMsg(''), 3000)
@@ -390,7 +366,7 @@ function AdminNewOrderContent() {
               {form.documents.length} / {MAX_ORDER_DOCUMENTS}
             </span>
           </div>
-          <p className="text-xs text-gray-400 -mt-1">Upload catalogues, price lists, brochures, certificates (PDF, max 10MB each).</p>
+          <p className="text-xs text-gray-400 -mt-1">Upload catalogues, price lists, brochures, certificates (PDF, max {formatFileSize(MAX_DOCUMENT_BYTES)} each).</p>
           {uploadMsg && uploadMsg.startsWith('Document') && <p className={`text-xs ${uploadMsg.includes('fail') || uploadMsg.includes('too large') ? 'text-red-600' : 'text-green-600'}`}>{uploadMsg}</p>}
           {form.documents.length > 0 && (
             <div className="space-y-2">
@@ -410,7 +386,7 @@ function AdminNewOrderContent() {
                         setDocProgress(0)
                         setUploadMsg('')
                         try {
-                          const url = await uploadWithProgress(file, { kind: 'document', onProgress: setDocProgress })
+                          const url = await uploadFile(file, { kind: 'document', onProgress: setDocProgress })
                           setForm(f => ({ ...f, documents: f.documents.map((d, idx) => idx === i ? { ...d, url, name: file.name, size: file.size } : d) }))
                           setUploadMsg(`Document ${i + 1} uploaded successfully!`)
                           setTimeout(() => setUploadMsg(''), 3000)
@@ -439,7 +415,7 @@ function AdminNewOrderContent() {
                   setDocProgress(0)
                   setUploadMsg('')
                   try {
-                    const url = await uploadWithProgress(file, { kind: 'document', onProgress: setDocProgress })
+                    const url = await uploadFile(file, { kind: 'document', onProgress: setDocProgress })
                     setForm(f => ({ ...f, documents: [...f.documents, { url, name: file.name, size: file.size }] }))
                     setUploadMsg('Document uploaded successfully!')
                     setTimeout(() => setUploadMsg(''), 3000)

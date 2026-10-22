@@ -2,7 +2,20 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { generateCardId, generateOrderId, hashPassword } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
+import { isImageValue, MAX_USER_PHOTOS, validatePhotoList } from '@/lib/profile-media'
 import razorpay from '@/lib/razorpay'
+
+function coerceList(value: unknown): unknown {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : value
+    } catch {
+      return value
+    }
+  }
+  return value
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +33,22 @@ export async function POST(request: NextRequest) {
     }
 
     const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
+
+    let validatedPhotos: string[] | undefined
+    if (photos !== undefined) {
+      const check = validatePhotoList(coerceList(photos), MAX_USER_PHOTOS, 'Photos')
+      if (!check.ok) return errorResponse(check.error, 400)
+      validatedPhotos = check.value
+    }
+
+    const cleanedLogo = clean(logoUrl)
+    const cleanedQr = clean(paymentQrUrl)
+    if (cleanedLogo && !isImageValue(cleanedLogo)) {
+      return errorResponse('Profile picture must be a supported image file', 400)
+    }
+    if (cleanedQr && !isImageValue(cleanedQr)) {
+      return errorResponse('Payment QR must be a supported image file', 400)
+    }
 
     const design = await prisma.cardDesign.findUnique({ where: { id: designId } })
     if (!design) return errorResponse('Invalid card design')
@@ -55,8 +84,12 @@ export async function POST(request: NextRequest) {
           mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
           socialLinks: JSON.stringify(socialLinks || {}),
           address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
-          logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
-          photos: JSON.stringify(photos || []),
+          description: clean(description),
+          ...(cleanedLogo ? { logoUrl: cleanedLogo } : {}),
+          ...(cleanedQr ? { paymentQrUrl: cleanedQr } : {}),
+          ...(Array.isArray(validatedPhotos) && validatedPhotos.length > 0
+            ? { photos: JSON.stringify(validatedPhotos) }
+            : {}),
         },
       })
     } else {
@@ -67,8 +100,8 @@ export async function POST(request: NextRequest) {
           mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
           socialLinks: JSON.stringify(socialLinks || {}),
           address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
-          logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
-          photos: JSON.stringify(photos || []),
+          logoUrl: cleanedLogo, paymentQrUrl: cleanedQr, description: clean(description),
+          photos: JSON.stringify(validatedPhotos || []),
           soldByEmployeeId: null,
           passwordHash: tempPassword,
         },

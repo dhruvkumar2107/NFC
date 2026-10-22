@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { parsePhotoUrlList } from '@/lib/profile-media'
 
 export default function CustomerDashboard() {
   const [customer, setCustomer] = useState<any>(null)
@@ -28,8 +29,7 @@ export default function CustomerDashboard() {
   const readableCardId = customer.card?.cardId || ''
   let socialLinks: any = {}
   try { socialLinks = JSON.parse(customer.socialLinks || '{}') } catch { socialLinks = {} }
-  let photos: string[] = []
-  try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
+  const photos = parsePhotoUrlList(customer.photos)
 
   return (
     <div>

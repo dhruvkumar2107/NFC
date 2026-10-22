@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { formatFileSize } from '@/lib/profile-media'
 
 export interface ProfilePhotoItem {
@@ -62,18 +62,36 @@ function PhotoThumbnail({ photo, index, name, onClick, onDownload, downloading }
 }) {
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+    setAttempt(0)
+  }, [photo.url])
+
+  // Cached images can finish before React attaches onLoad.
+  useEffect(() => {
+    const img = imgRef.current
+    if (img?.complete && img.naturalWidth > 0) setImageLoaded(true)
+  }, [attempt, photo.url])
 
   const handleImageError = useCallback(() => {
-    setImageError(true)
     setImageLoaded(false)
-  }, [])
+    if (attempt < 2) {
+      window.setTimeout(() => setAttempt((current) => current + 1), 400 * (attempt + 1))
+    } else {
+      setImageError(true)
+    }
+  }, [attempt])
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true)
     setImageError(false)
   }, [])
 
-  // Use the shared getPhotoFilename function from outer scope
+  const src = attempt === 0 ? photo.url : `${photo.url}${photo.url.includes('?') ? '&' : '?'}retry=${attempt}`
 
   return (
     <div className="relative group rounded-xl overflow-hidden aspect-square bg-gray-100">
@@ -82,7 +100,6 @@ function PhotoThumbnail({ photo, index, name, onClick, onDownload, downloading }
         onClick={onClick}
         className="w-full h-full focus:outline-none focus:ring-2 focus:ring-primary-400"
         aria-label={`View ${name} photo ${index + 1}`}
-        disabled={!imageLoaded && !imageError}
       >
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 animate-pulse">
@@ -96,23 +113,24 @@ function PhotoThumbnail({ photo, index, name, onClick, onDownload, downloading }
             <svg className="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span className="text-xs font-medium">Failed to load</span>
+            <span className="text-xs font-medium">Tap to retry</span>
           </div>
         )}
         <img
-          src={photo.url}
+          ref={imgRef}
+          src={src}
           alt={`${name} photo ${index + 1}`}
           loading="lazy"
+          decoding="async"
           className={`w-full h-full object-cover object-center transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          style={{ display: imageLoaded ? 'block' : 'none' }}
         />
       </button>
       <button
         type="button"
         onClick={onDownload}
-        disabled={downloading || !imageLoaded}
+        disabled={downloading}
         title="Download this photo"
         className="absolute bottom-1.5 right-1.5 bg-black/60 hover:bg-black/85 text-white text-[10px] px-2 py-1 rounded-md flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
@@ -134,36 +152,53 @@ function PhotoModal({ photo, index, name, onClose, onDownload }: {
 }) {
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+    setAttempt(0)
+  }, [photo.url])
+
+  useEffect(() => {
+    const img = imgRef.current
+    if (img?.complete && img.naturalWidth > 0) setImageLoaded(true)
+  }, [attempt, photo.url])
 
   const handleImageError = useCallback(() => {
-    setImageError(true)
     setImageLoaded(false)
-  }, [])
+    if (attempt < 2) {
+      window.setTimeout(() => setAttempt((current) => current + 1), 400 * (attempt + 1))
+    } else {
+      setImageError(true)
+    }
+  }, [attempt])
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true)
     setImageError(false)
   }, [])
 
-  // Use the shared getPhotoFilename function from outer scope
+  const src = attempt === 0 ? photo.url : `${photo.url}${photo.url.includes('?') ? '&' : '?'}retry=${attempt}`
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-3 sm:p-4 overscroll-contain"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       <div className="max-w-full max-h-full flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
         {!imageLoaded && !imageError && (
-          <div className="w-full max-w-2xl aspect-video flex items-center justify-center bg-gray-900 animate-pulse rounded-xl">
+          <div className="w-[min(92vw,42rem)] aspect-video flex items-center justify-center bg-gray-900 animate-pulse rounded-xl">
             <svg className="w-12 h-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
         {imageError && (
-          <div className="w-full max-w-2xl aspect-video flex flex-col items-center justify-center bg-gray-900 rounded-xl p-8 text-center text-red-400">
+          <div className="w-[min(92vw,42rem)] aspect-video flex flex-col items-center justify-center bg-gray-900 rounded-xl p-8 text-center text-red-400">
             <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -172,19 +207,19 @@ function PhotoModal({ photo, index, name, onClose, onDownload }: {
           </div>
         )}
         <img
-          src={photo.url}
+          ref={imgRef}
+          src={src}
           alt={`${name} photo ${index + 1}`}
-          className={`max-w-full max-h-[70vh] object-contain rounded-xl transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          decoding="async"
+          className={`max-w-[92vw] sm:max-w-[85vw] max-h-[75dvh] sm:max-h-[80dvh] w-auto h-auto object-contain rounded-xl transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          style={{ display: imageLoaded ? 'block' : 'none' }}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             type="button"
             onClick={onDownload}
             className="bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
-            disabled={!imageLoaded}
           >
             Download
           </button>
@@ -329,9 +364,9 @@ export default function ProfileMedia({ cardId, name, photos, documents }: Profil
 function getPhotoFilename(photo: ProfilePhotoItem, index: number, name: string): string {
   try {
     const url = new URL(photo.url, window.location.origin)
-    const pathname = url.pathname
-    const ext = pathname.split('.').pop() || 'jpg'
-    return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.${ext}`
+    const rawExt = url.pathname.split('.').pop() || ''
+    const ext = /^[a-z0-9]{1,5}$/i.test(rawExt) ? rawExt : 'jpg'
+    return `${name.replace(/[^a-zA-Z0-9]/g, '_') || 'profile'}-photo-${index + 1}.${ext}`
   } catch {
     return `${name.replace(/[^a-zA-Z0-9]/g, '_')}-photo-${index + 1}.jpg`
   }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import type { PublicAlbum } from '@/lib/card-data'
 
 interface Props {
@@ -24,28 +24,48 @@ function PhotoThumbnail({ photo, onClick, onDownload, downloading, onTrack, albu
 }) {
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+    setAttempt(0)
+  }, [photo.url, photo.thumbnailUrl])
+
+  useEffect(() => {
+    const img = imgRef.current
+    if (img?.complete && img.naturalWidth > 0) setImageLoaded(true)
+  }, [attempt, photo.url, photo.thumbnailUrl])
 
   const handleImageError = useCallback(() => {
-    setImageError(true)
     setImageLoaded(false)
-  }, [])
+    if (attempt < 2) {
+      window.setTimeout(() => setAttempt((current) => current + 1), 400 * (attempt + 1))
+    } else {
+      setImageError(true)
+    }
+  }, [attempt])
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true)
     setImageError(false)
   }, [])
 
+  const baseSrc = photo.thumbnailUrl || photo.url
+  const src = attempt === 0 ? baseSrc : `${baseSrc}${baseSrc.includes('?') ? '&' : '?'}retry=${attempt}`
+
   return (
     <div className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100">
       <button type="button" onClick={onClick} className="h-full w-full focus:outline-none focus:ring-2 focus:ring-primary-400">
-        {!imageLoaded && !imageError && (
+        {photo.kind !== 'video' && !imageLoaded && !imageError && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 animate-pulse">
             <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
-        {imageError && (
+        {photo.kind !== 'video' && imageError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50 text-red-600 p-4">
             <svg className="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -59,11 +79,10 @@ function PhotoThumbnail({ photo, onClick, onDownload, downloading, onTrack, albu
             <span className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold text-white">VIDEO</span>
           </>
         ) : (
-          <img src={photo.thumbnailUrl || photo.url} alt={photo.name || 'Photo'} loading="lazy"
+          <img ref={imgRef} src={src} alt={photo.name || 'Photo'} loading="lazy" decoding="async"
             className={`h-full w-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={handleImageLoad}
             onError={handleImageError}
-            style={{ display: imageLoaded ? 'block' : 'none' }}
           />
         )}
       </button>
@@ -86,28 +105,47 @@ function PhotoModal({ current, onClose, onDownload, onPrev, onNext }: {
 }) {
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+    setAttempt(0)
+  }, [current.url])
+
+  useEffect(() => {
+    const img = imgRef.current
+    if (img?.complete && img.naturalWidth > 0) setImageLoaded(true)
+  }, [attempt, current.url])
 
   const handleImageError = useCallback(() => {
-    setImageError(true)
     setImageLoaded(false)
-  }, [])
+    if (attempt < 2) {
+      window.setTimeout(() => setAttempt((value) => value + 1), 400 * (attempt + 1))
+    } else {
+      setImageError(true)
+    }
+  }, [attempt])
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true)
     setImageError(false)
   }, [])
 
+  const src = attempt === 0 ? current.url : `${current.url}${current.url.includes('?') ? '&' : '?'}retry=${attempt}`
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3 sm:p-4 overscroll-contain" onClick={onClose} role="dialog" aria-modal="true">
       <div className="flex max-h-full max-w-full flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-        {!imageLoaded && !imageError && (
+        {current.kind !== 'video' && !imageLoaded && !imageError && (
           <div className="w-full max-w-2xl aspect-video flex items-center justify-center bg-gray-900 animate-pulse rounded-xl">
             <svg className="w-12 h-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
-        {imageError && (
+        {current.kind !== 'video' && imageError && (
           <div className="w-full max-w-2xl aspect-video flex flex-col items-center justify-center bg-gray-900 rounded-xl p-8 text-center text-red-400">
             <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -119,10 +157,10 @@ function PhotoModal({ current, onClose, onDownload, onPrev, onNext }: {
         {current.kind === 'video' ? (
           <video src={current.url} controls autoPlay playsInline className="max-h-[70vh] max-w-full rounded-xl bg-black" />
         ) : (
-          <img src={current.url} alt={current.name || 'Photo'} className={`max-h-[70vh] max-w-full rounded-xl object-contain transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          <img ref={imgRef} src={src} alt={current.name || 'Photo'} decoding="async"
+            className={`max-h-[75dvh] sm:max-h-[80dvh] max-w-[92vw] sm:max-w-[85vw] w-auto h-auto rounded-xl object-contain transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={handleImageLoad}
             onError={handleImageError}
-            style={{ display: imageLoaded ? 'block' : 'none' }}
           />
         )}
         <div className="flex items-center gap-2">

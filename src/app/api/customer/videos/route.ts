@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { successResponse, errorResponse, notFound } from '@/lib/api-response'
 import { requireAuth } from '@/lib/auth-guard'
 import { logActivity } from '@/lib/admin-log'
-import { MAX_VIDEOS, parseJsonArray, validateVideoList, type ProfileVideoEntry } from '@/lib/profile-media'
+import { MAX_VIDEOS, parseVideoEntries, validateVideoList } from '@/lib/profile-media'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,10 +14,8 @@ async function loadCustomer(customerId: string) {
   })
 }
 
-function readVideos(raw: string | null | undefined): ProfileVideoEntry[] {
-  return parseJsonArray<ProfileVideoEntry>(raw || '[]').filter(
-    (v) => v && typeof v.url === 'string' && v.url,
-  )
+function readVideos(raw: string | null | undefined) {
+  return parseVideoEntries(raw)
 }
 
 export async function GET(request: NextRequest) {

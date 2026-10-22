@@ -12,7 +12,8 @@ import {
   validateDocumentList,
   validateVideoList,
   isImageValue,
-  isPdfValue,
+  type AdminPhotoEntry,
+  type ProfileDocumentEntry,
   type ProfileVideoEntry,
 } from '@/lib/profile-media'
 
@@ -46,10 +47,13 @@ export async function POST(request: NextRequest) {
       return errorResponse('Name and design are required')
     }
 
+    let validatedAdminPhotos: AdminPhotoEntry[] | undefined
     if (adminPhotos !== undefined) {
       const check = validateAdminPhotoList(coerceList(adminPhotos))
       if (!check.ok) return errorResponse(check.error, 400)
+      validatedAdminPhotos = check.value
     }
+    let validatedDocuments: ProfileDocumentEntry[] | undefined
     if (documents !== undefined) {
       const docs = coerceList(documents)
       if (Array.isArray(docs) && docs.length > MAX_ORDER_DOCUMENTS) {
@@ -57,6 +61,7 @@ export async function POST(request: NextRequest) {
       }
       const check = validateDocumentList(docs)
       if (!check.ok) return errorResponse(check.error, 400)
+      validatedDocuments = check.value
     }
     let validatedVideos: ProfileVideoEntry[] | undefined
     if (videos !== undefined) {
@@ -68,6 +73,14 @@ export async function POST(request: NextRequest) {
     const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
     const cleanedMobile = clean(mobile)
     const cleanedEmail = clean(email)
+    const cleanedLogo = clean(logoUrl)
+    const cleanedQr = clean(paymentQrUrl)
+    if (cleanedLogo && !isImageValue(cleanedLogo)) {
+      return errorResponse('Profile picture must be a supported image file', 400)
+    }
+    if (cleanedQr && !isImageValue(cleanedQr)) {
+      return errorResponse('Payment QR must be a supported image file', 400)
+    }
 
     const design = await prisma.cardDesign.findUnique({ where: { id: designId } })
     if (!design) return errorResponse('Invalid card design')
@@ -95,22 +108,20 @@ export async function POST(request: NextRequest) {
       assignText('city', clean(city))
       assignText('state', clean(state))
       assignText('pincode', clean(pincode))
-      assignText('logoUrl', clean(logoUrl))
-      assignText('paymentQrUrl', clean(paymentQrUrl))
+      assignText('logoUrl', cleanedLogo)
+      assignText('paymentQrUrl', cleanedQr)
       assignText('description', clean(description))
 
       if (socialLinks && typeof socialLinks === 'object' && Object.keys(socialLinks).length > 0) {
         updateData.socialLinks = JSON.stringify(socialLinks)
       }
 
-      const providedPhotos = adminPhotos !== undefined ? coerceList(adminPhotos) : undefined
-      if (Array.isArray(providedPhotos) && providedPhotos.length > 0) {
-        updateData.adminPhotos = JSON.stringify(providedPhotos)
+      if (Array.isArray(validatedAdminPhotos) && validatedAdminPhotos.length > 0) {
+        updateData.adminPhotos = JSON.stringify(validatedAdminPhotos)
       }
 
-      const providedDocs = documents !== undefined ? coerceList(documents) : undefined
-      if (Array.isArray(providedDocs) && providedDocs.length > 0) {
-        updateData.documents = JSON.stringify(providedDocs)
+      if (Array.isArray(validatedDocuments) && validatedDocuments.length > 0) {
+        updateData.documents = JSON.stringify(validatedDocuments)
       }
 
       const providedVideos = validatedVideos
@@ -130,9 +141,9 @@ export async function POST(request: NextRequest) {
           mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
           socialLinks: JSON.stringify(socialLinks || {}),
           address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
-          logoUrl: clean(logoUrl), paymentQrUrl: clean(paymentQrUrl), description: clean(description),
-          adminPhotos: JSON.stringify(adminPhotos || []),
-          documents: JSON.stringify(documents || []),
+          logoUrl: cleanedLogo, paymentQrUrl: cleanedQr, description: clean(description),
+          adminPhotos: JSON.stringify(validatedAdminPhotos || []),
+          documents: JSON.stringify(validatedDocuments || []),
           videos: JSON.stringify(validatedVideos || []),
           soldByEmployeeId: employeeId || null,
           passwordHash: tempPassword,

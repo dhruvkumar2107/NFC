@@ -2,7 +2,13 @@ import { prisma } from './db'
 import { buildPublicBuilderData, type PublicBuilderData } from './card-data'
 import { buildPublicGallery, buildPublicDocuments, type PublicPhoto, type PublicDocument } from './public-profile'
 import { guessMimeFromUrl, mimeToExt, estimateUrlSize, sanitizeBaseName } from './file-store'
-import { parseJsonArray, isPublicVisibility, type AdminPhotoEntry, type ProfileDocumentEntry } from './profile-media'
+import {
+  isPublicVisibility,
+  parseAdminPhotoEntries,
+  parseDocumentEntries,
+  parsePhotoUrlList,
+  type ProfileDocumentEntry,
+} from './profile-media'
 
 export interface PublicCard {
   id: string
@@ -275,18 +281,17 @@ export function publicSocialLinks(customer: PublicCustomer): Record<string, stri
 }
 
 export function publicUserPhotos(customer: PublicCustomer): string[] {
-  return parseJsonArray<string>(customer.photos).filter((p) => typeof p === 'string' && p)
+  return parsePhotoUrlList(customer.photos)
 }
 
 export function publicAdminPhotos(customer: PublicCustomer): string[] {
-  return parseJsonArray<AdminPhotoEntry>(customer.adminPhotos)
-    .filter((p) => p && typeof p.url === 'string' && p.url && isPublicVisibility(p.visibility))
+  return parseAdminPhotoEntries(customer.adminPhotos)
+    .filter((p) => isPublicVisibility(p.visibility))
     .map((p) => p.url)
 }
 
 export function publicDocuments(customer: PublicCustomer): ProfileDocumentEntry[] {
-  return parseJsonArray<ProfileDocumentEntry>(customer.documents)
-    .filter((d) => d && typeof d.url === 'string' && d.url && isPublicVisibility(d.visibility))
+  return parseDocumentEntries(customer.documents).filter((d) => isPublicVisibility(d.visibility))
 }
 
 export { PublicBuilderData }

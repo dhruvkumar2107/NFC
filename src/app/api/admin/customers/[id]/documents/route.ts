@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth-guard'
 import { errorResponse } from '@/lib/api-response'
 import { resolveFileBuffer, sanitizeDownloadName } from '@/lib/file-store'
 import { streamedFileResponse } from '@/lib/stream-file'
-import { ProfileDocumentEntry, parseJsonArray } from '@/lib/profile-media'
+import { parseDocumentEntries } from '@/lib/profile-media'
 
 export async function GET(
   request: NextRequest,
@@ -17,9 +17,7 @@ export async function GET(
     const customer = await prisma.customer.findUnique({ where: { id: params.id } })
     if (!customer) return errorResponse('Customer not found', 404)
 
-    const documents = parseJsonArray<ProfileDocumentEntry>(customer.documents).filter(
-      (d) => d && typeof d.url === 'string' && d.url
-    )
+    const documents = parseDocumentEntries(customer.documents)
 
     const url = new URL(request.url)
     const indexParam = url.searchParams.get('index')

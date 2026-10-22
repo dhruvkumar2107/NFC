@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/auth-guard'
 import { errorResponse } from '@/lib/api-response'
 import { resolveFileBuffer, mimeToExt, sanitizeDownloadName } from '@/lib/file-store'
 import { streamedFileResponse } from '@/lib/stream-file'
-import { AdminPhotoEntry, parseJsonArray } from '@/lib/profile-media'
+import { parseAdminPhotoEntries, parsePhotoUrlList } from '@/lib/profile-media'
 
 function uniqueName(taken: Set<string>, base: string, ext: string): string {
   let candidate = `${base}.${ext}`
@@ -31,10 +31,8 @@ export async function GET(
       return Response.json({ success: false, error: 'Customer not found' }, { status: 404 })
     }
 
-    const userPhotos = parseJsonArray<string>(customer.photos).filter((p) => typeof p === 'string' && p)
-    const adminPhotos = parseJsonArray<AdminPhotoEntry>(customer.adminPhotos)
-      .filter((p) => p && typeof p.url === 'string' && p.url)
-      .map((p) => p.url)
+    const userPhotos = parsePhotoUrlList(customer.photos)
+    const adminPhotos = parseAdminPhotoEntries(customer.adminPhotos).map((p) => p.url)
 
     const url = new URL(request.url)
     const indexParam = url.searchParams.get('index')

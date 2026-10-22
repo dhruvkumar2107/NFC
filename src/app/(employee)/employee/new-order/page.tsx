@@ -1,20 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-
-import { compressImage } from '@/lib/compress-image'
-
-async function uploadFile(file: File): Promise<string> {
-  const compressed = await compressImage(file)
-  const formData = new FormData()
-  formData.append('file', compressed)
-  const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const text = await res.text()
-  let data: any
-  try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
-  if (!data.success) throw new Error(data.error || 'Upload failed')
-  return data.url
-}
+import { uploadFile } from '@/lib/upload-client'
 
 export default function EmployeeNewOrderPage() {
   const router = useRouter()

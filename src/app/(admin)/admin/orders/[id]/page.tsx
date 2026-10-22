@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { parsePhotoUrlList } from '@/lib/profile-media'
 
 export default function OrderDetailPage() {
   const params = useParams()
@@ -170,8 +171,7 @@ export default function OrderDetailPage() {
           <h2 className="font-semibold mb-3">Customer Profile Preview</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {(() => {
-              let photos: string[] = []
-              try { photos = JSON.parse(order.customer.photos || '[]') } catch {}
+              const photos = parsePhotoUrlList(order.customer.photos)
               let socialLinks: Record<string, string> = {}
               try { socialLinks = JSON.parse(order.customer.socialLinks || '{}') } catch {}
               return (

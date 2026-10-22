@@ -1,10 +1,11 @@
 "use client"
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { uploadFile, validateImageFile } from '@/lib/upload-client'
-import { MAX_USER_PHOTOS } from '@/lib/profile-media'
+import { formatFileSize, MAX_IMAGE_BYTES, MAX_USER_PHOTOS, parsePhotoUrlList } from '@/lib/profile-media'
 import ImageCropper from '@/components/ImageCropper'
 
 interface PhotoItem {
+  id: string
   url: string
   uploading?: boolean
   progress?: number
@@ -12,6 +13,13 @@ interface PhotoItem {
   retryCount?: number
   isNew?: boolean
   _file?: File
+}
+
+function newPhotoId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `photo-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
 export default function EditProfilePage() {
@@ -22,10 +30,15 @@ export default function EditProfilePage() {
   const [msg, setMsg] = useState('')
   const [cropFile, setCropFile] = useState<File | null>(null)
   const [cropTarget, setCropTarget] = useState<'logo' | 'photo' | 'qr' | null>(null)
-  const [cropPhotoIndex, setCropPhotoIndex] = useState<number | null>(null)
+  const [cropPhotoId, setCropPhotoId] = useState<string | null>(null)
   const [photos, setPhotos] = useState<PhotoItem[]>([])
   const [pendingUploads, setPendingUploads] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const photosRef = useRef<PhotoItem[]>([])
+
+  useEffect(() => {
+    photosRef.current = photos
+  }, [photos])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -35,8 +48,7 @@ export default function EditProfilePage() {
         if (d.success) {
           const c = d.data
           setReadableCardId(c.card?.cardId || '')
-          let photosData: string[] = []
-          try { photosData = JSON.parse(c.photos || '[]') } catch { photosData = [] }
+          const photosData = parsePhotoUrlList(c.photos)
           let socialLinks: any = {}
           try { socialLinks = JSON.parse(c.socialLinks || '{}') } catch { socialLinks = {} }
           setProfile({
@@ -49,7 +61,7 @@ export default function EditProfilePage() {
             city: c.city || '', state: c.state || '', pincode: c.pincode || '',
             socialLinks,
           })
-          setPhotos(photosData.map(url => ({ url, isNew: false })))
+          setPhotos(photosData.map(url => ({ id: newPhotoId(), url, isNew: false })))
         }
         setLoading(false)
       })
@@ -65,11 +77,13 @@ export default function EditProfilePage() {
   }
 
   function addPhoto(url: string) {
-    setPhotos(prev => [...prev, { url, isNew: true }])
+    setPhotos(prev => [...prev, { id: newPhotoId(), url, isNew: true }])
   }
 
   function removePhoto(index: number) {
     setPhotos(prev => {
+      const target = prev[index]
+      if (target?.url.startsWith('blob:')) URL.revokeObjectURL(target.url)
       const next = [...prev]
       next.splice(index, 1)
       return next
@@ -88,44 +102,34 @@ export default function EditProfilePage() {
     })
   }
 
-  function replacePhoto(index: number, url: string) {
-    setPhotos(prev => {
-      const next = [...prev]
-      next[index] = { ...next[index], url, isNew: true, error: undefined }
-      return next
-    })
+  function replacePhoto(id: string, url: string) {
+    setPhotos(prev => prev.map(photo => {
+      if (photo.id !== id) return photo
+      if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url)
+      return { ...photo, url, isNew: true, error: undefined }
+    }))
   }
 
-  function setPhotoError(index: number, error: string) {
-    setPhotos(prev => {
-      const next = [...prev]
-      next[index] = { ...next[index], error, uploading: false, progress: undefined }
-      return next
-    })
+  function updatePhoto(id: string, patch: Partial<PhotoItem>) {
+    setPhotos(prev => prev.map(photo => (photo.id === id ? { ...photo, ...patch } : photo)))
   }
 
-  function setPhotoProgress(index: number, progress: number) {
-    setPhotos(prev => {
-      const next = [...prev]
-      next[index] = { ...next[index], progress, uploading: true }
-      return next
-    })
+  function setPhotoError(id: string, error: string) {
+    updatePhoto(id, { error, uploading: false, progress: undefined })
   }
 
-  function clearPhotoError(index: number) {
-    setPhotos(prev => {
-      const next = [...prev]
-      next[index] = { ...next[index], error: undefined }
-      return next
-    })
+  function setPhotoProgress(id: string, progress: number) {
+    updatePhoto(id, { progress, uploading: true })
   }
 
-  function incrementRetryCount(index: number) {
-    setPhotos(prev => {
-      const next = [...prev]
-      next[index] = { ...next[index], retryCount: (next[index].retryCount || 0) + 1 }
-      return next
-    })
+  function clearPhotoError(id: string) {
+    updatePhoto(id, { error: undefined })
+  }
+
+  function incrementRetryCount(id: string) {
+    setPhotos(prev => prev.map(photo => (
+      photo.id === id ? { ...photo, retryCount: (photo.retryCount || 0) + 1 } : photo
+    )))
   }
 
   async function handlePhotoFiles(fileList: FileList | null) {
@@ -158,32 +162,31 @@ export default function EditProfilePage() {
     if (validFiles.length === 0) return
 
     // Add placeholder entries for immediate preview
-    const placeholders = validFiles.map(file => ({
+    const placeholders: PhotoItem[] = validFiles.map(file => ({
+      id: newPhotoId(),
       url: URL.createObjectURL(file),
       uploading: true,
       progress: 0,
       isNew: true,
       _file: file // Store file reference for upload
-    })) as (PhotoItem & { _file?: File })[]
-    
+    }))
+
     setPhotos(prev => [...prev, ...placeholders])
     setPendingUploads(prev => prev + validFiles.length)
 
-    // Upload sequentially
+    // Upload sequentially. Every update is keyed by a stable photo id so
+    // concurrent removals or reordering cannot redirect progress to another tile.
     for (let i = 0; i < validFiles.length; i++) {
       const file = validFiles[i]
-      const photoIndex = currentCount + i
+      const placeholder = placeholders[i]
       try {
-        const url = await uploadFile(file, { 
-          onProgress: (p) => setPhotoProgress(photoIndex, p) 
+        const url = await uploadFile(file, {
+          onProgress: (p) => setPhotoProgress(placeholder.id, p)
         })
-        setPhotos(prev => {
-          const next = [...prev]
-          next[photoIndex] = { ...next[photoIndex], url, uploading: false, progress: undefined, _file: undefined }
-          return next
-        })
+        if (placeholder.url.startsWith('blob:')) URL.revokeObjectURL(placeholder.url)
+        updatePhoto(placeholder.id, { url, uploading: false, progress: undefined, _file: undefined })
       } catch (err: any) {
-        setPhotoError(photoIndex, err.message || 'Upload failed. Tap to retry.')
+        setPhotoError(placeholder.id, err.message || 'Upload failed. Tap to retry.')
       } finally {
         setPendingUploads(prev => prev - 1)
       }
@@ -194,26 +197,23 @@ export default function EditProfilePage() {
     }
   }
 
-  async function retryUpload(index: number) {
-    const photo = photos[index]
-    const file = (photo as any)._file
+  async function retryUpload(id: string) {
+    const photo = photosRef.current.find(item => item.id === id)
+    const file = photo?._file
     if (!file) return
-    
-    clearPhotoError(index)
-    incrementRetryCount(index)
+
+    clearPhotoError(id)
+    incrementRetryCount(id)
     setPendingUploads(prev => prev + 1)
-    
+
     try {
-      const url = await uploadFile(file, { 
-        onProgress: (p) => setPhotoProgress(index, p) 
+      const url = await uploadFile(file, {
+        onProgress: (p) => setPhotoProgress(id, p)
       })
-      setPhotos(prev => {
-        const next = [...prev]
-        next[index] = { ...next[index], url, uploading: false, progress: undefined, _file: undefined, error: undefined }
-        return next
-      })
+      if (photo?.url.startsWith('blob:')) URL.revokeObjectURL(photo.url)
+      updatePhoto(id, { url, uploading: false, progress: undefined, _file: undefined, error: undefined })
     } catch (err: any) {
-      setPhotoError(index, err.message || 'Upload failed. Tap to retry.')
+      setPhotoError(id, err.message || 'Upload failed. Tap to retry.')
     } finally {
       setPendingUploads(prev => prev - 1)
     }
@@ -223,21 +223,22 @@ export default function EditProfilePage() {
     if (cropTarget === 'logo') {
       uploadCroppedFile(croppedFile, 'logo', (url) => updateField('logoUrl', url))
     } else if (cropTarget === 'photo') {
-      if (cropPhotoIndex !== null) {
-        uploadCroppedFile(croppedFile, `photo-${cropPhotoIndex}`, (url) => replacePhoto(cropPhotoIndex!, url))
+      if (cropPhotoId !== null) {
+        const id = cropPhotoId
+        uploadCroppedFile(croppedFile, `photo-${id}`, (url) => replacePhoto(id, url))
       } else {
         uploadCroppedFile(croppedFile, 'photo-add', (url) => addPhoto(url))
       }
     }
     setCropFile(null)
     setCropTarget(null)
-    setCropPhotoIndex(null)
+    setCropPhotoId(null)
   }
 
   function handleCropCancel() {
     setCropFile(null)
     setCropTarget(null)
-    setCropPhotoIndex(null)
+    setCropPhotoId(null)
   }
 
   async function uploadCroppedFile(file: File, key: string, onSuccess: (url: string) => void) {
@@ -295,7 +296,7 @@ export default function EditProfilePage() {
   // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
-      photos.forEach(p => {
+      photosRef.current.forEach(p => {
         if (p.url.startsWith('blob:')) {
           URL.revokeObjectURL(p.url)
         }
@@ -436,13 +437,13 @@ export default function EditProfilePage() {
               {photos.length} / {MAX_USER_PHOTOS}
             </span>
           </div>
-          <p className="text-xs text-gray-400 -mt-1">Up to {MAX_USER_PHOTOS} photos (JPG, JPEG, PNG or WebP, max 20MB each). Photos appear on your public NFC profile in this order.</p>
+          <p className="text-xs text-gray-400 -mt-1">Up to {MAX_USER_PHOTOS} photos (JPG, PNG, WebP, GIF, BMP, HEIC, HEIF, AVIF or TIFF, max {formatFileSize(MAX_IMAGE_BYTES)} each). Photos appear on your public NFC profile in this order.</p>
 
           {photos.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {photos.map((photo, idx) => (
                 <PhotoCard
-                  key={`${photo.url}-${idx}`}
+                  key={photo.id}
                   photo={photo}
                   index={idx}
                   totalPhotos={photos.length}
@@ -457,14 +458,14 @@ export default function EditProfilePage() {
                         const file = new File([blob], `photo-${idx}.jpg`, { type: 'image/jpeg' })
                         setCropFile(file)
                         setCropTarget('photo')
-                        setCropPhotoIndex(idx)
+                        setCropPhotoId(photo.id)
                       })
                       .catch(() => {
                         setMsg('Failed to load image for editing. Please re-upload.')
                         setTimeout(() => setMsg(''), 5000)
                       })
                   }}
-                  onRetry={() => retryUpload(idx)}
+                  onRetry={() => retryUpload(photo.id)}
                 />
               ))}
             </div>
@@ -477,7 +478,7 @@ export default function EditProfilePage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/bmp,image/heic,image/heif,image/tiff"
                 multiple
                 className="sr-only"
                 onChange={(e) => {
@@ -530,6 +531,17 @@ function PhotoCard({ photo, index, totalPhotos, onRemove, onMoveUp, onMoveDown, 
 }) {
   const [imageError, setImageError] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+  }, [photo.url])
+
+  useEffect(() => {
+    const img = imgRef.current
+    if (img?.complete && img.naturalWidth > 0) setImageLoaded(true)
+  }, [photo.url])
 
   const handleImageError = useCallback(() => {
     setImageError(true)
@@ -547,7 +559,7 @@ function PhotoCard({ photo, index, totalPhotos, onRemove, onMoveUp, onMoveDown, 
   return (
     <div className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
-        {!imageLoaded && !isUploading && !hasError && (
+        {!imageLoaded && !imageError && !isUploading && !hasError && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 animate-pulse">
             <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -577,13 +589,19 @@ function PhotoCard({ photo, index, totalPhotos, onRemove, onMoveUp, onMoveDown, 
             </button>
           </div>
         )}
+        {imageError && !isUploading && !hasError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 text-gray-400">
+            <span className="text-xs">Preview unavailable</span>
+          </div>
+        )}
         <img
+          ref={imgRef}
           src={photo.url}
           alt={`Photo ${index + 1}`}
-          className={`w-full h-32 object-cover ${imageLoaded || hasError ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
+          decoding="async"
+          className={`w-full h-32 object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          style={{ display: (isUploading || (!imageLoaded && !hasError)) ? 'none' : 'block' }}
         />
         <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{index + 1}</span>
         <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-10">

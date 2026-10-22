@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { uploadFile } from '@/lib/upload-client'
 
 interface OrderForm {
   designId: string
@@ -39,20 +40,6 @@ const initialForm: OrderForm = {
   address: '', taluk: '', city: '', state: '', pincode: '',
   logoUrl: '', paymentQrUrl: '', referralCode: '',
   photo1: '', photo2: '', photo3: '', photo4: '', photo5: '', photo6: '',
-}
-
-import { compressImage } from '@/lib/compress-image'
-
-async function uploadFile(file: File): Promise<string> {
-  const compressed = await compressImage(file)
-  const formData = new FormData()
-  formData.append('file', compressed)
-  const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const text = await res.text()
-  let data: any
-  try { data = JSON.parse(text) } catch { throw new Error('Upload failed: server returned an invalid response.') }
-  if (!data.success) throw new Error(data.error || 'Upload failed')
-  return data.url
 }
 
 function OrderContent() {

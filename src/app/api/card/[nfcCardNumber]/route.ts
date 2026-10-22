@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { buildPublicGallery, buildPublicDocuments, buildPublicVideos, publicFileUrl, publicDownloadUrl } from '@/lib/public-profile'
+import { parsePhotoUrlList } from '@/lib/profile-media'
 
 export async function GET(_request: NextRequest, { params }: { params: { nfcCardNumber: string } }) {
   try {
@@ -16,8 +17,7 @@ export async function GET(_request: NextRequest, { params }: { params: { nfcCard
     if (!customer) return errorResponse('Customer not found', 404)
 
     const socialLinks = JSON.parse(customer.socialLinks || '{}')
-    let photos: string[] = []
-    try { photos = JSON.parse(customer.photos || '[]') } catch { photos = [] }
+    const photos = parsePhotoUrlList(customer.photos)
 
     const gallery = buildPublicGallery(customer)
     const documents = buildPublicDocuments(customer)

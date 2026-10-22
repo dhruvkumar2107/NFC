@@ -1,16 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
-
-async function uploadFile(file: File): Promise<string> {
-  const formData = new FormData()
-  formData.append('file', file)
-  const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const text = await res.text()
-  let data: any
-  try { data = JSON.parse(text) } catch { throw new Error('Upload failed') }
-  if (!data.success) throw new Error(data.error || 'Upload failed')
-  return data.url
-}
+import { uploadFile } from '@/lib/upload-client'
 
 export default function AdminDesignsPage() {
   const [designs, setDesigns] = useState<any[]>([])

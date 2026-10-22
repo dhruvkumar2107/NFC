@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { uploadFile } from '@/lib/upload-client'
 import { FONT_CLASS, SECTION_REGISTRY, normalizeSections, normalizeTheme, type CardSections, type CardTheme, type CustomSection } from '@/lib/builder'
-import { formatFileSize, MAX_VIDEOS, MAX_ALBUM_MEDIA } from '@/lib/profile-media'
+import { formatFileSize, MAX_VIDEOS, MAX_VIDEO_BYTES, MAX_ALBUM_MEDIA } from '@/lib/profile-media'
 import { formatInr } from '@/lib/emi'
 import { parseAttributes } from '@/lib/product-utils'
 
@@ -603,7 +603,7 @@ function VideosPanel() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-gray-700">Videos</p>
-          <p className="text-xs text-gray-400">MP4, WebM or MOV · max 50MB each · up to {max} per card</p>
+          <p className="text-xs text-gray-400">MP4, WebM or MOV · max {formatFileSize(MAX_VIDEO_BYTES)} each · up to {max} per card</p>
         </div>
         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${videos.length >= max ? 'bg-amber-100 text-amber-700' : 'bg-primary-50 text-primary-700'}`}>
           {videos.length} / {max}

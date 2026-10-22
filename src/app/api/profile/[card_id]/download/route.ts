@@ -2,9 +2,10 @@ import { NextRequest } from 'next/server'
 import JSZip from 'jszip'
 import { prisma } from '@/lib/db'
 import { errorResponse } from '@/lib/api-response'
-import { resolveFileBuffer, mimeToExt, sanitizeDownloadName } from '@/lib/file-store'
+import { resolveFileBuffer, mimeToExt, sanitizeDownloadName, contentDisposition } from '@/lib/file-store'
 import { streamedFileResponse } from '@/lib/stream-file'
 import { buildPublicGallery, buildPublicDocuments } from '@/lib/public-profile'
+import { parsePhotoUrlList } from '@/lib/profile-media'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
       if (customer.logoUrl) {
         added += await addFileToFolder(zip, 'logos', customer.logoUrl, 'logo', taken)
       }
-      const userPhotos = JSON.parse(customer.photos || '[]')
+      const userPhotos = parsePhotoUrlList(customer.photos)
       if (userPhotos.length > 0) {
         added += await addFileToFolder(zip, 'profile-picture', userPhotos[0], 'profile-picture', taken)
       }
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest, { params }: { params: { card_id:
 
     return streamedFileResponse(content, {
       'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Disposition': contentDisposition(filename, 'attachment'),
       'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'no-store',
     })

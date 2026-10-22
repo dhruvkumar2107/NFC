@@ -68,10 +68,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       safeData.documents = JSON.stringify(check.value)
     }
     if (safeData.logoUrl !== undefined && typeof safeData.logoUrl === 'string' && safeData.logoUrl.trim() && !isImageValue(safeData.logoUrl)) {
-      return errorResponse('Profile picture must be a JPG, JPEG, PNG or WebP image', 400)
+      return errorResponse('Profile picture must be a supported image file', 400)
     }
     if (safeData.paymentQrUrl !== undefined && typeof safeData.paymentQrUrl === 'string' && safeData.paymentQrUrl.trim() && !isImageValue(safeData.paymentQrUrl)) {
-      return errorResponse('Payment QR must be a JPG, JPEG, PNG or WebP image', 400)
+      return errorResponse('Payment QR must be a supported image file', 400)
     }
 
     const clean = (v?: string) => (typeof v === 'string' && v.trim() ? v.trim() : null)
