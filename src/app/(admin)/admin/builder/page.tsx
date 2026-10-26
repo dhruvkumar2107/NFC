@@ -1,11 +1,13 @@
 "use client"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import CreateCardForm from '@/components/builder/CreateCardForm'
 
 export default function AdminBuilderPage() {
   const [cards, setCards] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -40,8 +42,16 @@ export default function AdminBuilderPage() {
           <h1 className="text-2xl font-bold">Custom Card Builder</h1>
           <p className="text-sm text-gray-500">Configure industry templates, sections, media, products and catalogues for each card.</p>
         </div>
-        <input className="input-field w-full md:w-72" placeholder="Search by card ID, name or company..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
+          <input className="input-field w-full md:w-72" placeholder="Search by card ID, name or company..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <button onClick={() => setShowCreate((s) => !s)}
+            className="whitespace-nowrap rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">
+            {showCreate ? 'Cancel' : '+ Create New Card'}
+          </button>
+        </div>
       </div>
+
+      {showCreate && <CreateCardForm />}
 
       <div className="space-y-2">
         {filtered.length === 0 && <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-sm text-gray-400">No cards found.</div>}

@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth-guard'
 import { generateCardId, generateNfcCardNumber, hashPassword } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { logActivity } from '@/lib/admin-log'
+import { applyTemplateConfig } from '@/lib/builder'
 
 interface CustomerRecord {
   id: string
@@ -30,11 +31,15 @@ export async function POST(request: NextRequest) {
     if (auth.error) return auth.error
 
     const body = await request.json().catch(() => ({}))
-    const { customerId, name, mobile, email, designation, company, designId, employeeId } = body
+    const { customerId, name, mobile, email, designation, company, designId, employeeId, templateId } = body
 
     if (!designId) return errorResponse('Please choose a card design.')
     const design = await prisma.cardDesign.findUnique({ where: { id: designId } })
     if (!design) return errorResponse('Invalid card design.')
+
+    // Optional starting template; without one the card starts blank.
+    const template = templateId ? await prisma.cardTemplate.findUnique({ where: { id: String(templateId) } }) : null
+    if (templateId && !template) return errorResponse('Invalid template.')
 
     const clean = (v?: unknown): string | null =>
       typeof v === 'string' && v.trim() ? v.trim() : null
@@ -99,7 +104,16 @@ export async function POST(request: NextRequest) {
           status: 'Active',
         },
       })
-      await tx.cardBuilderConfig.create({ data: { cardId: created.id, status: 'draft' } })
+      const starter = template ? applyTemplateConfig(template.config) : null
+      await tx.cardBuilderConfig.create({
+        data: {
+          cardId: created.id,
+          status: 'draft',
+          ...(template && starter
+            ? { templateId: template.id, industry: template.industry, theme: JSON.stringify(starter.theme), sections: JSON.stringify(starter.sections) }
+            : {}),
+        },
+      })
       await tx.customer.update({ where: { id: owner.id }, data: { cardId: created.id } })
       return created
     })
@@ -109,7 +123,7 @@ export async function POST(request: NextRequest) {
       actorRole: auth.user!.role,
       action: 'card.create',
       target: card.id,
-      metadata: { cardId: card.cardId, customer: owner.name },
+      metadata: { cardId: card.cardId, customer: owner.name, template: template?.name ?? null },
     })
 
     return successResponse({ id: card.id, cardId: card.cardId, nfcCardNumber: card.nfcCardNumber })
