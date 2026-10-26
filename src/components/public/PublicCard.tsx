@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import ShareButton from './ShareButton'
 import ProfileMedia, { ProfilePhotoItem, ProfileDocumentItem } from './ProfileMedia'
 import ProfileVideos, { ProfileVideoItem } from './ProfileVideos'
-import EmiCalculator from './EmiCalculator'
+import EmiOptionsCard from './EmiOptionsCard'
 import EnquiryForm, { EnquiryPrefill } from './EnquiryForm'
 import AlbumGallery from './AlbumGallery'
 import ProductCatalog from './ProductCatalog'
@@ -13,7 +13,7 @@ import DownloadCentre from './DownloadCentre'
 import { useCardAnalytics } from '@/lib/use-analytics'
 import { getSocialDisplay, getSocialUrl } from '@/lib/social'
 import { FONT_CLASS } from '@/lib/builder'
-import type { PublicBuilderData, PublicProduct } from '@/lib/card-data'
+import type { PublicBuilderData, PublicEmiConfig, PublicProduct } from '@/lib/card-data'
 
 export interface SerializableProfile {
   name: string
@@ -45,6 +45,8 @@ interface Props {
   documents: ProfileDocumentItem[]
   videos?: ProfileVideoItem[]
   builder: PublicBuilderData | null
+  /** Set only when the admin has enabled EMI for this card. */
+  emi?: PublicEmiConfig | null
 }
 
 function SocialIcon({ platform }: { platform: string }) {
@@ -68,7 +70,7 @@ function TextBlock({ value }: { value: string }) {
   )
 }
 
-export default function PublicCard({ card, profile, profileUrl, photos, documents, videos = [], builder }: Props) {
+export default function PublicCard({ card, profile, profileUrl, photos, documents, videos = [], builder, emi = null }: Props) {
   const track = useCardAnalytics(card.cardId)
   const [prefill, setPrefill] = useState<EnquiryPrefill | undefined>()
   const [copied, setCopied] = useState(false)
@@ -119,8 +121,20 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
     return titles[key] || ''
   }
 
+  // The legacy default section title reads as a tool name; the profile card is labelled "EMI Options".
+  const emiTitle = titles.emi && titles.emi !== 'EMI Calculator' ? titles.emi : 'EMI Options'
+
+  function renderEmi() {
+    if (!emi) return null
+    return (
+      <EmiOptionsCard cardId={card.cardId} config={emi} title={emiTitle} whatsapp={profile.whatsapp}
+        onEnquire={enabled.enquiry ? (data) => scrollToEnquiry(data, 'emi', 'Finance quote request') : undefined} />
+    )
+  }
+
   function renderSection(key: string) {
-    if (!enabled[key]) return null
+    // EMI visibility is controlled solely by the admin EMI toggle; the section list only sets its position.
+    if (key !== 'emi' && !enabled[key]) return null
     switch (key) {
       case 'about': {
         const body = fields.about
@@ -189,16 +203,8 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
           </div>
         )
       }
-      case 'emi': {
-        if (!builder?.emi) return null
-        return (
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{sectionTitle('emi')}</p>
-            <EmiCalculator cardId={card.cardId} config={builder.emi} whatsapp={profile.whatsapp}
-              onEnquire={(data) => scrollToEnquiry(data, 'emi', 'Finance quote request')} />
-          </div>
-        )
-      }
+      case 'emi':
+        return renderEmi()
       case 'hours':
       case 'team':
       case 'schedule':
@@ -352,6 +358,7 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
                 <p className="mt-2 text-[11px] text-gray-400">Scan to pay</p>
               </div>
             )}
+            {!builder && emi && <div className="mt-4">{renderEmi()}</div>}
             {(!builder || !builder.sections.enabled.gallery) && profile.description && (
               <div className="glass-subtle mt-4 rounded-2xl p-4">
                 <p className="text-sm leading-relaxed text-gray-600 whitespace-pre-line">{profile.description}</p>
@@ -364,9 +371,10 @@ export default function PublicCard({ card, profile, profileUrl, photos, document
 
             {/* Configured sections */}
             <div className="space-y-4 pt-2">
-              {sectionOrder.map((key) => (
-                <div key={key}>{renderSection(key)}</div>
-              ))}
+              {sectionOrder.map((key) => {
+                const content = renderSection(key)
+                return content ? <div key={key}>{content}</div> : null
+              })}
             </div>
 
             {/* Videos live on the customer record, so they show even when the gallery section is off. */}

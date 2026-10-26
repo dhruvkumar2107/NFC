@@ -45,6 +45,8 @@ export interface PublicEmiConfig {
   maxTenure: number
   defaultTenure: number
   processingFee: number
+  /** False when EMI is switched on but no terms were saved; the UI must not show the default figures as real terms. */
+  configured: boolean
 }
 
 export interface PublicBuilderData {
@@ -70,6 +72,25 @@ export const DEFAULT_EMI_CONFIG: PublicEmiConfig = {
   maxTenure: 60,
   defaultTenure: 12,
   processingFee: 0,
+  configured: false,
+}
+
+/**
+ * Public EMI data for a card. The admin-controlled `emiEnabled` flag is the only
+ * switch: when it is off (or missing) nothing EMI-related is exposed.
+ */
+export function buildPublicEmi(config: any): PublicEmiConfig | null {
+  if (config?.emiEnabled !== true) return null
+  const e = config.emiConfig
+  if (!e) return { ...DEFAULT_EMI_CONFIG }
+  return {
+    defaultRate: e.defaultRate ?? DEFAULT_EMI_CONFIG.defaultRate,
+    minTenure: e.minTenure ?? DEFAULT_EMI_CONFIG.minTenure,
+    maxTenure: e.maxTenure ?? DEFAULT_EMI_CONFIG.maxTenure,
+    defaultTenure: e.defaultTenure ?? DEFAULT_EMI_CONFIG.defaultTenure,
+    processingFee: e.processingFee ?? 0,
+    configured: true,
+  }
 }
 
 export async function getOrCreateBuilderConfig(cardId: string) {
@@ -148,19 +169,7 @@ export function buildPublicBuilderData(config: any): PublicBuilderData {
       url: `/api/public/${encodeURIComponent(config.card.cardId)}/catalogue/${c.id}`,
     }))
 
-  let emi: PublicEmiConfig | null = null
-  if (config?.emiEnabled) {
-    const e = config.emiConfig
-    emi = e
-      ? {
-          defaultRate: e.defaultRate ?? DEFAULT_EMI_CONFIG.defaultRate,
-          minTenure: e.minTenure ?? DEFAULT_EMI_CONFIG.minTenure,
-          maxTenure: e.maxTenure ?? DEFAULT_EMI_CONFIG.maxTenure,
-          defaultTenure: e.defaultTenure ?? DEFAULT_EMI_CONFIG.defaultTenure,
-          processingFee: e.processingFee ?? 0,
-        }
-      : { ...DEFAULT_EMI_CONFIG }
-  }
+  const emi = buildPublicEmi(config)
 
   return {
     configured: true,
@@ -203,9 +212,16 @@ export async function loadBuilderConfigByCardUuid(cardUuid: string) {
   })
 }
 
-/** Public builder data, only exposed once the config has been published. */
-export async function loadPublicBuilderData(cardUuid: string): Promise<PublicBuilderData | null> {
+/**
+ * Data for the public profile pages (NFC, /p/ and QR all resolve here).
+ * Builder customisation is only exposed once published; EMI follows the admin
+ * toggle on its own so it does not depend on the publish state.
+ */
+export async function loadPublicProfileConfig(cardUuid: string): Promise<{ builder: PublicBuilderData | null; emi: PublicEmiConfig | null }> {
   const config = await loadBuilderConfigByCardUuid(cardUuid)
-  if (!config || config.status !== 'published') return null
-  return buildPublicBuilderData(config)
+  if (!config) return { builder: null, emi: null }
+  return {
+    builder: config.status === 'published' ? buildPublicBuilderData(config) : null,
+    emi: buildPublicEmi(config),
+  }
 }

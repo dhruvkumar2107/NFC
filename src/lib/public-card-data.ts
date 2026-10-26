@@ -1,5 +1,5 @@
 import { prisma } from './db'
-import { buildPublicBuilderData, type PublicBuilderData } from './card-data'
+import { buildPublicBuilderData, buildPublicEmi, type PublicBuilderData, type PublicEmiConfig } from './card-data'
 import { buildPublicGallery, buildPublicDocuments, type PublicPhoto, type PublicDocument } from './public-profile'
 import { guessMimeFromUrl, mimeToExt, estimateUrlSize, sanitizeBaseName } from './file-store'
 import {
@@ -74,6 +74,8 @@ export interface PublicCardData {
   card: PublicCard
   customer: PublicCustomer
   builder: PublicBuilderData | null
+  /** EMI follows the admin toggle, independent of the builder publish state. */
+  emi: PublicEmiConfig | null
   configUpdatedAt: Date | null
   /** Flat gallery photos (user + admin public photos). */
   gallery: PublicPhoto[]
@@ -205,6 +207,7 @@ export async function loadPublicCardData(identifier: string, requestUrl?: string
     card,
     customer: toCustomer(customer),
     builder,
+    emi: buildPublicEmi(config),
     configUpdatedAt: config?.updatedAt ?? null,
     gallery,
     albums,

@@ -477,15 +477,17 @@ function buildSections(
     })
   }
 
-  if (builder?.emi) {
+  if (data.emi) {
+    const emi = data.emi
     sections.push({
       title: titles.emi || 'EMI Calculator',
       render: () => {
         sectionHeading(ctx, titles.emi || 'EMI / Finance Calculator')
-        const emi = builder.emi!
         drawText(ctx, `Indicative finance options are available on the digital card.`, { size: 10, color: ctx.palette.muted, gap: 6 })
-        drawText(ctx, `Rate from ${emi.defaultRate}% p.a. · Tenure ${emi.minTenure}–${emi.maxTenure} months${emi.processingFee ? ` · Processing fee ${formatInr(emi.processingFee)}` : ''}`, { size: 10, gap: 8 })
-        linkRow(ctx, 'Calculate EMI', `${data.profileUrl}#msc-enquiry`)
+        if (emi.configured) {
+          drawText(ctx, `Rate from ${emi.defaultRate}% p.a. · Tenure ${emi.minTenure}–${emi.maxTenure} months${emi.processingFee ? ` · Processing fee ${formatInr(emi.processingFee)}` : ''}`, { size: 10, gap: 8 })
+        }
+        linkRow(ctx, 'Calculate EMI', `${data.profileUrl}#msc-emi`)
       },
     })
   }

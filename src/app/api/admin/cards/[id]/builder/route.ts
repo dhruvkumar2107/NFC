@@ -73,7 +73,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (typeof body.logoUrl === 'string' || body.logoUrl === null) data.logoUrl = body.logoUrl
     if (typeof body.coverImage === 'string' || body.coverImage === null) data.coverImage = body.coverImage
     if (typeof body.profileImage === 'string' || body.profileImage === null) data.profileImage = body.profileImage
-    if (typeof body.emiEnabled === 'boolean') data.emiEnabled = body.emiEnabled
+    // EMI visibility and terms are admin-controlled; customers editing their own card cannot change them.
+    const canManageEmi = access!.isAdmin
+    if (canManageEmi && typeof body.emiEnabled === 'boolean') data.emiEnabled = body.emiEnabled
 
     if (body.theme && typeof body.theme === 'object') data.theme = JSON.stringify(normalizeTheme(body.theme))
     if (body.sections && typeof body.sections === 'object') data.sections = JSON.stringify(normalizeSections(body.sections))
@@ -107,7 +109,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // EMI configuration
-    if (body.emiConfig && typeof body.emiConfig === 'object') {
+    if (canManageEmi && body.emiConfig && typeof body.emiConfig === 'object') {
       const e = body.emiConfig
       const num = (v: any, d: number) => (Number.isFinite(Number(v)) ? Number(v) : d)
       const minTenure = Math.max(1, Math.round(num(e.minTenure, 3)))
@@ -133,7 +135,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       actorRole: access!.user.role,
       action: 'card.builder.update',
       target: params.id,
-      metadata: { status: config.status, industry: config.industry },
+      metadata: { status: config.status, industry: config.industry, emiEnabled: config.emiEnabled },
     })
 
     return successResponse({ config })

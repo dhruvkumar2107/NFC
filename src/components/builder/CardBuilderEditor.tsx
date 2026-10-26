@@ -57,6 +57,7 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
   const [coverImage, setCoverImage] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [profileImage, setProfileImage] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -66,6 +67,7 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
       const c = data.config
       setConfig(c)
       setCustomer(data.customer)
+      setIsAdmin(!!data.permissions?.isAdmin)
       setTheme(normalizeTheme(c.theme))
       setSections(normalizeSections(c.sections))
       setIndustry(c.industry || 'general')
@@ -110,8 +112,8 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
         industry,
         slug,
         status: publishStatus || status,
-        emiEnabled,
-        emiConfig,
+        // EMI is admin-controlled; the API ignores these fields for customers.
+        ...(isAdmin ? { emiEnabled, emiConfig } : {}),
         templateId: templateId || null,
         coverImage: coverImage || null,
         logoUrl: logoUrl || null,
@@ -124,6 +126,7 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
         body: JSON.stringify(body),
       })
       setConfig(data.config)
+      setEmiEnabled(!!data.config.emiEnabled)
       if (publishStatus) setStatus(publishStatus)
       else setStatus(data.config.status)
       setMsg('Saved successfully.')
@@ -179,18 +182,18 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
       <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
         <div className="rounded-2xl border border-gray-100 bg-white">
           <div className="flex flex-wrap gap-1 border-b border-gray-100 p-2">
-            {TABS.map((t) => (
+            {TABS.filter((t) => t.key !== 'emi' || isAdmin).map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium ${tab === t.key ? 'bg-primary-50 text-primary-700' : 'text-gray-500 hover:bg-gray-50'}`}>{t.label}</button>
             ))}
           </div>
           <div className="p-4">
             {tab === 'theme' && <ThemePanel theme={theme} setTheme={setTheme} customer={customer} config={config} onSave={save} coverImage={coverImage} setCoverImage={setCoverImage} logoUrl={logoUrl} setLogoUrl={setLogoUrl} profileImage={profileImage} setProfileImage={setProfileImage} />}
-            {tab === 'sections' && <SectionsPanel sections={sections} setSections={setSections} />}
+            {tab === 'sections' && <SectionsPanel sections={sections} setSections={setSections} emiEnabled={!!config?.emiEnabled} />}
             {tab === 'media' && <MediaPanel cardId={cardId} config={config} reload={load} />}
             {tab === 'products' && <ProductsPanel cardId={cardId} config={config} reload={load} />}
             {tab === 'catalogues' && <CataloguesPanel config={config} reload={load} />}
-            {tab === 'emi' && <EmiPanel enabled={emiEnabled} setEnabled={setEmiEnabled} value={emiConfig} setValue={setEmiConfig} />}
+            {tab === 'emi' && isAdmin && <EmiPanel enabled={emiEnabled} setEnabled={setEmiEnabled} value={emiConfig} setValue={setEmiConfig} saved={!!config?.emiEnabled} saving={saving} onSave={() => save()} />}
             {tab === 'settings' && <SettingsPanel templates={templates} templateId={templateId} applyTemplate={applyTemplate} industry={industry} setIndustry={setIndustry} slug={slug} setSlug={setSlug} />}
           </div>
         </div>
@@ -305,7 +308,7 @@ function ThemePanel({ theme, setTheme, customer, config, onSave, coverImage, set
 }
 
 /* ------------------------------ Sections ----------------------------- */
-function SectionsPanel({ sections, setSections }: { sections: CardSections; setSections: (s: CardSections) => void }) {
+function SectionsPanel({ sections, setSections, emiEnabled }: { sections: CardSections; setSections: (s: CardSections) => void; emiEnabled: boolean }) {
   const toggle = (key: string) => setSections({ ...sections, enabled: { ...sections.enabled, [key]: !sections.enabled[key] } })
   const setTitle = (key: string, v: string) => setSections({ ...sections, titles: { ...sections.titles, [key]: v } })
   const setField = (key: string, v: string) => setSections({ ...sections, fields: { ...sections.fields, [key]: v } })
@@ -356,11 +359,19 @@ function SectionsPanel({ sections, setSections }: { sections: CardSections; setS
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => move(idx, -1)} className="text-gray-400 hover:text-gray-600">↑</button>
                 <button type="button" onClick={() => move(idx, 1)} className="text-gray-400 hover:text-gray-600">↓</button>
-                <label className="flex flex-1 items-center gap-2 text-sm font-medium text-gray-700">
-                  <input type="checkbox" checked={!!sections.enabled[key]} onChange={() => toggle(key)} className="accent-primary-600" />
-                  {meta ? meta.label : custom?.title || 'Custom section'}
-                  {!meta && <span className="rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600">CUSTOM</span>}
-                </label>
+                {key === 'emi' ? (
+                  <div className="flex flex-1 flex-wrap items-center gap-2 text-sm font-medium text-gray-700">
+                    {meta?.label}
+                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${emiEnabled ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{emiEnabled ? 'SHOWN' : 'HIDDEN'}</span>
+                    <span className="text-[11px] font-normal text-gray-400">Set by admin in the EMI tab</span>
+                  </div>
+                ) : (
+                  <label className="flex flex-1 items-center gap-2 text-sm font-medium text-gray-700">
+                    <input type="checkbox" checked={!!sections.enabled[key]} onChange={() => toggle(key)} className="accent-primary-600" />
+                    {meta ? meta.label : custom?.title || 'Custom section'}
+                    {!meta && <span className="rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600">CUSTOM</span>}
+                  </label>
+                )}
                 {meta ? (
                   <input value={sections.titles[key] || ''} onChange={(e) => setTitle(key, e.target.value)} className="w-40 rounded-lg border border-gray-200 px-2 py-1 text-xs" placeholder="Section title" />
                 ) : (
@@ -850,7 +861,7 @@ function CataloguesPanel({ config, reload }: any) {
 }
 
 /* -------------------------------- EMI -------------------------------- */
-function EmiPanel({ enabled, setEnabled, value, setValue }: any) {
+function EmiPanel({ enabled, setEnabled, value, setValue, saved, saving, onSave }: any) {
   const toNumber = (v: any, fallback: number) => {
     const n = Number(v)
     return Number.isFinite(n) ? n : fallback
@@ -874,10 +885,16 @@ function EmiPanel({ enabled, setEnabled, value, setValue }: any) {
 
   return (
     <div className="space-y-4">
-      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-        <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="accent-primary-600" />
-        Enable EMI / finance calculator on this card
-      </label>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 p-3">
+        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4 accent-primary-600" />
+          Show EMI on Digital Profile
+        </label>
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${saved ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+          Live: {saved ? 'Shown' : 'Hidden'}
+        </span>
+      </div>
+      <p className="text-xs text-gray-500">Controls the EMI card on this customer's public profile (NFC tap, profile link and QR). It applies only to this card, takes effect as soon as it is saved, and does not depend on the Sections list or publish status.</p>
       {enabled && (
         <div className="grid grid-cols-2 gap-3">
           <label className="text-xs font-semibold text-gray-500">Default interest rate (% p.a.)
@@ -898,6 +915,10 @@ function EmiPanel({ enabled, setEnabled, value, setValue }: any) {
         </div>
       )}
       <p className="text-xs text-gray-400">Customers can adjust price, down payment, rate and tenure. Calculations are illustrative only and do not constitute a loan offer.</p>
+      <div className="flex items-center gap-3">
+        <button type="button" onClick={onSave} disabled={saving} className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save EMI setting'}</button>
+        {enabled !== saved && <span className="text-xs font-medium text-amber-600">Unsaved change</span>}
+      </div>
     </div>
   )
 }

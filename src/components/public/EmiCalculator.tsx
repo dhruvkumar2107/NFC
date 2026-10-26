@@ -9,12 +9,15 @@ interface Props {
   config: PublicEmiConfig
   onEnquire?: (data: Record<string, any>) => void
   whatsapp?: string | null
+  /** Drops the outer surface when rendered inside another card. */
+  embedded?: boolean
 }
 
-export default function EmiCalculator({ cardId, config, onEnquire, whatsapp }: Props) {
+export default function EmiCalculator({ cardId, config, onEnquire, whatsapp, embedded = false }: Props) {
   const [price, setPrice] = useState('')
   const [downPayment, setDownPayment] = useState('0')
-  const [rate, setRate] = useState(String(config.defaultRate))
+  // Without saved terms the rate starts blank so no default is presented as the business's rate.
+  const [rate, setRate] = useState(config.configured ? String(config.defaultRate) : '')
   const [tenure, setTenure] = useState(String(config.defaultTenure))
   const [fee, setFee] = useState(String(config.processingFee || 0))
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -27,7 +30,11 @@ export default function EmiCalculator({ cardId, config, onEnquire, whatsapp }: P
     processingFee: Number(fee) || 0,
   }
 
-  const validation = useMemo(() => validateEmiInput(input), [price, downPayment, rate, tenure, fee])
+  const validation = useMemo(() => {
+    const v = validateEmiInput(input)
+    if (rate.trim() === '') return { ok: false, errors: [...v.errors, 'Enter the interest rate quoted by your lender.'] }
+    return v
+  }, [price, downPayment, rate, tenure, fee])
   const validationErrors = validation.errors
   const result = validation.ok ? calculateEmi(input) : null
 
@@ -66,7 +73,7 @@ export default function EmiCalculator({ cardId, config, onEnquire, whatsapp }: P
     : ''
 
   return (
-    <div className="glass-subtle rounded-2xl p-4 space-y-3">
+    <div className={embedded ? 'space-y-3' : 'glass-subtle rounded-2xl p-4 space-y-3'}>
       <div className="grid grid-cols-2 gap-3">
         <label className="text-xs font-semibold text-gray-500">
           Product / vehicle price
@@ -81,7 +88,7 @@ export default function EmiCalculator({ cardId, config, onEnquire, whatsapp }: P
         <label className="text-xs font-semibold text-gray-500">
           Interest rate (% p.a.)
           <input inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value.replace(/[^0-9.]/g, ''))}
-            className="mt-1 w-full rounded-xl border border-gray-200 bg-white/80 px-3 py-2 text-sm text-gray-800" />
+            placeholder={config.configured ? undefined : 'e.g. 12'} className="mt-1 w-full rounded-xl border border-gray-200 bg-white/80 px-3 py-2 text-sm text-gray-800" />
         </label>
         <label className="text-xs font-semibold text-gray-500">
           Tenure (months)

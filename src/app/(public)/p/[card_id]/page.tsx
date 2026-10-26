@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import PublicProfile from '@/components/public/PublicProfile'
 import { loadProfileByCardId, buildPublicMedia } from '@/lib/public-profile'
-import { loadPublicBuilderData } from '@/lib/card-data'
+import { loadPublicProfileConfig } from '@/lib/card-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +11,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
 
   const { card, customer } = profile
   const media = buildPublicMedia(card.cardId, customer)
-  const builder = await loadPublicBuilderData(card.id)
+  const { builder, emi } = await loadPublicProfileConfig(card.id)
 
   return (
     <PublicProfile
@@ -22,6 +22,7 @@ export default async function PublicProfilePage({ params }: { params: { card_id:
       documents={media.documents}
       videos={media.videos}
       builder={builder}
+      emi={emi}
     />
   )
 }

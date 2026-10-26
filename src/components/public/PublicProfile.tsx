@@ -2,7 +2,7 @@ import { headers } from 'next/headers'
 import PublicCard, { SerializableProfile } from './PublicCard'
 import { ProfilePhotoItem, ProfileDocumentItem } from './ProfileMedia'
 import { ProfileVideoItem } from './ProfileVideos'
-import { PublicBuilderData } from '@/lib/card-data'
+import { PublicBuilderData, PublicEmiConfig } from '@/lib/card-data'
 
 interface PublicProfileProps {
   card: { cardId: string; nfcCardNumber?: string | null }
@@ -12,6 +12,7 @@ interface PublicProfileProps {
   documents: ProfileDocumentItem[]
   videos?: ProfileVideoItem[]
   builder?: PublicBuilderData | null
+  emi?: PublicEmiConfig | null
 }
 
 function requestOrigin(): string {
@@ -28,7 +29,7 @@ function requestOrigin(): string {
   return process.env.NEXT_PUBLIC_BASE_URL || ''
 }
 
-export default function PublicProfile({ card, customer, profilePath, photos, documents, videos = [], builder }: PublicProfileProps) {
+export default function PublicProfile({ card, customer, profilePath, photos, documents, videos = [], builder, emi }: PublicProfileProps) {
   let socialLinks: Record<string, string> = {}
   try { socialLinks = JSON.parse(customer.socialLinks || '{}') } catch { socialLinks = {} }
 
@@ -65,6 +66,7 @@ export default function PublicProfile({ card, customer, profilePath, photos, doc
       documents={documents}
       videos={videos}
       builder={builder ?? null}
+      emi={emi ?? null}
     />
   )
 }

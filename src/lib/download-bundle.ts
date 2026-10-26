@@ -338,7 +338,7 @@ export function buildDownloadManifest(data: PublicCardData): DownloadManifest {
       paymentQr: Boolean(data.customer.paymentQrUrl),
       products: (builder?.products.length || 0) > 0,
       gallery: totalPhotos > 0,
-      emi: Boolean(builder?.emi),
+      emi: Boolean(data.emi),
       enquiry: Boolean(sections.enquiry),
       everything: true,
     },
