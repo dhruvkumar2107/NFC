@@ -14,11 +14,14 @@ export async function GET(request: NextRequest) {
 
     const where: any = {}
     if (search) {
+      const q = search.trim()
       where.OR = [
-        { orderId: { contains: search } },
-        { customer: { name: { contains: search } } },
-        { customer: { email: { contains: search } } },
-        { employee: { name: { contains: search } } },
+        { orderId: { contains: q, mode: 'insensitive' } },
+        { customer: { name: { contains: q, mode: 'insensitive' } } },
+        { customer: { email: { contains: q, mode: 'insensitive' } } },
+        { customer: { mobile: { contains: q } } },
+        { card: { cardId: { contains: q, mode: 'insensitive' } } },
+        { employee: { name: { contains: q, mode: 'insensitive' } } },
       ]
     }
 

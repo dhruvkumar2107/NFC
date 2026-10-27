@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { signToken, comparePassword } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
+import { customerIdsByPhone } from '@/lib/orders'
 
 const normalizePhone = (v?: string | null) => (v || '').replace(/\D/g, '')
 const normalizeName = (v?: string | null) => (v || '').trim().replace(/\s+/g, ' ').toLowerCase()
@@ -44,27 +45,8 @@ export async function POST(request: NextRequest) {
 
     if (candidates.length === 0 && phoneDigits.length >= 10) {
       const last10 = phoneDigits.slice(-10)
-      candidates = await prisma.customer.findMany({
-        where: {
-          OR: [
-            { mobile: { contains: last10 } },
-            { whatsapp: { contains: last10 } },
-          ],
-        },
-      })
-
-      if (candidates.length === 0) {
-        const all = await prisma.customer.findMany({
-          where: {
-            OR: [{ mobile: { not: null } }, { whatsapp: { not: null } }],
-          },
-        })
-        candidates = all.filter((c) => {
-          const m = normalizePhone(c.mobile)
-          const w = normalizePhone(c.whatsapp)
-          return m.includes(last10) || w.includes(last10)
-        })
-      }
+      const ids = await customerIdsByPhone(last10, true)
+      candidates = ids.length > 0 ? await prisma.customer.findMany({ where: { id: { in: ids } } }) : []
     }
 
     // 1b. Fall back to matching by name (covers records with a missing/invalid phone).
@@ -88,6 +70,13 @@ export async function POST(request: NextRequest) {
     if (candidates.length === 0) {
       return errorResponse('No account found with this phone number or email')
     }
+
+    // One phone number can own several cards (one customer record per card).
+    // Prefer records that actually have a card, newest first, so a leftover
+    // unpaid checkout never wins over the real account.
+    candidates.sort((a, b) =>
+      Number(!!b.cardId) - Number(!!a.cardId) ||
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     let authenticatedCustomer: any = null
 

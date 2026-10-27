@@ -1,11 +1,12 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { uploadFile } from '@/lib/upload-client'
 
 export default function EmployeeNewOrderPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const submittingRef = useRef(false)
   const [error, setError] = useState('')
   const [employee, setEmployee] = useState<any>(null)
   const [uploading, setUploading] = useState<string | null>(null)
@@ -43,6 +44,8 @@ export default function EmployeeNewOrderPage() {
       setError('Name, mobile number, and design are required')
       return
     }
+    if (submittingRef.current) return
+    submittingRef.current = true
     setLoading(true)
     setError('')
     try {
@@ -70,11 +73,62 @@ export default function EmployeeNewOrderPage() {
       let data: any
       try { data = JSON.parse(text) } catch { throw new Error('Server returned an invalid response. The request may be too large — try using smaller images.') }
       if (!data.success) throw new Error(data.error)
-      alert(`Order created! Card ID: ${data.data.cardId}\nCommission: ${data.data.commissionPoints} points`)
-      router.push('/employee/orders')
+      const orderData = data.data
+
+      if (!orderData.razorpayOrderId || !orderData.razorpayKey || !(window as any).Razorpay) {
+        alert(`Order ${orderData.orderId} created. It will appear in your orders once payment is received.`)
+        router.push('/employee/orders')
+        return
+      }
+
+      // The order only becomes a card once it is paid, so collect payment now.
+      await new Promise<void>((resolve) => {
+        const rzp = new (window as any).Razorpay({
+          key: orderData.razorpayKey,
+          amount: orderData.amount * 100,
+          currency: 'INR',
+          name: 'MySmartCard',
+          description: `${orderData.design} NFC Smart Card`,
+          order_id: orderData.razorpayOrderId,
+          prefill: { name: form.name, email: form.email, contact: form.mobile },
+          theme: { color: '#2563eb' },
+          handler: async (response: any) => {
+            let result: any = null
+            try {
+              const verifyRes = await fetch('/api/orders/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: orderData.orderId,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              })
+              result = await verifyRes.json()
+            } catch {}
+            alert(result?.success
+              ? `Payment received! Order ${orderData.orderId}, Card ID: ${result.data.cardId}`
+              : `Payment done for order ${orderData.orderId}. It will be confirmed automatically in a few minutes.`)
+            resolve()
+            router.push('/employee/orders')
+          },
+          modal: { ondismiss: () => resolve() },
+        })
+        rzp.on('payment.failed', (response: any) => {
+          fetch('/api/orders/fail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: orderData.orderId, paymentId: response.error?.metadata?.payment_id || null }),
+          }).catch(() => {})
+          setError(`Payment failed: ${response.error?.description || 'Please try again.'}`)
+        })
+        rzp.open()
+      })
     } catch (err: any) {
       setError(err.message)
     } finally {
+      submittingRef.current = false
       setLoading(false)
     }
   }

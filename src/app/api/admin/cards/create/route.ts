@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
-import { generateCardId, generateNfcCardNumber, hashPassword } from '@/lib/auth'
+import { generateNfcCardNumber, hashPassword } from '@/lib/auth'
+import { emailTaken, findCustomersByContact, generateUniqueCardId } from '@/lib/orders'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { logActivity } from '@/lib/admin-log'
 import { applyTemplateConfig } from '@/lib/builder'
@@ -14,15 +15,6 @@ interface CustomerRecord {
   company: string | null
   mobile: string | null
   email: string | null
-}
-
-async function generateUniqueCardId(): Promise<string> {
-  for (let attempt = 0; attempt < 20; attempt++) {
-    const candidate = generateCardId()
-    const exists = await prisma.card.findUnique({ where: { cardId: candidate }, select: { id: true } })
-    if (!exists) return candidate
-  }
-  throw new Error('Could not generate a unique card ID. Please try again.')
 }
 
 export async function POST(request: NextRequest) {
@@ -58,13 +50,17 @@ export async function POST(request: NextRequest) {
       const cleanedEmail = clean(email)
       if (!cleanedName) return errorResponse('Customer name is required.')
 
-      if (cleanedMobile) customer = await prisma.customer.findFirst({ where: { mobile: cleanedMobile } })
-      if (!customer && cleanedEmail) customer = await prisma.customer.findFirst({ where: { email: cleanedEmail } })
+      const matches = await findCustomersByContact(cleanedMobile, cleanedEmail)
+      customer = matches.find(c => !c.cardId) || null
+      if (!customer && matches.length > 0) {
+        return errorResponse(`A customer with these details already has a card (${matches[0].name}${matches[0].card?.cardId ? `, ${matches[0].card.cardId}` : ''}). Open the builder to customize it instead.`)
+      }
+      const takenBy = await emailTaken(cleanedEmail)
+      if (takenBy && takenBy.id !== customer?.id) {
+        return errorResponse(`The email ${cleanedEmail} is already used by customer "${takenBy.name}".`)
+      }
 
       if (customer) {
-        if (customer.cardId) {
-          return errorResponse('A customer with these details already has a card. Open the builder to customize it instead.')
-        }
         customer = await prisma.customer.update({
           where: { id: customer.id },
           data: {

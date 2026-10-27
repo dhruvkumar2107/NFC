@@ -11,16 +11,19 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const where: any = {}
     if (search) {
+      const q = search.trim()
       where.OR = [
-        { name: { contains: search } },
-        { email: { contains: search } },
-        { mobile: { contains: search } },
-        { company: { contains: search } },
+        { name: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+        { mobile: { contains: q } },
+        { company: { contains: q, mode: 'insensitive' } },
+        { card: { cardId: { contains: q, mode: 'insensitive' } } },
+        { card: { nfcCardNumber: { contains: q, mode: 'insensitive' } } },
       ]
     }
     const customers = await prisma.customer.findMany({
       where,
-      include: { card: true, orders: true, employee: true },
+      include: { card: true, orders: { orderBy: { createdAt: 'desc' } }, employee: true },
       orderBy: { createdAt: 'desc' },
     })
     return successResponse(customers)

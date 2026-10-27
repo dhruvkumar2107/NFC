@@ -28,13 +28,15 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const updated = await prisma.order.update({
-      where: { id: order.id },
+    // Conditional so a failed retry can't overwrite a payment confirmed meanwhile.
+    await prisma.order.updateMany({
+      where: { id: order.id, status: { notIn: ['Payment Received', 'Delivered'] }, cardId: null },
       data: {
         status: 'Payment Failed',
         razorpayPaymentId: paymentId || order.razorpayPaymentId || null,
       },
     })
+    const updated = await prisma.order.findUniqueOrThrow({ where: { id: order.id } })
 
     return successResponse({
       orderId: updated.orderId,

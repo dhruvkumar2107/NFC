@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
-import { generateCardId, generateNfcCardNumber } from '@/lib/auth'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import crypto from 'crypto'
 import razorpay from '@/lib/razorpay'
 import { sendOrderConfirmationSMS } from '@/lib/sms'
+import { fulfillPaidOrder } from '@/lib/orders'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +13,9 @@ export async function POST(request: NextRequest) {
 
     if (!orderId) return errorResponse('Order ID is required')
 
+    const order = await prisma.order.findFirst({ where: { orderId } })
+    if (!order) return errorResponse('Order not found', 404)
+
     const hasRealKeys = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret'
 
     if (hasRealKeys) {
@@ -20,22 +23,25 @@ export async function POST(request: NextRequest) {
         return errorResponse('Payment data is required', 400)
       }
 
+      // The payment must belong to this order's Razorpay order, otherwise a
+      // payment made for one order could be replayed to confirm another.
+      if (order.razorpayPaymentLinkId && order.razorpayPaymentLinkId !== razorpay_order_id) {
+        return errorResponse('Payment does not match this order', 400)
+      }
+
       const expectedSignature = crypto
         .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest('hex')
 
-      if (expectedSignature !== razorpay_signature) {
-        console.error('Signature mismatch for order:', orderId, {
-          expected: expectedSignature,
-          received: razorpay_signature,
-        })
-
+      const signatureOk = expectedSignature === razorpay_signature
+      if (!signatureOk || !order.razorpayPaymentLinkId) {
         try {
           const rpOrder = await razorpay.orders.fetch(razorpay_order_id)
-          if (rpOrder.status === 'paid' || rpOrder.amount_paid > 0) {
-            console.log('Razorpay API confirms payment for order:', orderId)
-          } else {
+          if (rpOrder.receipt !== order.orderId) {
+            return errorResponse('Payment does not match this order', 400)
+          }
+          if (!signatureOk && !(rpOrder.status === 'paid' || Number(rpOrder.amount_paid) > 0)) {
             return errorResponse('Payment verification failed - invalid signature', 400)
           }
         } catch {
@@ -44,89 +50,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const order = await tx.order.findFirst({ where: { orderId } })
-      if (!order) throw new Error('Order not found')
-
-      if (order.status === 'Payment Received' || order.status === 'Delivered') {
-        const existingCard = await tx.card.findFirst({ where: { orderId: order.id } })
-        return {
-          alreadyProcessed: true,
-          orderId: order.orderId,
-          cardId: existingCard?.cardId || null,
-          amount: order.amount,
-          status: order.status,
-        }
-      }
-
-      const cardIdNum = generateCardId()
-      const nfcCardNumber = await generateNfcCardNumber()
-      const card = await tx.card.create({
-        data: {
-          cardId: cardIdNum,
-          nfcCardNumber,
-          orderId: order.id,
-          soldByEmployeeId: order.employeeId,
-          designId: order.designId,
-          status: 'Pending',
-        },
-      })
-
-      await tx.customer.update({
-        where: { id: order.customerId! },
-        data: {
-          cardId: card.id,
-          ...(order.employeeId ? { soldByEmployeeId: order.employeeId } : {}),
-        },
-      })
-      const commissionPoints = order.commissionPoints > 0 ? order.commissionPoints : (order.employeeId ? 100 : 0)
-      const commissionAmount = (order.commissionAmount && order.commissionAmount > 0) ? order.commissionAmount : (order.employeeId ? 100 : 0)
-
-      await tx.order.update({
-        where: { id: order.id },
-        data: {
-          cardId: card.id,
-          status: 'Payment Received',
-          commissionPoints,
-          commissionAmount,
-          razorpayPaymentId: razorpay_payment_id || null,
-          razorpayPaymentLinkId: razorpay_order_id || null,
-        },
-      })
-
-      if (order.employeeId && commissionPoints > 0) {
-        await tx.employee.update({
-          where: { id: order.employeeId },
-          data: {
-            totalPoints: { increment: commissionPoints },
-            availablePoints: { increment: commissionPoints },
-          },
-        })
-        await tx.walletTransaction.create({
-          data: {
-            employeeId: order.employeeId,
-            orderId: order.id,
-            type: 'commission_earned',
-            points: commissionPoints,
-            description: `Commission for order ${orderId}: ${commissionPoints} points (₹${commissionAmount})`,
-          },
-        })
-      }
-
-      const customer = await tx.customer.findUnique({ where: { id: order.customerId! } })
-      const design = await tx.cardDesign.findUnique({ where: { id: order.designId } })
-
-      return {
-        alreadyProcessed: false,
-        orderId: order.orderId,
-        cardId: card.cardId,
-        amount: order.amount,
-        design: order.designId,
-        designName: design?.name || '',
-        customerName: customer?.name || '',
-        customerMobile: customer?.mobile || '',
-        status: 'Payment Received',
-      }
+    const result = await fulfillPaidOrder({
+      orderDbId: order.id,
+      razorpayPaymentId: razorpay_payment_id || null,
+      razorpayOrderId: razorpay_order_id || null,
     })
 
     if (result.alreadyProcessed) {
@@ -143,8 +70,8 @@ export async function POST(request: NextRequest) {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
       sendOrderConfirmationSMS({
         orderId: result.orderId,
-        cardId: result.cardId,
-        design: result.designName || '',
+        cardId: result.cardId!,
+        design: result.designName,
         amount: result.amount,
         customerName: result.customerName,
         customerMobile: result.customerMobile,
@@ -156,7 +83,7 @@ export async function POST(request: NextRequest) {
       orderId: result.orderId,
       cardId: result.cardId,
       amount: result.amount,
-      design: result.design,
+      design: result.designName,
       status: result.status,
       message: 'Payment verified and order confirmed!',
     })

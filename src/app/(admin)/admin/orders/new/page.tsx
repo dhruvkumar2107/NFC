@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -18,6 +18,7 @@ import {
 function AdminNewOrderContent() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const submittingRef = useRef(false)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState<string | null>(null)
   const [docProgress, setDocProgress] = useState(0)
@@ -51,12 +52,14 @@ function AdminNewOrderContent() {
     setForm(f => ({ ...f, [field]: value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent, createNew = false) {
     e.preventDefault()
+    if (submittingRef.current) return
     if (!form.name || !form.mobile || !form.designId) {
       setError('Name, mobile number, and design are required')
       return
     }
+    submittingRef.current = true
     setLoading(true)
     setError('')
     try {
@@ -78,17 +81,33 @@ function AdminNewOrderContent() {
           designId: form.designId,
           employeeId: form.employeeId || null,
           amount: form.amount ? parseFloat(form.amount) : undefined,
+          createNew,
         }),
       })
       const text = await res.text()
       let data: any
       try { data = JSON.parse(text) } catch { throw new Error('Server returned an invalid response. The request may be too large — try using smaller images.') }
+      if (data.code === 'CUSTOMER_HAS_CARD') {
+        const list = (data.existing || [])
+          .map((c: any) => `• ${c.name} — ${c.mobile || '-'}${c.cardId ? ` (card ${c.cardId})` : ''}, added ${new Date(c.createdAt).toLocaleDateString()}`)
+          .join('\n')
+        const ok = confirm(
+          `This mobile number / email already has a card:\n\n${list}\n\n` +
+          `If this is the SAME order, press Cancel and check Admin → Customers / Orders.\n` +
+          `Press OK to create a NEW separate customer and card.`
+        )
+        submittingRef.current = false
+        setLoading(false)
+        if (ok) return await handleSubmit(e, true)
+        return
+      }
       if (!data.success) throw new Error(data.error)
       alert(`Order created successfully!\nOrder ID: ${data.data.orderId}\nCard ID: ${data.data.cardId}`)
       router.push('/admin/orders?status=confirmed')
     } catch (err: any) {
       setError(err.message)
     } finally {
+      submittingRef.current = false
       setLoading(false)
     }
   }

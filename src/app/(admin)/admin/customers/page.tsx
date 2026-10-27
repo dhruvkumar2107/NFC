@@ -16,8 +16,6 @@ export default function AdminCustomersPage() {
       .catch(() => setLoading(false))
   }
 
-  useEffect(() => { fetchCustomers() }, [])
-
   useEffect(() => {
     const t = setTimeout(() => fetchCustomers(search), 300)
     return () => clearTimeout(t)
@@ -60,7 +58,16 @@ export default function AdminCustomersPage() {
                 </td>
                 <td className="p-3"><span className="px-2 py-0.5 rounded text-xs bg-gray-100">{c.type}</span></td>
                 <td className="p-3 text-gray-600">{c.employee ? <Link href={`/admin/employees/${c.employee.id}`} className="text-primary-600 hover:underline text-xs">{c.employee.employeeId}</Link> : <span className="text-xs text-gray-400">Direct</span>}</td>
-                <td className="p-3">{c.orders?.length || 0}</td>
+                <td className="p-3">
+                  {(() => {
+                    const orders = c.orders || []
+                    const paid = orders.filter((o: any) => o.status === 'Payment Received' || o.status === 'Delivered').length
+                    if (orders.length === 0) return <span className="text-xs text-gray-400">0</span>
+                    return paid > 0
+                      ? <span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">{paid} paid</span>
+                      : <span className="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">Not paid</span>
+                  })()}
+                </td>
                 <td className="p-3"><Link href={`/admin/customers/${c.id}`} className="text-sm text-primary-600 hover:underline">View</Link></td>
               </tr>
             ))}

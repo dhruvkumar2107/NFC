@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
-import { generateCardId, generateOrderId, hashPassword } from '@/lib/auth'
+import { hashPassword } from '@/lib/auth'
+import { emailTaken, findCustomersByContact, generateUniqueOrderId, withUniqueRetry } from '@/lib/orders'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { isImageValue, MAX_USER_PHOTOS, validatePhotoList } from '@/lib/profile-media'
 import razorpay from '@/lib/razorpay'
@@ -74,37 +75,51 @@ export async function POST(request: NextRequest) {
 
     const cleanedMobile = clean(mobile)
     const cleanedEmail = clean(email)
-    let customer = cleanedMobile ? await prisma.customer.findFirst({ where: { mobile: cleanedMobile } }) : null
-    if (!customer && cleanedEmail) customer = await prisma.customer.findFirst({ where: { email: cleanedEmail } })
+    if (!cleanedMobile) return errorResponse('Mobile number is required')
+
+    const profile = {
+      name, designation: clean(designation), company: clean(company), college: clean(college),
+      mobile: cleanedMobile, whatsapp: clean(whatsapp), website: clean(website),
+      socialLinks: JSON.stringify(socialLinks || {}),
+      address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
+      description: clean(description),
+    }
+
+    // Only a customer who has no card yet (an earlier unpaid checkout attempt)
+    // is reused. Someone who already owns a card gets a new customer record, so
+    // a second order never overwrites the first card's profile.
+    const matches = await findCustomersByContact(cleanedMobile, cleanedEmail)
+    let customer = matches.find(c => !c.cardId) || null
+
+    const takenBy = await emailTaken(cleanedEmail)
+    const emailForCustomer = takenBy && takenBy.id !== customer?.id ? undefined : cleanedEmail
+
     if (customer) {
       customer = await prisma.customer.update({
         where: { id: customer.id },
         data: {
-          name, designation: clean(designation), company: clean(company), college: clean(college),
-          mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
-          socialLinks: JSON.stringify(socialLinks || {}),
-          address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
-          description: clean(description),
+          ...profile,
+          ...(emailForCustomer !== undefined ? { email: emailForCustomer } : {}),
           ...(cleanedLogo ? { logoUrl: cleanedLogo } : {}),
           ...(cleanedQr ? { paymentQrUrl: cleanedQr } : {}),
           ...(Array.isArray(validatedPhotos) && validatedPhotos.length > 0
             ? { photos: JSON.stringify(validatedPhotos) }
             : {}),
         },
+        include: { card: { select: { cardId: true } } },
       })
     } else {
-      const tempPassword = await hashPassword((cleanedMobile || name) + '_mysmartcard_temp')
+      const tempPassword = await hashPassword(cleanedMobile + '_mysmartcard_temp')
       customer = await prisma.customer.create({
         data: {
-          name, designation: clean(designation), company: clean(company), college: clean(college),
-          mobile: cleanedMobile, whatsapp: clean(whatsapp), email: cleanedEmail, website: clean(website),
-          socialLinks: JSON.stringify(socialLinks || {}),
-          address: clean(address), taluk: clean(taluk), city: clean(city), state: clean(state), pincode: clean(pincode),
-          logoUrl: cleanedLogo, paymentQrUrl: cleanedQr, description: clean(description),
+          ...profile,
+          email: emailForCustomer ?? null,
+          logoUrl: cleanedLogo, paymentQrUrl: cleanedQr,
           photos: JSON.stringify(validatedPhotos || []),
           soldByEmployeeId: null,
           passwordHash: tempPassword,
         },
+        include: { card: { select: { cardId: true } } },
       })
     }
 
@@ -134,33 +149,58 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const orderId = generateOrderId()
-    const order = await prisma.order.create({
-      data: {
-        orderId,
-        customerId: customer.id,
-        employeeId,
-        designId: design.id,
-        amount: design.price,
-        commissionAmount,
-        commissionPoints,
-        attributionType: resolvedAttributionType,
-        status: 'Pending',
-      },
+    const hasRazorpay = !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret')
+    const razorpayKey = hasRazorpay ? (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || null) : null
+
+    // Retrying checkout (closing the payment window and pressing Pay again)
+    // continues the same order instead of creating another one.
+    const openOrders = await prisma.order.findMany({
+      where: { customerId: customer.id, status: { in: ['Pending', 'Payment Failed'] }, cardId: null },
+      orderBy: { createdAt: 'desc' },
     })
+    const reusable = openOrders.find(o =>
+      o.designId === design.id && o.amount === design.price && o.razorpayPaymentLinkId &&
+      Date.now() - o.createdAt.getTime() < 12 * 60 * 60 * 1000)
+    const stale = openOrders.filter(o => o.id !== reusable?.id && o.status === 'Pending')
+    if (stale.length > 0) {
+      await prisma.order.updateMany({ where: { id: { in: stale.map(o => o.id) } }, data: { status: 'Cancelled' } })
+    }
 
-    let razorpayOrderId: string | null = null
-    let razorpayKey: string | null = null
+    let order
+    if (reusable) {
+      order = await prisma.order.update({
+        where: { id: reusable.id },
+        data: { employeeId, commissionAmount, commissionPoints, attributionType: resolvedAttributionType, status: 'Pending' },
+      })
+    } else {
+      order = await withUniqueRetry(async () => prisma.order.create({
+        data: {
+          orderId: await generateUniqueOrderId(),
+          customerId: customer!.id,
+          employeeId,
+          designId: design.id,
+          amount: design.price,
+          commissionAmount,
+          commissionPoints,
+          attributionType: resolvedAttributionType,
+          status: 'Pending',
+        },
+      }))
+    }
 
-    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET !== 'placeholder_secret') {
+    let razorpayOrderId: string | null = order.razorpayPaymentLinkId
+
+    if (hasRazorpay && !razorpayOrderId) {
       try {
         const razorpayOrder = await razorpay.orders.create({
           amount: Math.round(design.price * 100),
           currency: 'INR',
-          receipt: orderId,
+          receipt: order.orderId,
         })
         razorpayOrderId = razorpayOrder.id
-        razorpayKey = (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || null)
+        // Stored so the webhook can confirm the order even if the browser never
+        // comes back from the payment window.
+        order = await prisma.order.update({ where: { id: order.id }, data: { razorpayPaymentLinkId: razorpayOrderId } })
       } catch (e: any) {
         console.error('Razorpay order creation failed:', e.message)
         await prisma.order.update({ where: { id: order.id }, data: { status: 'Cancelled' } })
@@ -170,7 +210,7 @@ export async function POST(request: NextRequest) {
 
     return successResponse({
       orderId: order.orderId,
-      razorpayOrderId,
+      razorpayOrderId: hasRazorpay ? razorpayOrderId : null,
       razorpayKey,
       amount: design.price,
       design: design.name,

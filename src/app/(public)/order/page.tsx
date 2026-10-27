@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { uploadFile } from '@/lib/upload-client'
@@ -53,6 +53,7 @@ function OrderContent() {
   })
   const [errors, setErrors] = useState<Partial<Record<keyof OrderForm, string>>>({})
   const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
   const [referralValid, setReferralValid] = useState<boolean | null>(null)
   const [designs, setDesigns] = useState<any[]>([])
   const [attributionType, setAttributionType] = useState('direct')
@@ -123,7 +124,16 @@ function OrderContent() {
 
   const handleBack = () => { if (step > 1) setStep(step - 1) }
 
+  const stopSubmitting = () => {
+    submittingRef.current = false
+    setSubmitting(false)
+  }
+
   const handleSubmit = async () => {
+    // A ref, not state: a fast double-click fires twice before the disabled
+    // button re-renders, which used to create two orders.
+    if (submittingRef.current) return
+    submittingRef.current = true
     setSubmitting(true)
     try {
       const photos = [form.photo1, form.photo2, form.photo3, form.photo4, form.photo5, form.photo6].filter(p => p.trim())
@@ -155,13 +165,12 @@ function OrderContent() {
       })
       const text = await res.text()
       let result: any
-      try { result = JSON.parse(text) } catch { alert('Server returned an invalid response. The request may be too large — try using smaller images.'); setSubmitting(false); return }
-      if (!result.success) { alert(result.error || 'Something went wrong.'); setSubmitting(false); return }
+      try { result = JSON.parse(text) } catch { alert('Server returned an invalid response. The request may be too large — try using smaller images.'); stopSubmitting(); return }
+      if (!result.success) { alert(result.error || 'Something went wrong.'); stopSubmitting(); return }
 
       const orderData = result.data
 
       if (orderData.razorpayOrderId && orderData.razorpayKey) {
-        const successUrl = `/order/success?orderId=${orderData.orderId}`
         const options = {
           key: orderData.razorpayKey,
           amount: orderData.amount * 100,
@@ -181,30 +190,27 @@ function OrderContent() {
                   razorpay_signature: response.razorpay_signature,
                 }),
               })
-              const verifyData = await verifyRes.json()
-              if (verifyData.success) {
-                const params = new URLSearchParams({
-                  orderId: orderData.orderId,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_signature: response.razorpay_signature,
-                })
-                router.push(`/order/success?${params.toString()}`)
-                return
-              }
+              await verifyRes.json()
             } catch (err) {
               console.error('Payment verify call failed:', err)
             }
-            router.push(successUrl)
+            // The success page re-runs verification if this call failed.
+            const params = new URLSearchParams({
+              orderId: orderData.orderId,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+            router.push(`/order/success?${params.toString()}`)
           },
           prefill: { name: form.fullName, email: form.email, contact: form.mobile },
           theme: { color: '#2563eb' },
           modal: {
             ondismiss: function () {
-              setSubmitting(false)
+              stopSubmitting()
             },
             handler: function () {
-              setSubmitting(false)
+              stopSubmitting()
             }
           }
         }
@@ -224,14 +230,14 @@ function OrderContent() {
           } catch (e) {
             console.error('Failed to notify backend of payment failure:', e)
           }
-          setSubmitting(false)
+          stopSubmitting()
           alert(`Payment failed: ${response.error?.description || 'Please try again.'}`)
         })
         rzp.open()
       } else {
         router.push(`/order/success?orderId=${orderData.orderId}`)
       }
-    } catch { alert('Failed to place order. Please try again.'); setSubmitting(false) }
+    } catch { alert('Failed to place order. Please try again.'); stopSubmitting() }
   }
 
   const stepLabels = ['Design', 'Details', 'Preview', 'Payment']

@@ -1,7 +1,9 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import type { Customer } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-guard'
-import { generateCardId, generateOrderId, generateNfcCardNumber, hashPassword } from '@/lib/auth'
+import { generateNfcCardNumber, hashPassword } from '@/lib/auth'
+import { emailTaken, findCustomersByContact, generateUniqueCardId, generateUniqueOrderId, withUniqueRetry } from '@/lib/orders'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import {
   MAX_ADMIN_PHOTOS,
@@ -40,7 +42,7 @@ export async function POST(request: NextRequest) {
       website, address, taluk, city, state, pincode,
       socialLinks, logoUrl, paymentQrUrl, description,
       adminPhotos, documents, videos,
-      designId, employeeId, amount,
+      designId, employeeId, amount, createNew,
     } = body
 
     if (!name || !designId) {
@@ -85,8 +87,26 @@ export async function POST(request: NextRequest) {
     const design = await prisma.cardDesign.findUnique({ where: { id: designId } })
     if (!design) return errorResponse('Invalid card design')
 
-    let customer = cleanedMobile ? await prisma.customer.findFirst({ where: { mobile: cleanedMobile } }) : null
-    if (!customer && cleanedEmail) customer = await prisma.customer.findFirst({ where: { email: cleanedEmail } })
+    // A customer row holds exactly one card and that card's profile, so only a
+    // customer without a card is reused. Attaching a new order to a customer who
+    // already has a card used to overwrite their profile and orphan the old card.
+    const matches = await findCustomersByContact(cleanedMobile, cleanedEmail)
+    const withCard = matches.filter(c => c.cardId)
+    if (withCard.length > 0 && !createNew) {
+      return NextResponse.json({
+        success: false,
+        code: 'CUSTOMER_HAS_CARD',
+        error: 'A customer with this mobile number or email already has a card.',
+        existing: withCard.map(c => ({ id: c.id, name: c.name, mobile: c.mobile, email: c.email, cardId: c.card?.cardId || null, createdAt: c.createdAt })),
+      }, { status: 409 })
+    }
+
+    let customer: Customer | null = matches.find(c => !c.cardId) || null
+    const takenBy = await emailTaken(cleanedEmail)
+    if (takenBy && takenBy.id !== customer?.id) {
+      return errorResponse(`The email ${cleanedEmail} is already used by customer "${takenBy.name}". Use a different email or leave it blank.`, 409)
+    }
+
     if (customer) {
       // Only overwrite fields the admin actually provided. The order form starts
       // blank and never loads the existing profile, so persisting empty values
@@ -167,13 +187,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const orderId = generateOrderId()
-    const cardIdNum = generateCardId()
-    const nfcCardNumber = await generateNfcCardNumber()
-
     const orderAmount = amount || design.price
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await withUniqueRetry(() => prisma.$transaction(async (tx) => {
+      const orderId = await generateUniqueOrderId(tx)
+      const cardIdNum = await generateUniqueCardId(tx)
+      const nfcCardNumber = await generateNfcCardNumber()
       const card = await tx.card.create({
         data: {
           cardId: cardIdNum,
@@ -232,7 +251,7 @@ export async function POST(request: NextRequest) {
       }
 
       return { orderId: order.orderId, cardId: card.cardId, nfcCardNumber: card.nfcCardNumber }
-    })
+    }, { timeout: 20000, maxWait: 10000 }))
 
     return successResponse({
       orderId: result.orderId,
