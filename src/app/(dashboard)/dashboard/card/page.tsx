@@ -1,4 +1,5 @@
 "use client"
+import { cardProfilePath } from '@/lib/card-url'
 import { useEffect, useState } from 'react'
 
 export default function CardDetailsPage() {
@@ -17,7 +18,7 @@ export default function CardDetailsPage() {
           const baseUrl = window.location.origin
           const readableCardId = d.data.card?.cardId
           if (readableCardId) {
-            const profileUrl = `${baseUrl}/p/${readableCardId}`
+            const profileUrl = `${baseUrl}${cardProfilePath(d.data.card)}`
             setProfileQr(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(profileUrl)}`)
           }
           if (d.data.paymentQrUrl) {
@@ -40,6 +41,7 @@ export default function CardDetailsPage() {
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const readableCardId = customer.card?.cardId || ''
+  const profileUrl = readableCardId ? `${baseUrl}${cardProfilePath(customer.card)}` : ''
 
   return (
     <div>
@@ -72,9 +74,9 @@ export default function CardDetailsPage() {
           ) : (
             <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 mb-4">No card assigned</div>
           )}
-          <p className="text-sm text-gray-600 break-all">{baseUrl}/p/{readableCardId}</p>
+          <p className="text-sm text-gray-600 break-all">{profileUrl}</p>
           <button
-            onClick={() => { navigator.clipboard.writeText(`${baseUrl}/p/${readableCardId}`); alert('Profile URL copied!') }}
+            onClick={() => { navigator.clipboard.writeText(profileUrl); alert('Profile URL copied!') }}
             className="btn-secondary mt-3 text-sm"
           >
             Copy Link
@@ -94,18 +96,9 @@ export default function CardDetailsPage() {
       <div className="card mt-6">
         <h2 className="font-semibold text-lg mb-2">NFC Information</h2>
         <p className="text-gray-600 text-sm">Your NFC chip is programmed with your profile URL. Anyone with an NFC-enabled phone can tap your card to view your digital profile.</p>
-        <p className="text-sm text-gray-600 mt-2">Profile URL: <span className="font-mono text-primary-600">{baseUrl}/p/{readableCardId}</span></p>
+        <p className="text-sm text-gray-600 mt-2">Profile URL: <span className="font-mono text-primary-600 break-all">{profileUrl || 'N/A'}</span></p>
         {customer.card?.nfcCardNumber && (
-          <div className="mt-3 p-3 bg-primary-50 rounded-lg">
-            <p className="text-sm text-gray-600">NFC Card Number: <span className="font-mono font-bold text-primary-600">{customer.card.nfcCardNumber}</span></p>
-            <p className="text-sm text-gray-600 mt-1">NFC URL: <span className="font-mono text-primary-600">{baseUrl}/card/{customer.card.nfcCardNumber}</span></p>
-            <button
-              onClick={() => { navigator.clipboard.writeText(`${baseUrl}/card/${customer.card.nfcCardNumber}`); alert('NFC URL copied!') }}
-              className="btn-secondary mt-2 text-sm"
-            >
-              Copy NFC URL
-            </button>
-          </div>
+          <p className="text-sm text-gray-600 mt-1">NFC Card Number: <span className="font-mono font-bold text-primary-600">{customer.card.nfcCardNumber}</span></p>
         )}
       </div>
     </div>

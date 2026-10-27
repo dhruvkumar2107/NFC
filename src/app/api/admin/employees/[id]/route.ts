@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { CUSTOMER_LIST_SELECT } from '@/lib/orders'
 import { requireAuth } from '@/lib/auth-guard'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
@@ -9,7 +10,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (error) return error
     const employee = await prisma.employee.findUnique({
       where: { id: params.id },
-      include: { customers: true, orders: { include: { customer: true, design: true } } },
+      include: {
+        customers: { select: CUSTOMER_LIST_SELECT },
+        orders: { include: { customer: { select: CUSTOMER_LIST_SELECT }, design: true } },
+      },
     })
     if (!employee) return errorResponse('Employee not found', 404)
     const { passwordHash, ...safeEmployee } = employee

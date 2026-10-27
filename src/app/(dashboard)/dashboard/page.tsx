@@ -1,4 +1,5 @@
 "use client"
+import { cardProfilePath } from '@/lib/card-url'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { parsePhotoUrlList } from '@/lib/profile-media'
@@ -27,6 +28,7 @@ export default function CustomerDashboard() {
   if (!customer) return <div className="text-center py-12 text-gray-500">Could not load dashboard data.</div>
 
   const readableCardId = customer.card?.cardId || ''
+  const profileUrl = readableCardId ? `${baseUrl}${cardProfilePath(customer.card)}` : ''
   let socialLinks: any = {}
   try { socialLinks = JSON.parse(customer.socialLinks || '{}') } catch { socialLinks = {} }
   const photos = parsePhotoUrlList(customer.photos)
@@ -64,10 +66,10 @@ export default function CustomerDashboard() {
         <div className="card">
           <div className="text-sm text-gray-500 mb-1">Profile URL</div>
           <div className="text-sm font-mono text-primary-600 break-all">
-            {readableCardId ? `${baseUrl}/p/${readableCardId}` : 'N/A'}
+            {profileUrl || 'N/A'}
           </div>
           {readableCardId && (
-            <button onClick={() => { navigator.clipboard.writeText(`${baseUrl}/p/${readableCardId}`); alert('Profile URL copied!') }}
+            <button onClick={() => { navigator.clipboard.writeText(profileUrl); alert('Profile URL copied!') }}
               className="mt-2 text-xs text-primary-600 hover:text-primary-700">Copy Link</button>
           )}
         </div>

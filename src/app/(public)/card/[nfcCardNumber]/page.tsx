@@ -1,3 +1,4 @@
+import { cardProfilePath } from '@/lib/card-url'
 import { notFound } from 'next/navigation'
 import PublicProfile from '@/components/public/PublicProfile'
 import { loadProfileByNfc, buildPublicMedia } from '@/lib/public-profile'
@@ -17,7 +18,7 @@ export default async function NfcCardProfilePage({ params }: { params: { nfcCard
     <PublicProfile
       card={{ cardId: card.cardId, nfcCardNumber: card.nfcCardNumber }}
       customer={customer}
-      profilePath={card.nfcCardNumber ? `/card/${card.nfcCardNumber}` : `/p/${card.cardId}`}
+      profilePath={cardProfilePath(card)}
       photos={media.photos}
       documents={media.documents}
       videos={media.videos}

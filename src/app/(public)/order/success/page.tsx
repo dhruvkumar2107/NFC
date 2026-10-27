@@ -1,4 +1,5 @@
 "use client"
+import { cardProfilePath } from '@/lib/card-url'
 import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -84,7 +85,7 @@ function SuccessContent() {
     if (!data) return
     const phone = data.customerWhatsapp || data.customerMobile || ''
     const cleanedPhone = phone.replace(/[^0-9]/g, '')
-    const profileUrl = `${window.location.origin}/p/${data.cardId}`
+    const profileUrl = `${window.location.origin}${cardProfilePath(data)}`
     const message =
       `*MySmartCard Order Confirmation*\n\n` +
       `Order ID: ${data.orderId}\n` +
@@ -172,11 +173,11 @@ function SuccessContent() {
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-8 text-left">
           <h2 className="font-semibold text-green-800 mb-2">Profile URL</h2>
           <p className="text-sm text-green-700">Your digital profile is live at:</p>
-          <p className="font-mono text-sm text-green-800 mt-1 break-all">{typeof window !== 'undefined' ? window.location.origin : ''}/p/{data.cardId}</p>
+          <p className="font-mono text-sm text-green-800 mt-1 break-all">{typeof window !== 'undefined' ? window.location.origin : ''}{cardProfilePath(data)}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-          <Link href={`/p/${data.cardId}`} className="btn-primary">View Your Profile</Link>
+          <Link href={cardProfilePath(data)} className="btn-primary">View Your Profile</Link>
           <Link href="/login" className="btn-secondary">Login to Dashboard</Link>
         </div>
 

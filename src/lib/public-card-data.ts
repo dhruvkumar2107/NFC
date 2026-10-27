@@ -1,3 +1,4 @@
+import { cardProfilePath } from '@/lib/card-url'
 import { prisma } from './db'
 import { buildPublicBuilderData, buildPublicEmi, type PublicBuilderData, type PublicEmiConfig } from './card-data'
 import { buildPublicGallery, buildPublicDocuments, type PublicPhoto, type PublicDocument } from './public-profile'
@@ -199,9 +200,7 @@ export async function loadPublicCardData(identifier: string, requestUrl?: string
   }))
 
   const baseUrl = resolveBaseUrl(requestUrl)
-  const profileUrl = card.nfcCardNumber
-    ? `${baseUrl}/card/${card.nfcCardNumber}`
-    : `${baseUrl}/p/${card.cardId}`
+  const profileUrl = `${baseUrl}${cardProfilePath(card)}`
 
   return {
     card,

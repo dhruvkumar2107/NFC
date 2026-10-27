@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     return successResponse({
       orderId: order.orderId,
       cardId: order.card?.cardId,
+      nfcCardNumber: order.card?.nfcCardNumber || null,
       amount: order.amount,
       status: order.status,
       design: order.design?.name,

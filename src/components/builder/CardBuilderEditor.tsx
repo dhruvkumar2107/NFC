@@ -1,4 +1,5 @@
 "use client"
+import { cardProfilePath } from '@/lib/card-url'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { uploadFile } from '@/lib/upload-client'
@@ -153,7 +154,7 @@ export default function CardBuilderEditor({ cardId, previewBase }: Props) {
   const previewUrl = useMemo(() => {
     if (!customer) return ''
     const base = previewBase || (typeof window !== 'undefined' ? window.location.origin : '')
-    return `${base}/p/${config?.card?.cardId || ''}`
+    return `${base}${cardProfilePath(config?.card)}`
   }, [customer, config, previewBase])
 
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 w-56 rounded bg-gray-200" /><div className="h-96 rounded-2xl bg-gray-100" /></div>

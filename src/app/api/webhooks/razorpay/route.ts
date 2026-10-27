@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
         sendOrderConfirmationSMS({
           orderId: result.orderId,
           cardId: result.cardId!,
+          nfcCardNumber: result.nfcCardNumber,
           design: result.designName,
           amount: result.amount,
           customerName: result.customerName,

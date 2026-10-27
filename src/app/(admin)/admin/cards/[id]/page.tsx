@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
+import { cardProfilePath } from '@/lib/card-url'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -56,7 +57,7 @@ export default function CardDetailPage() {
       <div className="grid md:grid-cols-4 gap-4 mb-6">
         <div className="card"><div className="text-sm text-gray-500">Status</div><div className="text-xl font-bold"><span className={`px-3 py-1 rounded-full text-sm ${card.status === 'Active' ? 'bg-green-100 text-green-700' : card.status === 'Deactivated' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{card.status}</span></div></div>
         <div className="card"><div className="text-sm text-gray-500">Design</div><div className="text-xl font-bold">{card.design?.name || '-'}</div></div>
-        <div className="card"><div className="text-sm text-gray-500">Profile URL</div><div className="text-sm font-mono text-primary-600 break-all">/p/{card.cardId}</div></div>
+        <div className="card"><div className="text-sm text-gray-500">Profile URL</div><div className="text-sm font-mono text-primary-600 break-all">{cardProfilePath(card)}</div></div>
         <div className="card"><div className="text-sm text-gray-500">Created</div><div className="text-sm">{new Date(card.createdAt).toLocaleDateString()}</div></div>
       </div>
 

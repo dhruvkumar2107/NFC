@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { CUSTOMER_LIST_SELECT } from '@/lib/orders'
 import { requireAuth } from '@/lib/auth-guard'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
@@ -36,7 +37,12 @@ export async function GET(request: NextRequest) {
     const [orders, counts] = await Promise.all([
       prisma.order.findMany({
         where,
-        include: { customer: true, employee: true, card: true, design: true },
+        include: {
+          customer: { select: CUSTOMER_LIST_SELECT },
+          employee: { select: { id: true, employeeId: true, name: true } },
+          card: { select: { id: true, cardId: true, nfcCardNumber: true, status: true } },
+          design: { select: { id: true, name: true, price: true } },
+        },
         orderBy: { orderDate: 'desc' },
       }),
       prisma.order.groupBy({

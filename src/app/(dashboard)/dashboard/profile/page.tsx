@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { cardProfilePath } from '@/lib/card-url'
 import { uploadFile, validateImageFile } from '@/lib/upload-client'
 import { formatFileSize, MAX_IMAGE_BYTES, MAX_USER_PHOTOS, parsePhotoUrlList } from '@/lib/profile-media'
 import ImageCropper from '@/components/ImageCropper'
@@ -25,6 +26,7 @@ function newPhotoId(): string {
 export default function EditProfilePage() {
   const [profile, setProfile] = useState<any>(null)
   const [readableCardId, setReadableCardId] = useState('')
+  const [profilePath, setProfilePath] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
@@ -48,6 +50,7 @@ export default function EditProfilePage() {
         if (d.success) {
           const c = d.data
           setReadableCardId(c.card?.cardId || '')
+          setProfilePath(cardProfilePath(c.card))
           const photosData = parsePhotoUrlList(c.photos)
           let socialLinks: any = {}
           try { socialLinks = JSON.parse(c.socialLinks || '{}') } catch { socialLinks = {} }
@@ -316,7 +319,7 @@ export default function EditProfilePage() {
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-      <p className="text-gray-600 text-sm mb-6">Changes save instantly to your digital profile at <span className="font-mono text-primary-600">/p/{readableCardId}</span></p>
+      <p className="text-gray-600 text-sm mb-6">Changes save instantly to your digital profile at <span className="font-mono text-primary-600">{profilePath}</span></p>
 
       {msg && <div className={`p-3 rounded-lg mb-4 text-sm ${msg.includes('success') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{msg}</div>}
 

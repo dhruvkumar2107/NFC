@@ -1,3 +1,5 @@
+import { cardProfilePath } from '@/lib/card-url'
+
 const FREE2SMS_API_KEY = process.env.FREE2SMS_API_KEY
 const FREE2SMS_SENDER_ID = process.env.FREE2SMS_SENDER_ID
 const FREE2SMS_API_URL = 'https://free2sms.com/api/v1/send'
@@ -5,6 +7,7 @@ const FREE2SMS_API_URL = 'https://free2sms.com/api/v1/send'
 interface OrderSMSData {
   orderId: string
   cardId: string | null
+  nfcCardNumber?: string | null
   design: string
   amount: number
   customerName: string
@@ -24,7 +27,7 @@ export async function sendOrderConfirmationSMS(data: OrderSMSData): Promise<bool
     return false
   }
 
-  const profileUrl = `${data.baseUrl}/p/${data.cardId || 'pending'}`
+  const profileUrl = `${data.baseUrl}${cardProfilePath(data) || '/p/pending'}`
   const message =
     `MySmartCard Order Confirmed!\n\n` +
     `Order ID: ${data.orderId}\n` +

@@ -4,7 +4,16 @@ import { generateCardId, generateNfcCardNumber, generateOrderId } from '@/lib/au
 
 export const PAID_STATUSES = ['Payment Received', 'Delivered']
 
-export const phoneKey = (v?: string | null) => (v || '').replace(/\D/g, '').slice(-10)
+// Customer rows can carry megabytes of inline images (photos, logo, QR,
+// documents). List endpoints must select only these columns, otherwise the
+// response exceeds Vercel's 4.5 MB limit and the admin lists fail to load.
+export const CUSTOMER_LIST_SELECT = {
+  id: true, name: true, email: true, mobile: true, whatsapp: true, company: true,
+  designation: true, city: true, type: true, cardId: true, soldByEmployeeId: true,
+  createdAt: true, updatedAt: true,
+} satisfies Prisma.CustomerSelect
+
+export const phoneKey =(v?: string | null) => (v || '').replace(/\D/g, '').slice(-10)
 
 type Db = Prisma.TransactionClient | typeof prisma
 
@@ -84,6 +93,7 @@ export interface FulfillResult {
   alreadyProcessed: boolean
   orderId: string
   cardId: string | null
+  nfcCardNumber: string | null
   amount: number
   status: string
   designName: string
@@ -117,6 +127,7 @@ export async function fulfillPaidOrder(params: {
         alreadyProcessed: true,
         orderId: order.orderId,
         cardId: order.card?.cardId || null,
+        nfcCardNumber: order.card?.nfcCardNumber || null,
         amount: order.amount,
         status: order.status,
         designName: order.design?.name || '',
@@ -196,6 +207,7 @@ export async function fulfillPaidOrder(params: {
       alreadyProcessed: false,
       orderId: order.orderId,
       cardId: card.cardId,
+      nfcCardNumber: card.nfcCardNumber,
       amount: order.amount,
       status: 'Payment Received',
       designName: order.design?.name || '',

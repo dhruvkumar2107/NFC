@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { CUSTOMER_LIST_SELECT } from '@/lib/orders'
 import { requireAuth } from '@/lib/auth-guard'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
@@ -19,8 +20,9 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      include: {
-        card: true,
+      select: {
+        ...CUSTOMER_LIST_SELECT,
+        card: { select: { id: true, cardId: true, nfcCardNumber: true, status: true } },
         orders: {
           where: { employeeId: user!.id },
           orderBy: { orderDate: 'desc' },

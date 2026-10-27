@@ -203,7 +203,7 @@ export default function AlbumGallery({ cardId, albums, name, onTrack }: Props) {
   }
 
   async function shareGallery() {
-    const url = `${window.location.origin}/p/${encodeURIComponent(cardId)}`
+    const url = `${window.location.origin}${window.location.pathname}`
     onTrack?.('share', { section: 'gallery' })
     try {
       if (navigator.share) {
